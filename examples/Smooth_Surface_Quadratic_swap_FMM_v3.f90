@@ -123,7 +123,7 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-    nombre='cunya1.msh'
+    nombre='../geometries/cunya/cunya1.msh'
     filename='cunya1.gov'
 !    point inside to check Gauss integral
     x0=-0.3d0
@@ -564,8 +564,8 @@ integer ( kind = 8) count
         do count=1,15
 !            x(count)=x(count)*r/sgma/sqrt(2.0d0)
 !            w(count)=w(count)*r/sgma/sqrt(2.0d0)
-            H=H+(x(count)**2)*exp(-x(count)**2)/(sqrt(pi**3))*w(count)/(r**3);
-            HH=HH+(x(count)**4)*exp(-x(count)**2)*-2.0d0*w(count)/(r**5*sqrt(pi**3));
+          H=H+(x(count)**2)*exp(-x(count)**2)/(sqrt(pi**3))*w(count)/(r**3);
+          HH=HH+(x(count)**4)*exp(-x(count)**2)*-2.0d0*w(count)/(r**5*sqrt(pi**3));
         enddo
     else
         H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r

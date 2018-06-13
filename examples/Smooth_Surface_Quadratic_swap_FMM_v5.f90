@@ -127,12 +127,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-!    nombre='cunya_2_1.msh'
-!    filename='cunya_2_1.gov'
+    nombre='../geometries/cunya/cunya_2_1.msh'
+    filename='cunya_2_1.gov'
 !    point inside to check Gauss integral
-!    x0=-0.2d0
-!    y0=0.2d0
-!    z0=1.0d0
+    x0=-0.2d0
+    y0=0.2d0
+    z0=1.0d0
 
 !    nombre='torus_box.msh'
 !    filename='torus_box.gov'
@@ -196,12 +196,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    y0=0.0d0
 !    z0=-.50d0
 
-    nombre='huge_genus_4.msh'
-    filename='huge_genus_4.gov'
+!    nombre='../geometries/big_genus/huge_genus_4.msh'
+!    filename='huge_genus_4.gov'
 !    point inside to check Gauss integral
-    x0=1.5d0
-    y0=1.5d0
-    z0=1.5d0
+!    x0=1.5d0
+!    y0=1.5d0
+!    z0=1.5d0
 
 
 

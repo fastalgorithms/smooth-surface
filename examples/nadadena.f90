@@ -1,8 +1,19 @@
 Module some_types
-implicit none
-type Box_array
-    type (Box), pointer :: BP => null ()
-end type Box_array
+
+
+  implicit none
+
+
+
+  type Box_array
+     type (Box), pointer :: BP => null ()
+  end type Box_array
+
+
+
+
+
+  
 type Box
     real ( kind = 8 ) Box_center(3)
     real ( kind = 8 ), allocatable :: Points(:,:)
@@ -12,6 +23,11 @@ type Box
     type (Box_array) Colleague(27)
     type (Box), pointer :: Parent => null ()
 end type Box
+
+
+
+
+
 type Geometry
     real ( kind = 8 ), allocatable :: S_smooth(:,:)             !Points on the real smooth surface
     real ( kind = 8 ), allocatable :: N_smooth(:,:)             !Normals on the real smooth surface
@@ -37,6 +53,9 @@ type Geometry
     integer ( kind = 8 ) ntri_sk                                   !Total number of triangles on the skeleton
 
 end type Geometry
+
+
+
 type Variable_Matrix
     integer ( kind = 8 ) n_Mat, current_n_Mat
     real ( kind = 8 ), allocatable :: Mat(:,:)
