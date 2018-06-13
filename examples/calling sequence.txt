@@ -1,0 +1,11 @@
+calling sequence
+
+
+
+gfortran -o Smooth_Surface_Quadratic_swap_FMM_v3 -O3 nadadena.f90 Smooth_Surface_Quadratic_swap_FMM_v3.f90 tfmm3dlib.a
+
+
+
+./Smooth_Surface_Quadratic_swap_FMM_v3
+
+
