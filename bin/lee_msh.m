@@ -30,8 +30,11 @@ function [Geometry]=lee_msh(filename)
     P5=P5';
     P6=P6';
     
-     Points=[X,Y,Z];
-     Tri=[P1 P2 P3 P4 P5 P6];
+     Points=[X,Y,Z]
+     Tri=[P1 P2 P3 P4 P5 P6]
+
+     return;
+
      plot_quadratic_mesh(Points,Tri,n_tri,n_points)
     
     
@@ -84,7 +87,7 @@ function plot_quadratic_mesh(Points,Tri,n_tri,n_points)
         F_x=eval_pol_tri(coef_x,U,V);
         F_y=eval_pol_tri(coef_y,U,V);
         F_z=eval_pol_tri(coef_z,U,V);
-        surf(F_x,F_y,F_z)
+        surf(F_x,F_y,F_z,'edgealpha', 0.2)
         hold on
     end
 %    shading interp
