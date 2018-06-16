@@ -1,9 +1,9 @@
 
 #HOST = osx-gcc-7
 #HOST = osx-gcc-7-openmp
-#HOST = osx-intel
+HOST = osx-intel
 #HOST = osx-intel-openmp
-HOST = linux-gfortran
+#HOST = linux-gfortran
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel

@@ -396,7 +396,7 @@ c
 c     Memory allocation is complete. 
 c     Call main fmm routine
 c
-      time1=second()
+      call cpu_time(time1)
 C$      time1=omp_get_wtime()
       call tfmm3dmain(ier,iprec,
      $   ns,sourcesort,
@@ -413,7 +413,8 @@ cc      call prin2('texpssort=*',texpssort,180)
 
       print *, "Have exited main fmm routine"
 
-      time2=second()
+cccc      time2=second()
+      call cpu_time(time2)
 C$        time2=omp_get_wtime()
       if( ifprint .eq. 1 ) call prin2('time in fmm main=*',
      1   time2-time1,1)
@@ -688,7 +689,8 @@ c
 c
       if(ifprint .ge. 1) 
      $   call prinf('=== STEP 1 (form mp) ====*',i,0)
-        time1=second()
+      call cpu_time(time1)
+cccc      time1=second()
 C$        time1=omp_get_wtime()
 c
 c       ... step 1, locate all charges, assign them to boxes, and
@@ -724,13 +726,15 @@ C$OMP$PRIVATE(ibox,istart,iend,npts)
 
 C$OMP END PARALLEL DO        
 
-      time2=second()
+      call cpu_time(time2)
+cccc      time2=second()
 C$    time2=omp_get_wtime()
       timeinfo(1)=time2-time1
 c       
       if(ifprint .ge. 1)
      $      call prinf('=== STEP 2 (merge mp) ====*',i,0)
-      time1=second()
+cccc      time1=second()
+      call cpu_time(time1)
 C$    time1=omp_get_wtime()
 c
       do ilev=nlevels-1,0,-1
@@ -757,7 +761,8 @@ C$OMP$PRIVATE(ibox,jbox,istart,iend,npts,i)
 C$OMP END PARALLEL DO        
       enddo
 
-      time2=second()
+      call cpu_time(time2)
+cccc      time2=second()
 C$    time2=omp_get_wtime()
       timeinfo(2)=time2-time1
 
@@ -766,7 +771,8 @@ C$    time2=omp_get_wtime()
 c      ... step 3, convert multipole expansions into local
 c       expansions
 
-      time1 = second()
+      call cpu_time(time1)
+cccc      time1 = second()
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(i)
       do i=1,nboxes
@@ -947,13 +953,15 @@ c              Process the east west plane waves
          enddo
       enddo
 
-      time2 = second()
+      call cpu_time(time2)
+cccc      time2 = second()
       timeinfo(3) = time2-time1
 
       if(ifprint.ge.1)
      $    call prinf('=== Step 4 (split loc) ===*',i,0)
 
-      time1 = second()
+      call cpu_time(time1)
+cccc      time1 = second()
       do ilev = 0,nlevels-1
          do ibox = laddr(1,ilev),laddr(2,ilev)
             do i=1,8
@@ -972,7 +980,8 @@ c              Process the east west plane waves
             enddo
          enddo
       enddo
-      time2 = second()
+      call cpu_time(time2)
+cccc      time2 = second()
       timeinfo(4) = time2-time1
 
 c
@@ -980,7 +989,8 @@ c
      $    call prinf('=== step 5 (eval lo) ===*',i,0)
 
 c     ... step 5, evaluate all local expansions
-      time1 = second()
+      call cpu_time(time1)
+cccc      time1 = second()
       do ilev = 1,nlevels
 
          do ibox = laddr(1,ilev),laddr(2,ilev)
@@ -1013,12 +1023,14 @@ c     ... step 5, evaluate all local expansions
       enddo
 
 
-      time2 = second()
+      call cpu_time(time2)
+cccc      time2 = second()
       timeinfo(5) = time2 - time1
 
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 6 (direct) =====*',i,0)
-      time1=second()
+      call cpu_time(time1)
+cccc      time1=second()
       do ilev = 0,nlevels
       do ibox = laddr(1,ilev),laddr(2,ilev)
 
@@ -1040,7 +1052,8 @@ c     ... step 5, evaluate all local expansions
          enddo   
       enddo
       enddo
-      time2 = second()
+      call cpu_time(time2)
+cccc      time2 = second()
       timeinfo(6) = time2-time1
       if(ifprint.ge.1) call prin2('timeinfo=*',timeinfo,6)
       d = 0
