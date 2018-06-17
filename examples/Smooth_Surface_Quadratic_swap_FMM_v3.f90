@@ -1,158 +1,167 @@
+
+
 program Smooth_Surface_Quadratic
-use some_types
-implicit none
+  use some_types
+  implicit none
 
 
-interface
-subroutine setup_tree_sigma_geometry(Main_box,Geometry1)
-    use some_types
-        type (Geometry), intent(inout) :: Geometry1
-        type (Box), pointer :: Main_box
-    end subroutine
-end interface
+  
+  interface
+     subroutine setup_tree_sigma_geometry(Main_box,Geometry1)
+       use some_types
+       type (Geometry), intent(inout) :: Geometry1
+       type (Box), pointer :: Main_box
+     end subroutine setup_tree_sigma_geometry
+  end interface
 
-interface
-    subroutine find_smooth_surface(Geometry1,alpha,Main_box)
-        use some_types
-        type (Geometry), intent(inout) :: Geometry1
-        real ( kind = 8 ), intent(in) :: alpha
-        type (Box), pointer :: Main_box
-    end subroutine
-end interface
-
-integer,parameter :: seed = 86456   !This is for random stuff
-type (Box), pointer :: Main_box
-type (Geometry), allocatable :: Geometry1
-integer ( kind = 8 ) N,n_order_sk,n_order_sf, count
-character(len=30) nombre,filename
-real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c_nada
-    n_order_sk=78
-    n_order_sf=45
-    allocate(Geometry1)
-
-
-!Uncomment one of the following options
-
-!    nombre='Round_1.msh'
-!    filename='Round_1.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-!    nombre='Round_2.msh'
-!    filename='Round_2.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='Cube_substraction.msh'
-!    filename='Cube_substraction.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='Multiscale_1.msh'
-!    filename='Multiscale_1.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-!    nombre='Multiscale_2.msh'
-!    filename='Multiscale_2.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='Round_genus_2.msh'
-!    filename='Round_genus_2.gov'
-!    point inside to check Gauss integral
-!    x0=3.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='Round_genus_2_fino_05.msh'
-!    filename='Round_genus_2_fino_05.gov'
-!    point inside to check Gauss integral
-!    x0=3.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='Multires_cavidad_esfera.msh'
-!    filename='Multires_cavidad_esfera.gov'
-!    point inside to check Gauss integral
-!    x0=-1.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='sphere_union.msh'
-!    filename='sphere_union.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='sphere_substraction.msh'
-!    filename='sphere_substraction.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='substraction2.msh'
-!    filename='substraction2.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=7.5d0
-
-
-!    nombre='substraction2_v2.msh'
-!    filename='substraction2_v2.gov'
-!    point inside to check Gauss integral
-!    x0=0.7d0
-!    y0=0.3d0
-!    z0=1.0d0
-
-
-!    nombre='../geometries/cunya/cunya1.msh'
-!    filename='cunya1.gov'
-!    point inside to check Gauss integral
-!    x0=-0.3d0
-!    y0=-0.3d0
-!    z0=1.0d0
+  
+  interface
+     subroutine find_smooth_surface(Geometry1,alpha,Main_box)
+       use some_types
+       type (Geometry), intent(inout) :: Geometry1
+       real ( kind = 8 ), intent(in) :: alpha
+       type (Box), pointer :: Main_box
+     end subroutine find_smooth_surface
+  end interface
 
 
 
-!    nombre='simplest_cube_quadratic.msh'
-!    filename='simplest_cube_quadratic.gov'
-!    point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.5d0
+  
+  integer,parameter :: seed = 86456   !This is for random stuff
 
-    nombre='../jet/jet_fighter.msh'
-    filename='../jet/jet_fighter.gov'
-!    point inside to check Gauss integral
-    x0=3.0d0
-    y0=0.0d0
-    z0=0.0d0
+  type (Box), pointer :: Main_box
+  type (Geometry), allocatable :: Geometry1
+
+  integer ( kind = 8 ) N,n_order_sk,n_order_sf, count
+  character(len=30) nombre,filename
+  real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c_nada
+  n_order_sk=78
+  n_order_sf=45
+  allocate(Geometry1)
 
 
-!    point inside to check Gauss integral
+  !Uncomment one of the following options
+
+  !    nombre='Round_1.msh'
+  !    filename='Round_1.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  !    nombre='Round_2.msh'
+  !    filename='Round_2.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='Cube_substraction.msh'
+  !    filename='Cube_substraction.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  
+  !    nombre='Multiscale_1.msh'
+  !    filename='Multiscale_1.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  !    nombre='Multiscale_2.msh'
+  !    filename='Multiscale_2.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  
+  !    nombre='Round_genus_2.msh'
+  !    filename='Round_genus_2.gov'
+  !    point inside to check Gauss integral
+  !    x0=3.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='Round_genus_2_fino_05.msh'
+  !    filename='Round_genus_2_fino_05.gov'
+  !    point inside to check Gauss integral
+  !    x0=3.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='Multires_cavidad_esfera.msh'
+  !    filename='Multires_cavidad_esfera.gov'
+  !    point inside to check Gauss integral
+  !    x0=-1.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='sphere_union.msh'
+  !    filename='sphere_union.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='sphere_substraction.msh'
+  !    filename='sphere_substraction.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='substraction2.msh'
+  !    filename='substraction2.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=7.5d0
+  
+  
+  !    nombre='substraction2_v2.msh'
+  !    filename='substraction2_v2.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.7d0
+  !    y0=0.3d0
+  !    z0=1.0d0
+  
+  
+  nombre='../geometries/cunya/cunya1.msh'
+  filename='cunya1.gov'
+  !    point inside to check Gauss integral
+  x0=-0.3d0
+  y0=-0.3d0
+  z0=1.0d0
+
+
+  
+  !    nombre='simplest_cube_quadratic.msh'
+  !    filename='simplest_cube_quadratic.gov'
+  !    point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.5d0
+  
+  !    nombre =   '../geometries/jet/jet_fighter.msh'
+  !    filename = '../geometries/jet/jet_fighter.gov'
+  !    point inside to check Gauss integral
+  !    x0=3.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+
+  !    point inside to check Gauss integral
 
     call leemsh(Geometry1,nombre,n_order_sk,n_order_sf)
 
 
-    call funcion_skeleton(Geometry1,n_order_sk)
+    call funcion_skeleton(Geometry1, n_order_sk)
 !    do count=1,Geometry1%npoints
 !        write (*,*) Geometry1%skeleton_Points(1,count),Geometry1%skeleton_Points(2,count)
 !        write (*,*) Geometry1%skeleton_Points(3,count)
@@ -278,62 +287,88 @@ end
 
 
 
-subroutine leemsh(Geometry1,nombre,n_order_sk,n_order_sf)
-use some_types
-implicit none
+subroutine leemsh(Geometry1, nombre, n_order_sk, n_order_sf)
+  use some_types
+  implicit none
 
-!List of calling arguments
-type (Geometry), intent(inout) :: Geometry1
-character(len=30), intent(in) :: nombre
-integer ( kind = 8 ), intent(in) :: n_order_sk,n_order_sf
+  !List of calling arguments
+  type (Geometry), intent(inout) :: Geometry1
+  character(len=30), intent(in) :: nombre
+  integer ( kind = 8 ), intent(in) :: n_order_sk,n_order_sf
 
-!List of local variables
+  !List of local variables
+  integer ( kind = 8 ) umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7
+  integer ( kind = 8 ) aux8,aux9,aux10,aux11,aux12,aux13,aux14
+  integer :: ierror
 
-integer ( kind = 8 ) umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7
-integer ( kind = 8 ) aux8,aux9,aux10,aux11,aux12,aux13,aux14
-integer :: ierror
+  !
+  ! this routine reads the msh informaiton contained in 'nombre' into
+  ! the structure Geometry1, which is defined in the some_types module
+  !
+  ! input:
+  !   nombre - name of the *.msh file to load
+  !   n_order_sk -
+  !   n_order_sf -
+  !
+  ! output:
+  !   Geometry - structure containing the skeleton mesh, and
+  !     allocated space for the high-order bootstrapped mesh
+  !
+  
+  open(UNIT=8, FILE=nombre, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+  read(8,*) aux1,aux2,aux3,m, N
+  Geometry1%npoints=m
+  Geometry1%ntri=N
+  Geometry1%n_Sf_points=N*n_order_sf
+  Geometry1%n_Sk_points=N*n_order_sk
 
-    open(UNIT=8, FILE=nombre, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
-    read(8,*) aux1,aux2,aux3,m, N
-    Geometry1%npoints=m
-    Geometry1%ntri=N
-    Geometry1%n_Sf_points=N*n_order_sf
-    Geometry1%n_Sk_points=N*n_order_sk
-    allocate(Geometry1%S_smooth(3,N*n_order_sf))
-    allocate(Geometry1%N_smooth(3,N*n_order_sf))
-    allocate(Geometry1%skeleton_Points(3,N*n_order_sk))
-    allocate(Geometry1%skeleton_w(N*n_order_sk))
-    allocate(Geometry1%skeleton_N(3,N*n_order_sk))
-    allocate(Geometry1%ru_smooth(3,N*n_order_sf))
-    allocate(Geometry1%rv_smooth(3,N*n_order_sf))
-    allocate(Geometry1%Base_Points(3,N*n_order_sf))
-    allocate(Geometry1%Base_Points_N(3,N*n_order_sf))
-    allocate(Geometry1%Base_Points_U(3,N*n_order_sf))
-    allocate(Geometry1%Base_Points_V(3,N*n_order_sf))
-    allocate(Geometry1%w_smooth(N*n_order_sf))
-    allocate(Geometry1%Centroids(3,N))
-    allocate(Geometry1%sgmas(N))
-    allocate(Geometry1%Points(3,m))
-    allocate(Geometry1%Tri(6,N))
-    allocate(Geometry1%Normal_Vert(3,m))
-    do j=1,m
-        read(8,*) aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
-        read(8,*) Geometry1%Points(1,j),Geometry1%Points(2,j),Geometry1%Points(3,j)
-    enddo
-    read(8,*) aux1
-    do j=1,N
-        read(8,*) aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
-        read(8,*) aux1,aux2,aux3,aux4,aux5,aux6
-        Geometry1%Tri(1,j)=aux1
-        Geometry1%Tri(2,j)=aux2
-        Geometry1%Tri(3,j)=aux3
-        Geometry1%Tri(4,j)=aux4
-        Geometry1%Tri(5,j)=aux5
-        Geometry1%Tri(6,j)=aux6
-    enddo
-    close (8)
-return
-end
+  !print *, 'aux1 = ', aux1
+  !print *, 'aux2 = ', aux2
+  !print *, 'aux3 = ', aux3
+  !print *, 'm = ', m
+  !print *, 'N = ', N
+  !stop
+  
+  allocate(Geometry1%S_smooth(3,N*n_order_sf))
+  allocate(Geometry1%N_smooth(3,N*n_order_sf))
+  allocate(Geometry1%skeleton_Points(3,N*n_order_sk))
+  allocate(Geometry1%skeleton_w(N*n_order_sk))
+  allocate(Geometry1%skeleton_N(3,N*n_order_sk))
+  allocate(Geometry1%ru_smooth(3,N*n_order_sf))
+  allocate(Geometry1%rv_smooth(3,N*n_order_sf))
+  allocate(Geometry1%Base_Points(3,N*n_order_sf))
+  allocate(Geometry1%Base_Points_N(3,N*n_order_sf))
+  allocate(Geometry1%Base_Points_U(3,N*n_order_sf))
+  allocate(Geometry1%Base_Points_V(3,N*n_order_sf))
+  allocate(Geometry1%w_smooth(N*n_order_sf))
+  allocate(Geometry1%Centroids(3,N))
+  allocate(Geometry1%sgmas(N))
+  allocate(Geometry1%Points(3,m))
+  allocate(Geometry1%Tri(6,N))
+  allocate(Geometry1%Normal_Vert(3,m))
+
+  do j=1,m
+    read(8,*) aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
+    read(8,*) Geometry1%Points(1,j),Geometry1%Points(2,j),Geometry1%Points(3,j)
+  enddo
+
+  read(8,*) aux1
+  do j=1,N
+    read(8,*) aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
+    read(8,*) aux1,aux2,aux3,aux4,aux5,aux6
+    Geometry1%Tri(1,j)=aux1
+    Geometry1%Tri(2,j)=aux2
+    Geometry1%Tri(3,j)=aux3
+    Geometry1%Tri(4,j)=aux4
+    Geometry1%Tri(5,j)=aux5
+    Geometry1%Tri(6,j)=aux6
+  enddo
+  close (8)
+  return
+end subroutine leemsh
+
+
+
 
 
 subroutine fun_roots_derivative(h,Geometry1,alpha,F,dF,Main_box)

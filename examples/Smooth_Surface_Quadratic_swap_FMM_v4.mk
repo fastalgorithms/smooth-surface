@@ -79,20 +79,14 @@ endif
 
 
 
-.PHONY: lib driver clean list
+.PHONY: all clean list
 
-SOURCES =  tfmm3dwrap.f tfmm3d.f l3dzero.f\
-	treeplot.f prini.f l3dterms.f laprouts3d.f\
-	Near_Interaction_code.f90 \
-	l3dmpmpfinal4.f l3dloclocfinal4.f l3dmplocfinal4.f\
-	prinm.f yrecursion.f ftophys.f phystof.f\
-	legeexps.f d3hptree.f rotgen.f numthetafour.f numthetahalf2.f\
-	lapweights.f pwrouts.f hkrand.f dlaran.f rotviarecur3.f rotgen2.f\
-	l3dgqbxauxrouts.f lwtsexp_sep2.f 
+MOD_SOURCES = nadadena.f90
+SOURCES =  Smooth_Surface_Quadratic_swap_FMM_v4.f90
 
-SRC_DRIVER = tfmm3dwrap_dr.f
+TFMM3DLIB = ../lib/tfmm3d/tfmm3dlib.a
 
-
+MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 
 #
@@ -106,19 +100,18 @@ OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 %.o : %.f90
 	$(FC) $(FFLAGS) $< -o $@
 
-lib: $(OBJECTS)
-	ar rc tfmm3dlib.a $(OBJECTS)
 
-driver: $(OBJECTS)
-	$(FC) $(FFLAGS) tfmm3dwrap_dr.f
-	$(FLINK) tfmm3dwrap_dr.o $(OBJECTS)
+
+
+all: $(MOD_OBJECTS) $(OBJECTS)
+	$(FLINK) $(OBJECTS) $(MOD_OBJECTS) $(TFMM3DLIB)
 	./$(PROJECT)
 
 
 clean:
+	rm -f $(MOD_OBJECTS)
 	rm -f $(OBJECTS)
 	rm -f $(PROJECT)
-	rm -f tfmm3dlib.a
 
 list: $(SOURCES)
 	$(warning Requires:  $^)

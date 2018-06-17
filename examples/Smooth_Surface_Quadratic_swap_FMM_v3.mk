@@ -1,7 +1,7 @@
 
-#HOST = osx-gcc-7
+HOST = osx-gcc-7
 #HOST = osx-gcc-7-openmp
-HOST = osx-intel
+#HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
 #HOST = amd-gfortran
@@ -81,11 +81,12 @@ endif
 
 .PHONY: all clean list
 
-SOURCES =  nadadena.f90 \
-           Smooth_Surface_Quadratic_swap_FMM_v3.f90
+MOD_SOURCES = nadadena.f90
+SOURCES =  Smooth_Surface_Quadratic_swap_FMM_v3.f90
 
 TFMM3DLIB = ../lib/tfmm3d/tfmm3dlib.a
 
+MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 
 #
@@ -102,12 +103,13 @@ OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 
 
 
-all: $(OBJECTS)
-	$(FLINK) $(OBJECTS) $(TFMM3DLIB)
+all: $(MOD_OBJECTS) $(OBJECTS)
+	$(FLINK) $(OBJECTS) $(MOD_OBJECTS) $(TFMM3DLIB)
 	./$(PROJECT)
 
 
 clean:
+	rm -f $(MOD_OBJECTS)
 	rm -f $(OBJECTS)
 	rm -f $(PROJECT)
 

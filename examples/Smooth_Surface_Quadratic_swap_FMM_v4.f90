@@ -45,12 +45,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 
 !Uncomment one of the following geometries
 
-    nombre='Round_1.msh'
-    filename='Round_1_n45_r0.gov'
+!    nombre='Round_1.msh'
+!    filename='Round_1_n45_r0.gov'
 !!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=0.0d0
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
 
 !    nombre='Round_2.msh'
 !    filename='Round_2_n78_r2.gov'
@@ -121,12 +121,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-!    nombre='cunya1.msh'
-!    filename='cunya1.gov'
-!!!  point inside to check Gauss integral
-!    x0=-0.3d0
-!    y0=-0.3d0
-!    z0=1.0d0
+    nombre=  '../geometries/cunya/cunya1.msh'
+    filename='../geometries/cunya/cunya1.gov'
+    !  point inside to check Gauss integral
+    x0=-0.3d0
+    y0=-0.3d0
+    z0=1.0d0
 
 
 !    nombre='cunya_local.msh'

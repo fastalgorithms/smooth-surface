@@ -14,15 +14,15 @@ Module some_types
 
 
   
-type Box
-    real ( kind = 8 ) Box_center(3)
-    real ( kind = 8 ), allocatable :: Points(:,:)
-    real ( kind = 8 ), allocatable :: sgmas(:)
-    integer ( kind = 8 ) n_points,current_point
-    type (Box_array) Children(8)
-    type (Box_array) Colleague(27)
-    type (Box), pointer :: Parent => null ()
-end type Box
+  type Box
+     real ( kind = 8 ) Box_center(3)
+     real ( kind = 8 ), allocatable :: Points(:,:)
+     real ( kind = 8 ), allocatable :: sgmas(:)
+     integer ( kind = 8 ) n_points,current_point
+     type (Box_array) Children(8)
+     type (Box_array) Colleague(27)
+     type (Box), pointer :: Parent => null ()
+  end type Box
 
 
 
