@@ -919,6 +919,7 @@ real ( kind = 8 ) F_x(n_order_sk),F_y(n_order_sk),F_z(n_order_sk),dS(n_order_sk)
 real ( kind = 8 ) nP_x(n_order_sk),nP_y(n_order_sk),nP_z(n_order_sk)
 
 integer ( kind = 8 ) count
+
     if (n_order_sk==45) then
         call GaussTri45(U,V,w)
     else if (n_order_sk==78) then
@@ -941,7 +942,9 @@ integer ( kind = 8 ) count
         Geometry1%skeleton_N(3,(count-1)*n_order_sk+1:(count)*n_order_sk)=nP_z
     enddo
 return
-end
+end subroutine funcion_skeleton
+
+
 
 
 subroutine funcion_Base_Points(Geometry1,n_order_sf)

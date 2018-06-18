@@ -111,12 +111,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-!    nombre='cunya1.msh'
-!    filename='cunya1.gov'
+    nombre=  '../geometries/cunya/cunya1.msh'
+    filename='../geometries/cunya/cunya1.gov'
 !    point inside to check Gauss integral
-!    x0=-0.3d0
-!    y0=-0.3d0
-!    z0=1.0d0
+    x0=-0.3d0
+    y0=-0.3d0
+    z0=1.0d0
 
 
 !    nombre='cunya_local.msh'
@@ -127,12 +127,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-    nombre='../geometries/cunya/cunya_2_1.msh'
-    filename='cunya_2_1.gov'
+!    nombre='../geometries/cunya/cunya_2_1.msh'
+!    filename='cunya_2_1.gov'
 !    point inside to check Gauss integral
-    x0=-0.2d0
-    y0=0.2d0
-    z0=1.0d0
+!    x0=-0.2d0
+!    y0=0.2d0
+!    z0=1.0d0
 
 !    nombre='torus_box.msh'
 !    filename='torus_box.gov'
@@ -1629,6 +1629,102 @@ real ( kind = 8 ), intent(out) :: U(45),V(45),w(45)
 return
 end
 
+
+
+
+
+subroutine plotSmoothGeometryVTK(Geometry1,filename)
+  use some_types
+  implicit none
+
+  type (Geometry) :: Geometry1
+  character (len=30) filename
+
+  integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
+  integer :: ierror, iw
+
+  !
+  ! This routien dumps out smoothed geometry into a vtk file,
+  ! oversampling the triangles as necessary to show the smoothness
+  !
+  ! Input:
+  !   Geometry1 - the structure containing all info
+  !   filename - VTK ASCII filename, should end in .vtk
+  !
+  ! Output:
+  !   the file 'filename' is created and contains vtk info
+  !
+
+  iw = 888
+  open(iw, FILE=filename,STATUS='REPLACE')
+  n_order_sf = Geometry1%n_Sf_points/Geometry1%ntri
+
+  if (n_order_sf .eq. 45) then
+    norder=8
+    nover = 2
+    nsub = 4**nover
+  end if
+  
+  if (n_order_sf .eq. 78) then
+    norder=11
+    nover = 3
+    nsub = 4**nover
+  end if
+
+  stop
+    
+  
+  ! write(iw,*) n_order_sf
+  ! write(iw,*) Geometry1%ntri
+  ! write(iw,*) Geometry1%n_Sf_points
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%w_smooth(count1)
+  ! enddo
+
+  close (iw)
+  return
+end subroutine plotSmoothGeometryVTK
+  
 
 
 
