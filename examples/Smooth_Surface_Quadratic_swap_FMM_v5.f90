@@ -1641,8 +1641,11 @@ subroutine plotSmoothGeometryVTK(Geometry1,filename)
   character (len=30) filename
 
   integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
-  integer :: ierror, iw, norder, nover, nsub
+  integer :: ierror, id, norder, nover, nsub, k
+  real (kind = 8) :: us(1000), vs(1000), ws(1000)
 
+  real (kind = 8), allocatable :: xyzs(:,:,:)
+  
   !
   ! This routien dumps out smoothed geometry into a vtk file,
   ! oversampling the triangles as necessary to show the smoothness
@@ -1655,24 +1658,41 @@ subroutine plotSmoothGeometryVTK(Geometry1,filename)
   !   the file 'filename' is created and contains vtk info
   !
 
-  iw = 888
-  open(iw, FILE=filename,STATUS='REPLACE')
+  id = 888
+  open(id, FILE=filename,STATUS='REPLACE')
   n_order_sf = Geometry1%n_Sf_points/Geometry1%ntri
 
   if (n_order_sf .eq. 45) then
     norder=8
     nover = 2
     nsub = 4**nover
+    k = 45
+    call GaussTri45(us, vs, ws)
   end if
   
   if (n_order_sf .eq. 78) then
     norder=11
     nover = 3
     nsub = 4**nover
+    k = 78
+    call GaussTri78(us, vs, ws)
   end if
 
-  stop
+  !
+  ! now dump out all the info needed for the triangles, compute xtri
+  ! coefficients, and resample and plot
+  !
+  
+  
     
+
+  ntri = Geomtry1%ntri
+  call prinf('in vtk plotter, ntri = *', ntri, 1)
+  allocate(xyzs(3,k,ntri))
+
+  stop
+
+
   
   ! write(iw,*) n_order_sf
   ! write(iw,*) Geometry1%ntri
@@ -1721,7 +1741,7 @@ subroutine plotSmoothGeometryVTK(Geometry1,filename)
   !     write(iw,*) Geometry1%w_smooth(count1)
   ! enddo
 
-  close (iw)
+  close (id)
   return
 end subroutine plotSmoothGeometryVTK
   

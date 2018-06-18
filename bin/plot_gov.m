@@ -3,6 +3,8 @@ function [X,Y,Z,W,nSx,nSy,nSz,Ux,Uy,Uz,Vx,Vy,Vz]=plot_gov(filename,x0,y0,z0)
 %x0,y0,z0 Must be a point inside the surface to test the Gauss theorem
 
 %    filename='fortran_plot'
+filename
+
     fid = fopen(filename);
 
 %   fid = fopen('prueba_quadratic.msh');
