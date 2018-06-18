@@ -1641,7 +1641,7 @@ subroutine plotSmoothGeometryVTK(Geometry1,filename)
   character (len=30) filename
 
   integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
-  integer :: ierror, iw
+  integer :: ierror, iw, norder, nover, nsub
 
   !
   ! This routien dumps out smoothed geometry into a vtk file,
