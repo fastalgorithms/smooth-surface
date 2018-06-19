@@ -397,6 +397,123 @@ end
 
 
 
+subroutine plotSmoothGeometryVTK(Geometry1,filename)
+  use some_types
+  implicit none
+
+  type (Geometry) :: Geometry1
+  character (len=30) filename
+
+  integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
+  integer :: ierror, id, norder, nover, nsub, k
+  real (kind = 8) :: us(1000), vs(1000), ws(1000)
+
+  real (kind = 8), allocatable :: xyzs(:,:,:)
+  
+  !
+  ! This routien dumps out smoothed geometry into a vtk file,
+  ! oversampling the triangles as necessary to show the smoothness
+  !
+  ! Input:
+  !   Geometry1 - the structure containing all info
+  !   filename - VTK ASCII filename, should end in .vtk
+  !
+  ! Output:
+  !   the file 'filename' is created and contains vtk info
+  !
+
+  id = 888
+  open(id, FILE=filename,STATUS='REPLACE')
+  n_order_sf = Geometry1%n_Sf_points/Geometry1%ntri
+
+  if (n_order_sf .eq. 45) then
+    norder=8
+    nover = 2
+    nsub = 4**nover
+    k = 45
+    call GaussTri45(us, vs, ws)
+  end if
+  
+  if (n_order_sf .eq. 78) then
+    norder=11
+    nover = 3
+    nsub = 4**nover
+    k = 78
+    call GaussTri78(us, vs, ws)
+  end if
+
+  !
+  ! now dump out all the info needed for the triangles, compute xtri
+  ! coefficients, and resample and plot
+  !
+  
+  
+    
+
+  ntri = Geomtry1%ntri
+  call prinf('in vtk plotter, ntri = *', ntri, 1)
+  allocate(xyzs(3,k,ntri))
+
+  stop
+
+
+  
+  ! write(iw,*) n_order_sf
+  ! write(iw,*) Geometry1%ntri
+  ! write(iw,*) Geometry1%n_Sf_points
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%S_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%ru_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%rv_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(1,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(2,count1)
+  ! enddo
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%N_smooth(3,count1)
+  ! enddo
+  
+  ! do count1=1,Geometry1%n_Sf_points
+  !     write(iw,*) Geometry1%w_smooth(count1)
+  ! enddo
+
+  close (id)
+  return
+end subroutine plotSmoothGeometryVTK
+
+
+
+
+
+
 subroutine leemsh(Geometry1,nombre,n_order_sk,n_order_sf)
 use some_types
 implicit none
