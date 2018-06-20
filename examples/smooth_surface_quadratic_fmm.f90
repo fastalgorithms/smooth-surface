@@ -191,22 +191,22 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    y0=0.01d0
 !    z0=.02d0
 
-!    nombre='high_genus_3.msh'
-!    filename='high_genus_3_n78_r1.gov'
+    nombre='../geometries/big_genus/high_genus_3.msh'
+    filename='../geometries/big_genus/high_genus_3.gov'
 !!!  point inside to check Gauss integral
-!    x0=0.5d0
-!    y0=0.5d0
-!    z0=0.5d0
+    x0=0.5d0
+    y0=0.5d0
+    z0=0.5d0
 
 
 
 
-    nombre='../geometries/antenna/parabolic_antenna.msh'
-    filename='../geometries/antenna/parabolic_antenna.gov'
+!    nombre='../geometries/antenna/parabolic_antenna.msh'
+!    filename='../geometries/antenna/parabolic_antenna.gov'
 !!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.75d0
-    z0=.00d0
+!    x0=0.0d0
+!    y0=0.75d0
+!    z0=.00d0
 
 
 !    nombre='../geometries/war_ship/mi_barco_simple_13.msh'
@@ -402,6 +402,10 @@ call Locate_all_on_tree(Main_box,Geometry1%Centroids,Geometry1%ntri_sk,Geometry1
 return
 end
 
+
+
+
+!subroutine plotMSHGeometryVTK(
 
 
 
