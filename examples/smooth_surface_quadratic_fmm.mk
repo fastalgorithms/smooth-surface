@@ -82,7 +82,14 @@ endif
 .PHONY: all clean list
 
 MOD_SOURCES = nadadena.f90
-SOURCES =  smooth_surface_quadratic_fmm.f90
+
+SOURCES =  smooth_surface_quadratic_fmm.f90 \
+           ../src/koornexps.f90 \
+           ../src/lapack_wrap.f90 \
+           ../src/ortho2eva.f \
+           ../src/ortho2eva_new.f90 \
+           ../src/ortho2exps.f \
+           ../src/orthom.f
 
 TFMM3DLIB = ../lib/tfmm3d/tfmm3dlib.a
 
