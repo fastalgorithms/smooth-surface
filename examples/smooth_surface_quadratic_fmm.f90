@@ -450,6 +450,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   if (n_order_sf .eq. 45) then
     norder=8
     nover = 2
+    nover = 4
     nsub = 4**nover
     k = 45
     call GaussTri45(us, vs, ws)
@@ -458,6 +459,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   if (n_order_sf .eq. 78) then
     norder=11
     nover = 3
+    nover = 5
     nsub = 4**nover
     k = 78
     call GaussTri78(us, vs, ws)
