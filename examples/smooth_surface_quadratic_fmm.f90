@@ -34,7 +34,7 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    n_order_sf=78
 
 !set n_refinement=0 if no refinement, =1 to split each smooth triangle into 4, =2 to split each triangle into 4^2=16 and so on..
-    n_refinement=0
+    n_refinement=1
 
 ! adaptive_flag=1 to enable adaptivity, if adaptive_flag=0 then sigma is constant and has an appropriate value conmmensured with the size of the triangle
     adaptive_flag=1
@@ -634,9 +634,9 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
           zval = zval + zcoefs(l)*pols(l)
         end do
 
-        call prin2('xcoefs = *', xcoefs, k)
-        call prin2('ycoefs = *', ycoefs, k)
-        call prin2('zcoefs = *', zcoefs, k)
+        !call prin2('xcoefs = *', xcoefs, k)
+        !call prin2('ycoefs = *', ycoefs, k)
+        !call prin2('zcoefs = *', zcoefs, k)
         
         triout(1,iii,nnn) = xval
         triout(2,iii,nnn) = yval
@@ -644,7 +644,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
         
       end do
 
-      call prin2('tri = *', triout(1,1,nnn), 9)
+      !call prin2('tri = *', triout(1,1,nnn), 9)
       
     end do
     
