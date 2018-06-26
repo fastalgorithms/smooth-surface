@@ -34,7 +34,7 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    n_order_sf=78
 
 !set n_refinement=0 if no refinement, =1 to split each smooth triangle into 4, =2 to split each triangle into 4^2=16 and so on..
-    n_refinement=1
+    n_refinement=0
 
 ! adaptive_flag=1 to enable adaptivity, if adaptive_flag=0 then sigma is constant and has an appropriate value conmmensured with the size of the triangle
     adaptive_flag=1
@@ -121,8 +121,8 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-!    nombre=  '../geometries/cunya/cunya1.msh'
-!    filename='../geometries/cunya/cunya1.gov'
+    nombre=  '../geometries/cunya/cunya1.msh'
+    filename='../geometries/cunya/cunya1.gov'
     !  point inside to check Gauss integral
 !    x0=-0.3d0
 !    y0=-0.3d0
@@ -184,19 +184,19 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    y0=0.1d0
 !    z0=.2d0
 
-!    nombre='sci_fi_3.msh'
-!    filename='sci_fi_3.gov'
+!    nombre='../geometries/sci_fi/sci_fi_3.msh'
+!    filename='../geometries/sci_fi/sci_fi_3.gov'
 !!!  point inside to check Gauss integral
 !    x0=0.0d0
 !    y0=0.01d0
 !    z0=.02d0
 
-    nombre='../geometries/big_genus/high_genus_3.msh'
-    filename='../geometries/big_genus/high_genus_3.gov'
+!    nombre='../geometries/big_genus/high_genus_3.msh'
+!    filename='../geometries/big_genus/high_genus_3.gov'
 !!!  point inside to check Gauss integral
-    x0=0.5d0
-    y0=0.5d0
-    z0=0.5d0
+!    x0=0.5d0
+!    y0=0.5d0
+!    z0=0.5d0
 
 
 

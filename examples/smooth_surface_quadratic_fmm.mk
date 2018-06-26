@@ -6,7 +6,7 @@ HOST = osx-gcc-7
 #HOST = linux-gfortran
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
-HOST = linux-intel
+#HOST = linux-intel
 #HOST = linux-intel-openmp
 PROJECT = int2
 
@@ -106,7 +106,6 @@ OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 
 %.o : %.f90
 	$(FC) $(FFLAGS) $< -o $@
-
 
 
 
