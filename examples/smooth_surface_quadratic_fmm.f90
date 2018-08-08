@@ -121,9 +121,9 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-    nombre=  '../geometries/cunya/cunya1.msh'
-    filename='../geometries/cunya/cunya1.gov'
-    !  point inside to check Gauss integral
+!    nombre=  '../geometries/cunya/cunya1.msh'
+!    filename='../geometries/cunya/cunya1.gov'
+!    !  point inside to check Gauss integral
 !    x0=-0.3d0
 !    y0=-0.3d0
 !    z0=1.0d0
@@ -209,12 +209,19 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=.00d0
 
 
-!    nombre='../geometries/war_ship/mi_barco_simple_13.msh'
-!    filename='../geometries/war_ship/mi_barco_simple_13_r1.gov'
+    nombre='../geometries/jet/jet_fighter.msh'
+    filename='../geometries/jet/jet_fighter.gov'
     ! point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=-.50d0
+    x0=0.0d0
+    y0=0.0d0
+    z0=-4000
+
+    !nombre='../geometries/war_ship/mi_barco_simple_13.msh'
+    !filename='../geometries/war_ship/mi_barco_simple_13.gov'
+    ! point inside to check Gauss integral
+    !x0=0.0d0
+    !y0=0.0d0
+    !z0=-.50d0
 
 !    nombre='huge_genus_4.msh'
 !    filename='huge_genus_4_r1.gov'
