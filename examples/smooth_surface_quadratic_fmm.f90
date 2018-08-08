@@ -121,8 +121,8 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=1.0d0
 
 
-    nombre=  '../geometries/cunya/cunya1.msh'
-    filename='../geometries/cunya/cunya1.gov'
+!    nombre=  '../geometries/cunya/cunya1.msh'
+!    filename='../geometries/cunya/cunya1.gov'
     !  point inside to check Gauss integral
 !    x0=-0.3d0
 !    y0=-0.3d0
@@ -248,6 +248,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=2.0d0
 
 
+
+    nombre='../geometries/jet/jet_fighter.msh'
+    filename = '../geometries/jet/jet_fighter.gov'
+    x0 = 0
+    y0 = 0
+    z0 = -4000
 
 !    nombre='simplest_cube_quadratic.msh'
 !    filename='simplest_cube_quadratic.gov'
