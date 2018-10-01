@@ -1,37 +1,45 @@
-\documentclass[11pt, oneside]{article}   	
-% use "amsart" instead of "article" for AMSLaTeX format
+\documentclass[11pt]{article}
 
-\usepackage[top=1.1in,bottom=1.2in,left=1.2in,right=1.2in]{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\usepackage[top=1.1in,bottom=1.2in,left=1.2in,right=1.2in]{geometry}
+\geometry{letterpaper}
 
-\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
-%\geometry{landscape}                		% Activate for for rotated page geometry
-%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
-\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
-% TeX will automatically convert eps --> pdf in pdflatex	
+\usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{float}
 \usepackage[cmex10]{amsmath}
 \usepackage{mathrsfs,amsthm}
 \usepackage{color}
-\def\MFIE{{\mathfrak M}}%
-\def\EFIE{{\mathfrak E}}%
+%\usepackage[scaled=.90]{helvet}
 
 
-\usepackage[scaled=.90]{helvet}
 \usepackage{titlesec}
-\titleformat{\section}{\normalfont\sffamily\Large\bfseries}
+%\titleformat{\section}{\normalfont\sffamily\Large\bfseries}
+%  {\thesection}{1em}{}
+%\titleformat{\subsection}{\normalfont\sffamily\large\bfseries}
+%  {\thesubsection}{1em}{}
+%\titleformat{\subsubsection}{\normalfont\sffamily\bfseries}
+%  {\thesubsubsection}{1em}{}
+  
+\titleformat{\section}{\normalfont\Large\bfseries}
   {\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\sffamily\large\bfseries}
+\titleformat{\subsection}{\normalfont\large\bfseries}
   {\thesubsection}{1em}{}
-
-\titleformat{\subsubsection}{\normalfont\sffamily\bfseries}
+\titleformat{\subsubsection}{\normalfont\bfseries}
   {\thesubsubsection}{1em}{}
   
   
   
-\usepackage{newtxtext}
-\usepackage{newtxmath}
+% \usepackage{newtxtext}
+%\usepackage{newtxmath}
+\usepackage{kpfonts}
 \usepackage{bm}
+
+\usepackage{isomath}
+\newcommand{\vct}{\vectorsym}
+\newcommand{\mtx}{\matrixsym}
+
+\newcommand{\lp}{\left(}
+\newcommand{\rp}{\right)}
 
 %\usepackage[sort&compress]{natbib}
 
@@ -85,28 +93,34 @@
 
 \renewcommand{\phi}{\varphi}
 
-\title{\bf\sffamily A Fast Algorithms for High-Order Mesh Generation}
+\title{\bf{A Fast Boundary Integral Method
+    for High-Order Mesh Generation}}
 
 %\title{\bf\sffamily A Fast Algorithm to generate smooth 
 %surfaces of arbitrary shape}
 
-  \author{Felipe Vico\thanks{Instituto de Telecomunicaciones y Aplicaciones Multimedia (ITEAM), 
-Universidad Polit\` ecnica
-de Val\` encia, 46022 Val\` encia, Spain. {{\em email}: {\sf {felipe.vico@gmail.com,
-}}} }, \,
+\author{Felipe Vico\thanks{Instituto de Telecomunicaciones y
+    Aplicaciones Multimedia (ITEAM), 
+    Universidad Polit\`ecnica
+    de Val\`encia, 46022 Val\`encia, Spain.
+    {\em email}: {\sf felipe.vico@gmail.com,}}, \,
 Leslie Greengard\thanks{Courant Institute of Mathematical Sciences,
          New York University, 
          251 Mercer Street,
          New York, NY 10012-1110.
-{{\em email}: {\sf {greengard@cims.nyu.edu.}}}}, \, 
+{\em email}: {\sf greengard@cims.nyu.edu}. Research supported in
+    part by ... }, \, 
 and Michael O'Neil\thanks{Courant Institute of Mathematical Sciences,
          New York University, 
          251 Mercer Street,
          New York, NY 10012-1110.
-{{\em email}: {\sf {oneil@cims.nyu.edu.}}}}
-}
+{\em email}: {\sf oneil@cims.nyu.edu}. Research supported in part by
+  the Office of Naval Research under award numbers
+    \#N00014-17-1-2059 and \#N00014-17-1-2451.}}
 
-%\date{}							% Activate to display a given date or no date
+
+\date{}
+
 
 
 \begin{document}
@@ -115,94 +129,109 @@ and Michael O'Neil\thanks{Courant Institute of Mathematical Sciences,
 %\section{}
 %\subsection{}
 
-%\bibliographystyle{unsrt}
 
 
 
 \begin{abstract}
-In this paper we present an algorithm to generate infinitely differentiable
-smooth surfaces of arbitrary shape. The surfaces can have arbitrary genus and 
-multi-scale details.
-The algorithm relies on the observation that convolution of a Gaussian in three
-dimensions with the indicator function of a closed bounded region~$\Omega$ generates
-a smooth function~$\Phi$ of three variables. Level sets of $\Phi$ then define infinitely
-smooth surfaces embedded in three dimensions.
-With careful choices of the original skeleton volume~$\Omega_0$, and its skeleton 
-surface mesh~$\Gamma_0$, the level set obtained via convolution is a \emph{smoothed}
-version of the original (possibly non-smooth) surface skeleton.
-Flat regions and convexity are preserved, up to discretization error. 
-The bandlimit of the surface is locally controlled by 
-the size of the skeleton mesh and the (variable) width of the convolving Gaussian.
-The volume convolution is accelerated by an application of the divergence theorem and
-a fast multipole method for the resulting kernel.
-We demonstrate the effectiveness and scaling of the algorithm using surface 
-skeletons based on quadratic triangulations computed from commercial CAD and meshing software.
-Upon completion, the resulting smooth surface is described by an atlas which maps the original 
-quadratic triangles on the skeleton mesh to curvilinear triangles of arbitrarily high order.
+  In this paper we present an algorithm to generate infinitely
+  differentiable smooth surfaces of arbitrary shape. The surfaces can
+  have arbitrary genus and multi-scale details.  The algorithm relies
+  on the observation that convolution of a Gaussian in three
+  dimensions with the indicator function of a closed bounded
+  region~$\Omega$ generates a smooth function~$\Phi$ of three
+  variables. Level sets of $\Phi$ then define infinitely smooth
+  surfaces embedded in three dimensions.  With careful choices of the
+  original skeleton volume~$\Omega_0$, and its skeleton surface
+  mesh~$\Gamma_0$, the level set obtained via convolution is a
+  \emph{smoothed} version of the original (possibly non-smooth)
+  surface skeleton.  Flat regions and convexity are preserved, up to
+  discretization error.  The bandlimit of the surface is locally
+  controlled by the size of the skeleton mesh and the (variable) width
+  of the convolving Gaussian.  The volume convolution is accelerated
+  by an application of the divergence theorem and a fast multipole
+  method for the resulting kernel.  We demonstrate the effectiveness
+  and scaling of the algorithm using surface skeletons based on
+  quadratic triangulations computed from commercial CAD and meshing
+  software.  Upon completion, the resulting smooth surface is
+  described by an atlas which maps the original quadratic triangles on
+  the skeleton mesh to curvilinear triangles of arbitrarily high
+  order.
 \end{abstract}
 
-{\bf Keywords.} Smooth geometry. Level Set. Convolution. High Order Surface Discretization.
-Fast multipole method. Meshing algorithm.
+{\bf Keywords.} High-order Surface Discretization.
+Level Set. Convolution.
+  Fast multipole method. Meshing algorithm.
 
 
 
 \section{Introduction}
 
-Integral equation methods for numerically 
-solving many of the PDEs of classical mathematical
-physics, e.g. electromagnetics, fluid dynamics, heat flow, have come a long
-way over the past few decades with the advent of fast multipole 
-methods~\cite{}. In two dimensions, it is often the case that near machine 
-precision can be reached in solving these PDEs using a modest number of unknown
-defined along geometries which are known to high-order using either global
-parameterizations or local piecewise-polynomial parameterizations. The associated
-quadratures for the logarithmically singular Green's functions are 
-well-developed, and can be coupled with modern FMMs with only a modest overhead
-in computational cost~\cite{qbxfmm,etc}. However, the story is still being developed
-in three dimensions and most of the details still need to be filled in.
-While the three dimensional fast algorithms (FMMs, etc.) for computing the
-associated $N$-body calculations which couple with iterative solvers are well-developed,
-quadratures for the weakly-singular integral operators are much a work in
-progress~\cite{qbx3d,bremer,bruno}.
-Even with these tools, it is still possible to demonstrate high-order convergence
-and near machine precision accuracy for solving the PDEs of mathematical physics. However,
-the geometries that can be address are basically 
-relegated to those that are globally parameterizable: e.g. deformations of torii and spheres.
-The main roadblock to obtaining high-order surface discretizations is the lack of
-meshing algorithms which generate high-order curvilinear triangles or quadrilateral patches.
-One such software package that offers this featuer is Gmsh~\cite{gmsh}, but in order to do so
-it requires, upon input, a CAD-compatible file describing the original geometry.
-In this work, we aim to augment this type of tool with an algorithm which can bootstrap
-low-order \emph{skeleton} meshes, such as flat triangles, in to globally smooth high-order
-surfaces without the singularities often encountered when using related methods, such as
-subdivision surface generation (is this even true? there's singularities, right?). The algorithm
-proposed in this work is able to accomplish such a result by formally using a global
-convolution to define a $C^\infty$ surface which can be evaluated to any fixed, numerical precision
-\emph{locally}.
+Integral equation methods for numerically solving many of the PDEs of
+classical mathematical physics, e.g. electromagnetics, fluid dynamics,
+heat flow, have come a long way over the past few decades with the
+advent of fast multipole methods~\cite{}. In two dimensions, it is
+often the case that near machine precision can be reached in solving
+these PDEs using a modest number of unknown defined along geometries
+which are known to high-order using either global parameterizations or
+local piecewise-polynomial parameterizations. The associated
+quadratures for the logarithmically singular Green's functions are
+well-developed, and can be coupled with modern FMMs with only a modest
+overhead in computational cost~\cite{qbxfmm,etc}. However, the story
+is still being developed in three dimensions and most of the details
+still need to be filled in.  While the three dimensional fast
+algorithms (FMMs, etc.) for computing the associated $N$-body
+calculations which couple with iterative solvers are well-developed,
+quadratures for the weakly-singular integral operators are much a work
+in progress~\cite{qbx3d,bremer,bruno}.  Even with these tools, it is
+still possible to demonstrate high-order convergence and near machine
+precision accuracy for solving the PDEs of mathematical
+physics. However, the geometries that can be address are basically
+relegated to those that are globally parameterizable:
+e.g. deformations of torii and spheres.  The main roadblock to
+obtaining high-order surface discretizations is the lack of meshing
+algorithms which generate high-order curvilinear triangles or
+quadrilateral patches.  One such software package that offers this
+featuer is Gmsh~\cite{gmsh}, but in order to do so it requires, upon
+input, a CAD-compatible file describing the original geometry.  In
+this work, this type of tool is augmented with an algorithm which
+can bootstrap low-order \emph{skeleton} meshes, such as flat
+triangles, in to globally smooth high-order surfaces without the
+singularities often encountered when using related methods, such as
+subdivision surface generation (is this even true? there's
+singularities, right?). The algorithm proposed in this work is able to
+accomplish such a result by formally using a global convolution to
+define a $C^\infty$ surface which can be evaluated to any fixed,
+numerical precision \emph{locally}.
 
-The existing scheme of rounding corners or two dimensional polyhedra by Epstein and 
-O'Neil~\cite{epsteinXXXX}
-can be considered the first iteration of the algorithm in this work. In their work,
-the observation was map if corners of a polygon~$\Gamma_P$ were viewed as maps over the tangent
-line, convolution with a finite width bell-function results in a smoothed curve which 
-locally preserves characteristics such as convexity. If the finite width bell is replaced
-with a truncated Gaussian which has decayed to size~$\epsilon$, then the resulting 
-geometry is $C^\infty$, up to numerically precision $\epsilon$ (define more specifically
-what we mean here). This entire calculation is a one-dimensional once the map of the
-corner over the tangent line is calculated. Extending this scheme, as is, to three dimensions
-is mathematically straightforward but computationally and algorithmically slightly complicated
-by the fact that many local maps have to be constructed wherever there are edges or
-corners.
+The existing scheme of rounding corners or two dimensional polyhedra
+by Epstein and O'Neil~\cite{epsteinXXXX} can be considered the first
+iteration of the algorithm in this work. In their work, the
+observation was map if corners of a polygon~$\Gamma_P$ were viewed as
+maps over the tangent line, convolution with a finite width
+bell-function results in a smoothed curve which locally preserves
+characteristics such as convexity. If the finite width bell is
+replaced with a truncated Gaussian which has decayed to
+size~$\epsilon$, then the resulting geometry is $C^\infty$, up to
+numerically precision $\epsilon$ ({\color{red} define more specifically what we
+mean here}). This entire calculation is a one-dimensional once the map
+of the corner over the tangent line is calculated. Extending this
+scheme, as is, to three dimensions is mathematically straightforward
+but computationally and algorithmically slightly complicated by the
+fact that many local maps have to be constructed wherever there are
+edges or corners.
 
-However, the scheme described above can be reformulated as a volume convolution in which no
-local maps need to be constructed, only evaluation of the indicator function of the
-region~$\Omega_P$ bounded by the polygon~$\Gamma_P$. The convolution of
-this indicator function with a Gaussian defined in~$\bbR^2$ defines an infinitely
-differentiable function~$\Phi = \Phi(x,y)$. Furthermore, the curve $\Gamma_{1/2}$ defined
-by the level set $\Phi(x,y) = 1/2$ coincides with the boundary~$\Gamma_P$, for some suitable
-construction of local maps. This scheme, volume convolution and level-set tracing, extends
-directly and \emph{easily} to three dimensions, both mathematically and computationally (assuming)
-that the indicator function can be evaluated.
+However, the scheme described above can be reformulated as a volume
+convolution in which no local maps need to be constructed, only
+evaluation of the indicator function of the region~$\Omega_P$ bounded
+by the polygon~$\Gamma_P$. The convolution of this indicator function
+with a Gaussian defined in~$\bbR^2$ defines an infinitely
+differentiable function~$\Phi = \Phi(x,y)$. Furthermore, the curve
+$\Gamma_{1/2}$ defined by the level set $\Phi(x,y) = 1/2$ coincides
+with the boundary~$\Gamma_P$, for some suitable construction of local
+maps. This scheme, volume convolution and level-set tracing, extends
+directly and \emph{easily} to three dimensions, both mathematically
+and computationally (assuming) that the indicator function can be
+evaluated.
 
 
 
@@ -211,9 +240,15 @@ that the indicator function can be evaluated.
 lower cost in the long run, particularly for wave propagation
 problems)
 
-Surface modeling is a discipline used for many applications in a variety of areas. Industrial design, gaming, numerical analysis of partial differential equations, integral equations,... require efficient methods to describe complex surfaces. Depending on the area, the surface has to satisfy dswa certain requirements to obtain an optimal result. In the field of integral equation methods, high order description of the surfaces is highly recommended to achieve high accuracy. Unfortunately, the standard CAD methods provide very low order surfaces, typically $C^0$, such as: flat triangulated surfaces, piecewise polynomial or rational surfaces and boolean operations of canonical shapes.
 
-The method presented here consist of finding a smooth version $C^{\infty}$ of a given arbitrary geometry (non-smooth in general) that we will call skeleton, where convexity, genus and flat parts are preserved. The resulting smooth geometry has a local dependency on the skeleton, therefore, if a small change is made at certain point of the skeleton, the smooth surface generated by the perturbed skeleton remains unchanged at every point except for a neighborhood of the perturbation.
+The method presented here consist of finding a smooth version
+$C^{\infty}$ of a given arbitrary geometry (non-smooth in general)
+that we will call skeleton, where convexity, genus and flat parts are
+preserved. The resulting smooth geometry has a local dependency on the
+skeleton, therefore, if a small change is made at certain point of the
+skeleton, the smooth surface generated by the perturbed skeleton
+remains unchanged at every point except for a neighborhood of the
+perturbation.
 
 
 
@@ -231,19 +266,11 @@ The method presented here consist of finding a smooth version $C^{\infty}$ of a 
 
 
 
+\section{Smooth Level Sets via Convolution}
 
 
-
-
-
-
-\section{Smooth level sets via convolution}
-
-- volume convolution with indicator function, variable $\sigma$
 
 - compare with epstein/oneil
-
-practically what is needed:
 
 
 
@@ -251,40 +278,106 @@ practically what is needed:
 
 
 
-The main mathematical observation of the algorithm presented in this work is
-the following: the convolution of a piecewise function $f$ (possibly discontinuous)
-with a $C^\infty$ kernel $\phi$ results in another $C^\infty$ function $\Phi$. This
-fact is of course true in any dimension, and in particular, if we define $\indic_\Omega$
-to be the indicator function of a closed and bounded region~$\Omega \subset \bbR^3$ with
-orientable surface~$\Gamma$, then the convolution with kernel~$\phi$ is given by
+The main mathematical observation of the algorithm presented in this
+work is the following: the convolution of a piecewise function, $f$
+(possibly discontinuous), with a $C^\infty$ kernel, $\phi$, results in
+another $C^\infty$ function, $\Phi$. This fact is of course true in any
+dimension, and in particular, if we define $\indic_\Omega$ to be the
+indicator function of a closed and bounded
+region~$V \subset \bbR^3$ with orientable surface~$S$, then
+the convolution with a kernel~$\phi$ is given by
 \begin{equation}
 \begin{aligned}
 \Phi(\bx) &= \int_{\bbR^3} \phi(\bx-\bx') \, \indic_\Omega(\bx') \, dv(\bx') \\
- &= \int_{\Omega} \phi(\bx-\bx')  \, dv(\bx').
+ &= \int_{V} \phi(\bx-\bx')  \, dv(\bx').
 \end{aligned}
 \end{equation}
-Clearly, in order for the above formula to be numerically useful, it is necessary
-to have a means for reliably evaluating $\indic_\Omega$ and for computing integrals
-of shifted $\phi$'s. The former can be accomplished by obtaining a surface-conforming 
-volume mesh of the region $\Omega$ and the latter requires a quadrature for smooth
-functions (e.g. polynomials) on each element of the volume mesh. The level sets of $\Phi$,
-$\Phi(\bx) = C$, then define smooth surfaces $\Gamma_C$ embedded in $\bbR^3$.
+Clearly, in order for the above formula to be numerically useful, it
+is necessary to have a method for reliably evaluating $\indic_\Omega$
+and for computing integrals of truncated $\phi$'s (for integrals
+crossing the bounary of~$V$). The former can be
+accomplished by obtaining a surface-conforming volume mesh of the
+region~$V$ and the latter requires a quadrature for smooth
+functions (e.g. polynomials) on each element of the volume mesh. The
+level sets of~$\Phi$, $\Phi(\bx) = C$, then define smooth
+surfaces~$\Gamma_C$ embedded in~$\bbR^3$.
 
-If $\phi$ is compactly supported and $\int \phi = 1$ then flat regions of $\Gamma$
-which
-extend beyond the range of $\phi$ are preserved along the $\Phi = 1/2$ level set. This can
-easily be shown in the one-dimensional case~\cite{epstein-xxxx} and is straightforward
-so show in higher dimensions. Furthermore, for compactly supported $\phi$ the above convolution
-is a completely local calculation, and therefore has optimal asymptotic computational
-scaling regardless of the implementation. However, there is of course a tradeoff: kernels
-with narrow compact support preserve small feature of the domain~$\Omega$ and its 
-boundary~$\Gamma$, and therefore may produce areas of high curvature. Convolution 
-with significantly wide kernels require a significant increase in computational cost
-over the narrow case. 
+If~$\phi$ is compactly supported and $\int \phi = 1$ then flat regions
+of~$S$ which extend beyond the range of~$\phi$ are preserved
+along the~$\Phi = 1/2$ level set. This can easily be shown in the
+one-dimensional case~\cite{epstein_2016} and is straightforward so
+show in higher dimensions. Furthermore, for compactly supported~$\phi$
+the above convolution is a completely local calculation, and therefore
+has optimal asymptotic computational scaling regardless of the
+implementation. However, there is of course a tradeoff: kernels with
+narrow support preserve small features of the domain~$\Omega$ and its
+boundary~$\Gamma$, and therefore may produce areas of high
+curvature. Convolution with significantly wider kernels require a
+significant increase in computational cost over the narrow case.
+
+Furthermore, the above volume integral can be reformulated as a
+boundary integral via an application of the divergence
+theorem. If~$\phi$ can be chosen as an exact
+function,~$\phi = \nabla \cdot \vct{F}$, for some
+vectorfield~$\vct{F}$, then we have that:
+\begin{equation}
+  \begin{aligned}
+    \Phi(\bx) &= \int_{V} \nabla \cdot \vct{F}(\bx-\bx') \, dv(\bx') \\
+    &= \int_{S} \bn(\bx') \cdot \vct{F}(\bx-\bx') \, da(\bx')
+  \end{aligned}
+\end{equation}
+where~$\bn(\bx')$ is the outward unit normal to the surface~$S$ at the
+point~$\bx'$. The above formula will turn out to be useful in
+designing a fast algorithm, but we will put it aside for now as it is
+equivalent to the volume calculation. We now turn to computing an
+atlas (i.e. a collection of parameterizations) describing the
+convolution surface~$\Gamma_C$.
 
 
 
-Let's consider a closed surface $\mathit{S}\subset \mathbb{R}^3$ of class $C^0$. To simplify, we will consider that the surface is a conformal triangulated mesh, that is, a set of triangles $\mathit{S}=\{\mathit{T}_j\}_{j=1}^{n_{tri}}$ with regular connectivity between its elements. Typically, this will be described by a .tri file. This non-smooth closed surface is what we will call 'skeleton'. Our task is to generate a smooth version of it where certain properties are preserved.
+
+
+\subsection{Constructing an Atlas}
+
+In what follows, the boundary~$S$ of the original volume~$V$ will be
+referred to as the \emph{skeleton surface}. Often~$S$ will be supplied
+as a low-order mesh (e.g. flat triangles), and will be assumed to be
+water-tight and oriented (i.e. have a consistent collection of normal
+vectors). The construction of the atlas will be described assuming an
+initial collection of flat skeleton triangles, but is straightforward
+to extend to other configurations (e.g. quadratic triangles, flat
+quadrilaterals, etc.). To this end, the skeleton surface~$S$ is the
+union of~$M$ triangles~$T^j$, $j=1,\ldots,M$, with each triangle
+having vertices denoted
+by~$\{ \vct{P}^j_1,\vct{P}^j_2,\vct{P}^j_3 \} $.
+Therefore, each skeleton triangle is parameterized as:
+\begin{equation}
+  \vct{T}^j(u,v) = \vct{P}^j_1 + u \lp \vct{P}^j_2 - \vct{P}^j_1 \rp
+  + v \lp \vct{P}^j_3 - \vct{P}^j_1 \rp,
+\end{equation}
+and therefore has Frenet basis defined by
+\begin{equation}
+\vct{T}^j_u = \frac{\vct{P}^j_2 - \vct{P}^j_1}{\left| \vct{P}^j_2 -
+    \vct{P}^j_1 \right|}
+\end{equation}
+
+
+
+- coordinate system
+
+- newton iteration
+
+
+
+
+Let's consider a closed surface $\mathit{S}\subset \mathbb{R}^3$ of
+class $C^0$. To simplify, we will consider that the surface is a
+conformal triangulated mesh, that is, a set of triangles
+$\mathit{S}=\{\mathit{T}_j\}_{j=1}^{n_{tri}}$ with regular
+connectivity between its elements. Typically, this will be described
+by a .tri file. This non-smooth closed surface is what we will call
+'skeleton'. Our task is to generate a smooth version of it where
+certain properties are preserved.
 
 As the skeleton $\mathit{S}$ is a closed surface, we can always consider that it is the boundary of a 3-dimensional region $\mathit{S}=\partial \mathit{V}$ 
 
@@ -304,9 +397,6 @@ Next we describe all the required elements of the surface $\mathcal{S}$; in part
 
 
 
-
-
-\section{Construction of an atlas on $\mathcal{S}$}
 
 For the sake of simplicity, we will asume that the skeleton is a flat triangulated geometry $\mathit{S}=\{\mathit{T}_j\}_{j=1}^{n_{tri}}$, nevertheless, we can generalize this process easily for skeletons defined by quadratic patches or more complicated elements.
 
@@ -378,19 +468,21 @@ for certain $u,v$, where $\bX(u,v)$ is a point on $\mathit{T}_j$, $h(u,v)$ is a 
 f(\bX(u,v)+\bV(u,v)h(u,v))=\frac{1}{2}
 \end{equation}
  
-Notice that the expression (\ref{chart0}) is a chart of the surface that maps the unitary triangle $0\le u, 0\le v, u+v\le1$ on a curved triangle $\mathcal{T}_j\subset \mathcal{S}$. According to the choice of the normals to each vertex, the set of all charts should is an atlas of the surface $\mathcal{S}$.
+Notice that the expression (\ref{chart0}) is a chart of the surface
+that maps the unitary triangle $0\le u, 0\le v, u+v\le1$ on a curved
+triangle $\mathcal{T}_j\subset \mathcal{S}$. According to the choice
+of the normals to each vertex, the set of all charts should is an
+atlas of the surface $\mathcal{S}$.
 
 
 
 
 
+\subsection{The Local Coordinate System}
 
-
-
-
-\section{Calculation of the tangent vectors and area element on $\mathcal{S}$}
-
-In this section we find suitable expressions to obtain the tangent vectors $\bu$ and $\bv$ to the surface and the area element dS corresponding to the parametrization (\ref{chart0}):
+In this section we find suitable expressions to obtain the tangent
+vectors $\bu$ and $\bv$ to the surface and the area element dS
+corresponding to the parametrization (\ref{chart0}):
 
 \begin{equation}\label{chart}
 \begin{aligned}
@@ -448,7 +540,15 @@ now we can write the area element $dS$ as:
  
 As tangent reference system on the surface we use the vectors $\hat{\bu}, \hat{\bv}$; for the  $\hat{\bu}$ vector we normalize $\frac{\partial\bY(u,v)}{\partial u}$, and for the $\hat{\bv}$ vector we cross $\frac{\nabla f}{|\nabla f|}$ with $\hat{\bu}$.
 
-\section{High order discretization of the surface $\mathcal{S}$}\label{disc}
+
+
+
+\subsection{High-Order Discretizations}
+\label{sec:disc}
+
+
+
+
 In this section we propose a fast algorithm to discretize the surface to high order. As a result we will obtain, for each triangle $\mathcal{T}_j$, a set of points $(\bY_n=\bY(u_n,v_n))_{n=1}^N$ where $(u_n,v_n)_{n=1}^N$ are the nodes associated to a generalized Gaussian quadrature rule for smooth functions on the canonical triangle (see [Rokhlin Gaussian Smooth Triangle]). As a result, we will also obtain tangent and norlam vectors associated to each point $\hat{\bu}_n,\hat{\bv}_n,\hat{\bn}_n$, and a weight $dS_n$ to compute surface integrals of smooth functions on the surface to high order.
 
 Let's consider a particular high order generalized Gaussian rule on the canonical triangle $(u_n,v_n,w_n)_{n=1}^N$, where $u_n,v_n$ are nodes and $w_n$ are weights. For each triangle $\mathcal{T}_j$ and each node $u_n,v_n$ we consider the equation of one variable $h$:
@@ -477,7 +577,111 @@ Finally, we obtain the orthogonal system at each discretization point as:
 \end{aligned}
 \end{equation}
 
-\section{Fast evaluation of the function $f(\bx)$ and $\nabla f(\bx)$}
+
+
+
+\subsection{Refinement}
+
+In this section we describe the process to obtain a refined version of the discretization. The process consist of splitting each curved triangle  $\mathcal{T}_j$ of the original chart into four triangles, and then apply the discretization process described in section \ref{disc} to each sub-triangle.
+
+Each chart of $\mathcal{T}_j$ can be written as:
+
+\begin{equation}
+\bY(u,v)=\bX(u,v)+\bV(u,v)h(u,v)
+\end{equation}
+
+For $(u,v)$ in the unitary triangle $0\le u, 0\le v, u+v\le1$ and $h(u,v)$ verifying the equation:
+
+\begin{equation}
+f(\bX(u,v)+\bV(u,v)h(u,v))=\frac{1}{2}
+\end{equation}
+
+Now we consider four subdomains of the unitary triangle as shown in the figure \ref{refinement1}:
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=4in]{Triangle_Refine_v2.pdf}
+\end{center}
+\caption{Description of the refinement process, nested triangles obtained on the canonical triangle and quadrature nodes obtained after refinement}
+\label{refinement1}
+\end{figure}
+
+Notice that the definition of the surface $\mathcal{S}$ has not changed, as the function $f$ only depends on the skeleton $\mathit{S}$ and the parameter $\sigma$. Notice also that each triangle $\mathcal{T}_j$ has been split into four nested subtriangles $\mathcal{T}_j^1,\mathcal{T}_j^2,\mathcal{T}_j^3,\mathcal{T}_j^4$. See figure \ref{refinement2} and \ref{refinement3}.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=4in]{cloud_points_refinement_v2.pdf}%
+\end{center}
+\caption{Description of the refinement process, nested triangles obtained}
+\label{refinement2}
+\end{figure}
+
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=4in]{cloud_points_refinement_g2_v2.pdf}%
+\end{center}
+\caption{Description of the refinement process, nested triangles obtained}
+\label{refinement3}
+\end{figure}
+
+
+By doing this we obtain a new atlas with four times more triangles: $\{\mathcal{T}_j\}_{j=1}^{n_{tri}}\rightarrow \{\mathcal{T}_j\}_{j=1}^{4\cdot n_{tri}}$ where we can apply the discretization process of section \ref{disc} and obtain a discretized surface with four times more points. 
+
+
+
+
+
+
+\subsection{Adaptive Convolution Kernels}
+
+So far we have described how to generate a smooth surface from a closed flat triangulated surface $\mathit{S}$ (skeleton). The degree of smoothness is controled by the parameter $\sigma$. The value of $\sigma$ must be in proportion to the size of the triangles in $\mathit{S}$ (a typical value can be $\frac{1}{5}$ of the size of the triangles). This algorithm requires a regular triangularization of the surface $\mathit{S}$ with triangles of similar size.
+
+In this section we would like to apply this algorithm to geometries with multiscale features. In order to achieve that we need to have a variable degree of smoothness across the surface (dictated by the size of each triangle). That is, if the skeleton has small features in certain region, we need a small $\sigma$ near that region, yet, if the skeleton has at the same time big features in other region, we need a larger $\sigma$ near that region.
+
+In order to achieve that we need to modify the definition of the function $f(\bx)$. The rest of the procedure to build the atlas and the discretization of the charts remains unchanged. Next we define the function $f(\bx)$ for the adaptive case:
+
+\begin{equation}
+f(\bx)=\int_{V}\frac{1}{\sigma ^3(\bx)\sqrt{2\pi}^3}e^{-\frac{|\bx-\by|^2}{2\sigma^2(\bx)}}dV_{\by}
+\end{equation}
+Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
+
+The function $\sigma(\bx)$ is a $C^{\infty}(\mathbb{R}^3)$ with a value at $\bx$ approximately proportional to the size of the nearest triangle. Next we propose two possibilities (see (\ref{sigma1}) and (\ref{sigma2})):
+
+\begin{equation}\label{sigma1}
+\sigma(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{- \frac{|\bx-\bP_j^c|^2}{2\sigma^2_0}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2}{2\sigma^2_0}}}
+\end{equation}
+
+Here $\bP_j$ is the center of the $j$'th triangle of the skeleton $\mathit{S}$ and $\sigma_j$ are numbers proportional to the size of the $j$'th triangle of the skeleton. $\sigma_0$ is a parameter provided by the user, typically on the order of the average size of the triangles. Notice that if $\sigma_0\rightarrow \infty$ then $\sigma(\bx)$ is the averaged value of $\sigma_j$; if $\sigma_0\rightarrow 0$ then $\sigma(\bx)$ tend to the value of $\sigma_j$ of the nearest triangle with center at $\bP_j$.
+
+Notice that the expression (\ref{sigma1}) can be computed as a quotient of two Gauss transforms, therefore, a fast algorithm is possible (see [Greengard Fast Gauss Transform]). In this case we are typically in a regime where only the loca interaction is required.
+
+The definition of $\sigma(\bx)$ specified in (\ref{sigma1}) does not achieve perfect adaptivity across a high range of multiscale features. It only achieves some adaptivity across features of the geometry that differ by one order of magnitude in size. If further adaptivity is required (across several orders of magnitude) then we need a more complicated definition of $\sigma(\bx)$ for each fixed value of $\bx$ where we need to evaluate $\sigma(\bx)$ (see \ref{sigma2} and notice that the function $h(z)$ depends also on $\bx$):
+
+\begin{equation}\label{sigma2}
+\sigma(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2\sigma^2(\bx)}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2\sigma^2(\bx)}}}
+\end{equation}
+
+Notice that, in this case, we have $\sigma(\bx)$ written in a implicit way. We can consider that $\sigma(\bx)$ is the fixed point of the function $h(z)$ with $z=\sigma(\bx)$, where:
+
+\begin{equation}\label{sigma2}
+h(z)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2z^2}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2z^2}}}
+\end{equation}
+
+This makes the calculation a bit more complicated, yet we can evaluate it by using an iterative method. To make it more stable we propose to use the relaxation method with $\eta=0.2$ on the first 10 iterations (that is to iterate with $z_{n+1}=\eta h(z_n)+(1-\eta)z_n$) and then use the Newton method for the function $h(z)-z=0$. An appropriate intial guess for $\sigma(\bx)=\sigma_0(\bx)$ is given by the expression \ref{sigma1} with a choice of $\sigma_0$ proportional to the size of the smallest triangle :
+ 
+\begin{equation}\label{sigma0}
+\sigma_0(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{- \frac{|\bx-\bP_j^c|^2}{2\sigma^2_1}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2}{2\sigma^2_1}}}
+\end{equation}
+
+
+
+
+
+
+
+\section{A Fast Algorithm}
+
 
 One thing we notice in the definition of $f$ is that it requires the evaluation of a volume integral on $\mathit{V}$. The effective numerical calculation of this volume integral would require to mesh the volume interior to the surface skeleton. This process could be inconvenient for some reasons, and also slow.  In order to speed up this calculation and avoid the need of a volume mesh, we can change the volume integral by a surface integral by using the divergence theorem in the following way.
 
@@ -535,99 +739,14 @@ Which is the kernel of the gradient of the double layer with density $=1$, there
 Notice that the use of the FMM to speed up the process implies that we have to run the Newton method to solve the equation \ref{newtoneq} simultaneously for all points of each triangle and all triangles at the same time $\bY_j(u_n,v_n)$ for $j=1,...,n_{tri}$ and $n=1,..,N$, where $n_{tri}$ is the total number of triangles of the skeleton $\mathit{S}$ and $N$ is the total number of nodes in the generalized quadrature rule used on the canonical triangle $(u,v)$. This implies to run an FMM call for each Newton iteration step with $Nn_{tri}$ source points and target points. Notice also that the target points will change for each iteration.
 
 
-\section{Refinement}
 
-In this section we describe the process to obtain a refined version of the discretization. The process consist of splitting each curved triangle  $\mathcal{T}_j$ of the original chart into four triangles, and then apply the discretization process described in section \ref{disc} to each sub-triangle.
+\subsection{A Fast Adaptive Algorithm}
+\label{sec:fast-adap}
 
-Each chart of $\mathcal{T}_j$ can be written as:
-
-\begin{equation}
-\bY(u,v)=\bX(u,v)+\bV(u,v)h(u,v)
-\end{equation}
-
-For $(u,v)$ in the unitary triangle $0\le u, 0\le v, u+v\le1$ and $h(u,v)$ verifying the equation:
-
-\begin{equation}
-f(\bX(u,v)+\bV(u,v)h(u,v))=\frac{1}{2}
-\end{equation}
-
-Now we consider four subdomains of the unitary triangle as shown in the figure \ref{refinement1}:
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=4in]{Triangle_Refine_v2.pdf}
-\end{center}
-\caption{Description of the refinement process, nested triangles obtained on the canonical triangle and quadrature nodes obtained after refinement}
-\label{refinement1}
-\end{figure}
-
-Notice that the definition of the surface $\mathcal{S}$ has not changed, as the function $f$ only depends on the skeleton $\mathit{S}$ and the parameter $\sigma$. Notice also that each triangle $\mathcal{T}_j$ has been split into four nested subtriangles $\mathcal{T}_j^1,\mathcal{T}_j^2,\mathcal{T}_j^3,\mathcal{T}_j^4$. See figure \ref{refinement2} and \ref{refinement3}.
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=4in]{cloud_points_refinement_v2.pdf}%
-\end{center}
-\caption{Description of the refinement process, nested triangles obtained}
-\label{refinement2}
-\end{figure}
-
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=4in]{cloud_points_refinement_g2_v2.pdf}%
-\end{center}
-\caption{Description of the refinement process, nested triangles obtained}
-\label{refinement3}
-\end{figure}
-
-
-By doing this we obtain a new atlas with four times more triangles: $\{\mathcal{T}_j\}_{j=1}^{n_{tri}}\rightarrow \{\mathcal{T}_j\}_{j=1}^{4\cdot n_{tri}}$ where we can apply the discretization process of section \ref{disc} and obtain a discretized surface with four times more points. 
- 
-
-\section{Adaptive Algorithm}
-
-So far we have described how to generate a smooth surface from a closed flat triangulated surface $\mathit{S}$ (skeleton). The degree of smoothness is controled by the parameter $\sigma$. The value of $\sigma$ must be in proportion to the size of the triangles in $\mathit{S}$ (a typical value can be $\frac{1}{5}$ of the size of the triangles). This algorithm requires a regular triangularization of the surface $\mathit{S}$ with triangles of similar size.
-
-In this section we would like to apply this algorithm to geometries with multiscale features. In order to achieve that we need to have a variable degree of smoothness across the surface (dictated by the size of each triangle). That is, if the skeleton has small features in certain region, we need a small $\sigma$ near that region, yet, if the skeleton has at the same time big features in other region, we need a larger $\sigma$ near that region.
-
-In order to achieve that we need to modify the definition of the function $f(\bx)$. The rest of the procedure to build the atlas and the discretization of the charts remains unchanged. Next we define the function $f(\bx)$ for the adaptive case:
-
-\begin{equation}
-f(\bx)=\int_{V}\frac{1}{\sigma ^3(\bx)\sqrt{2\pi}^3}e^{-\frac{|\bx-\by|^2}{2\sigma^2(\bx)}}dV_{\by}
-\end{equation}
-Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
-
-The function $\sigma(\bx)$ is a $C^{\infty}(\mathbb{R}^3)$ with a value at $\bx$ approximately proportional to the size of the nearest triangle. Next we propose two possibilities (see (\ref{sigma1}) and (\ref{sigma2})):
-
-\begin{equation}\label{sigma1}
-\sigma(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{- \frac{|\bx-\bP_j^c|^2}{2\sigma^2_0}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2}{2\sigma^2_0}}}
-\end{equation}
-
-Here $\bP_j$ is the center of the $j$'th triangle of the skeleton $\mathit{S}$ and $\sigma_j$ are numbers proportional to the size of the $j$'th triangle of the skeleton. $\sigma_0$ is a parameter provided by the user, typically on the order of the average size of the triangles. Notice that if $\sigma_0\rightarrow \infty$ then $\sigma(\bx)$ is the averaged value of $\sigma_j$; if $\sigma_0\rightarrow 0$ then $\sigma(\bx)$ tend to the value of $\sigma_j$ of the nearest triangle with center at $\bP_j$.
-
-Notice that the expression (\ref{sigma1}) can be computed as a quotient of two Gauss transforms, therefore, a fast algorithm is possible (see [Greengard Fast Gauss Transform]). In this case we are typically in a regime where only the loca interaction is required.
-
-The definition of $\sigma(\bx)$ specified in (\ref{sigma1}) does not achieve perfect adaptivity across a high range of multiscale features. It only achieves some adaptivity across features of the geometry that differ by one order of magnitude in size. If further adaptivity is required (across several orders of magnitude) then we need a more complicated definition of $\sigma(\bx)$ for each fixed value of $\bx$ where we need to evaluate $\sigma(\bx)$ (see \ref{sigma2} and notice that the function $h(z)$ depends also on $\bx$):
-
-\begin{equation}\label{sigma2}
-\sigma(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2\sigma^2(\bx)}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2\sigma^2(\bx)}}}
-\end{equation}
-
-Notice that, in this case, we have $\sigma(\bx)$ written in a implicit way. We can consider that $\sigma(\bx)$ is the fixed point of the function $h(z)$ with $z=\sigma(\bx)$, where:
-
-\begin{equation}\label{sigma2}
-h(z)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2z^2}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2 \lambda^2}{2z^2}}}
-\end{equation}
-
-This makes the calculation a bit more complicated, yet we can evaluate it by using an iterative method. To make it more stable we propose to use the relaxation method with $\eta=0.2$ on the first 10 iterations (that is to iterate with $z_{n+1}=\eta h(z_n)+(1-\eta)z_n$) and then use the Newton method for the function $h(z)-z=0$. An appropriate intial guess for $\sigma(\bx)=\sigma_0(\bx)$ is given by the expression \ref{sigma1} with a choice of $\sigma_0$ proportional to the size of the smallest triangle :
- 
-\begin{equation}\label{sigma0}
-\sigma_0(\bx)=\frac{\sum_{j=1}^{n_{tri}}\sigma_je^{- \frac{|\bx-\bP_j^c|^2}{2\sigma^2_1}}}{\sum_{j=1}^{n_{tri}}e^{-\frac{|\bx-\bP_j^c|^2}{2\sigma^2_1}}}
-\end{equation}
-
-\section{Fast evaluation of the function $f(\bx)$ and $\nabla f(\bx)$ (adaptive case)}
-
-In the adaptive case, we can still evaluate the function $f(\bx)$ and $\nabla f(\bx)$ efficiently using the FMM. Next we update the expressions \ref{surf_f} and \ref{surf_nablaf} for the variable $\sigma(\bx)$ case:
+In the adaptive case, we can still evaluate the function $f(\bx)$ and
+$\nabla f(\bx)$ efficiently using the FMM. Next we update the
+expressions \ref{surf_f} and \ref{surf_nablaf} for the variable
+$\sigma(\bx)$ case:
 
  
 \begin{equation}
@@ -653,10 +772,32 @@ In this case we can also use the FMM to speed up this calculation.
 
 
 
-\section{Conclusions and future directions}
-\label{sec_conclusions}
 
-In this work we have 
+
+
+\section{Conclusions}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -664,7 +805,7 @@ In this work we have
 
 
 \bibliographystyle{unsrt}
-\bibliography{referencias}
+\bibliography{master}
 
   
 \end{document}  
