@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-\usepackage[top=1.1in,bottom=1.2in,left=1.2in,right=1.2in]{geometry}
+\usepackage[top=1.1in,bottom=1.1in,left=1.2in,right=1.2in]{geometry}
 \geometry{letterpaper}
 
 \usepackage{graphicx}
@@ -10,6 +10,9 @@
 \usepackage{mathrsfs,amsthm}
 \usepackage{color}
 %\usepackage[scaled=.90]{helvet}
+
+\usepackage[font=small]{caption}
+\usepackage[font=footnotesize]{subcaption}
 
 
 \usepackage{titlesec}
@@ -86,6 +89,8 @@
 \newtheorem{thm}{Theorem}
 \newtheorem{lemma}{Lemma}
 
+\newcommand{\cC}{\mathcal C}
+\newcommand{\cT}{\mathcal T}
 \newcommand{\Vo}{\mathcal V_0}
 \newcommand{\To}{\mathcal T_0}
 \newcommand{\Vw}{\mathcal V_\omega}
@@ -355,97 +360,159 @@ Therefore, each skeleton triangle is parameterized as:
   \vct{T}^j(u,v) = \vct{P}^j_1 + u \lp \vct{P}^j_2 - \vct{P}^j_1 \rp
   + v \lp \vct{P}^j_3 - \vct{P}^j_1 \rp,
 \end{equation}
-and therefore has Frenet basis defined by
+and has Frenet basis defined by
 \begin{equation}
 \vct{T}^j_u = \frac{\vct{P}^j_2 - \vct{P}^j_1}{\left| \vct{P}^j_2 -
-    \vct{P}^j_1 \right|}
+    \vct{P}^j_1 \right|}, \qquad
+\vct{T}^j_v = \frac{\vct{P}^j_3 - \vct{P}^j_1}{\left| \vct{P}^j_3 -
+    \vct{P}^j_1 \right|}, \qquad
+\vct{N}^j =  \vct{T}^j_u \times \vct{T}^j_v.
 \end{equation}
+Despite the assumption of water-tightness on the skeleton mesh, the
+normal vectors are obviously discontinuous across triangle edges. The
+following construction of an atlas will be based on a mapping of each
+skeleton triangle to a high-order curvilinear one along the
+surface~$\Gamma_{1/2}$. In order to define a unique \emph{mapping
+  direction} (since vectors along the normal direction will intersect
+at arbitrarily close locations to the skeleton mesh), we define the
+vectorfield~$\vct{H}$ along the surface to be a local averaging of the
+unit normal vectors. We begin by defining~$\vct{H}$ at each of the
+vertices.  First, denote the list of triangles for
+which~$\vct{P}^j_\ell$ is a common vertex by~$\cT \vct{P}^j_\ell$,
+\begin{equation}
+  \cT \vct{P}^j_\ell = \left\{ i \text{ such that } T^i \text{
+      contains } \vct{P}^j_\ell \right\}.
+\end{equation}
+The value of the vectorfield~$\vct{H}$ at the vertex~$\vct{P}^j_\ell$
+is then set to be
+\begin{equation}
+  \vct{H}^j_\ell = \frac{1}{
+    \left|  \cT \vct{P}^j_\ell \right| } \sum_{i \in \cT
+    \vct{P}^j_\ell} \vct{N}^i.
+\end{equation}
+The above is merely a local averaging of the normal vectors associated
+with each triangle that shares~$\vct{P}^j_\ell$, and the
+vector~$\vct{H}^j_\ell$ will be referred to as the \emph{vertex normal}
+at~$\vct{P}^j_\ell$. This construction extends straightforwardly to
+various other skeleton patches; the vertex normal can, in general, be
+defined as some weighted average of the normals of the adjacent triangles.
+See Figure~\ref{normalvert1}. {\color{red} Update notation in Figure.}
+
+One such reasonable choice of weighting is that of what we will refer
+to as \emph{vertex angle}, not to be confused with the more commonly
+used dihedral angle in geometry. The vertex angle of triangle~$T^j$
+at vertex~$\vct{P}^j_\ell$ is merely the interior angle of the
+triangle at this vertex. Depending on the order of the vertex, the
+total sum of all vertex angles of all adjacent triangles will be
+different; denote by $\theta^j_\ell$ the vertex angle of
+triangle~$T^j$ at vertex~$\vct{P}^j_\ell$ and the total vertex angle
+(sum of all vertex angles) by~$A^j_\ell$. The vertex normals can then
+be computed using the vertex angle weighting as
+\begin{equation}
+  \vct{H}^j_\ell = \frac{1}{ A^j_\ell} \, 
+  \sum_{i \in \cT \vct{P}^j_\ell} 
+  \theta^j_\ell \,  \vct{N}^i.
+\end{equation}
+See Figure~\ref{normalvert2}.
 
 
 
-- coordinate system
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[b]{.3\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{normal_vertex.png}%
+    \caption{Vertex normal vector.}
+    \label{normalvert1}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{.3\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{normal_vertex_2.png}%
+    \caption{Weighted vertex normal.}
+    \label{normalvert2}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{.3\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{normal_vert_genus_2.pdf}%
+    \caption{Skeleton and vertex normals.}
+    \label{normalvert3}
+  \end{subfigure}
+  
+  \caption{Construction of the vertex normals.}
+  \label{fig:normalverts}
+\end{figure}
+
+
 
 - newton iteration
 
 
 
 
-Let's consider a closed surface $\mathit{S}\subset \mathbb{R}^3$ of
-class $C^0$. To simplify, we will consider that the surface is a
-conformal triangulated mesh, that is, a set of triangles
-$\mathit{S}=\{\mathit{T}_j\}_{j=1}^{n_{tri}}$ with regular
-connectivity between its elements. Typically, this will be described
-by a .tri file. This non-smooth closed surface is what we will call
-'skeleton'. Our task is to generate a smooth version of it where
-certain properties are preserved.
-
-As the skeleton $\mathit{S}$ is a closed surface, we can always consider that it is the boundary of a 3-dimensional region $\mathit{S}=\partial \mathit{V}$ 
-
-Let's consider a Gaussian function of 3 variables: $k(\bx)=\frac{1}{\sigma^3\sqrt{2\pi}^3}e^{-\frac{r^2}{2\sigma^2}}$, where $r=|\bx|$ and $\bx\subset \mathbb{R}^3$. For the moment we will consider $\sigma$ as a constant.
-Let's define the convolution of the indicator function on $\mathit{V}$ and the Gaussian:
+Let's consider a Gaussian function of 3 variables:
+$k(\bx)=\frac{1}{\sigma^3\sqrt{2\pi}^3}e^{-\frac{r^2}{2\sigma^2}}$,
+where $r=|\bx|$ and $\bx\subset \mathbb{R}^3$. For the moment we will
+consider $\sigma$ as a constant.  Let's define the convolution of the
+indicator function on $\mathit{V}$ and the Gaussian:
 $$f(\bx)=\int_{V}k(\bx-\by)dV_{\by}$$
 Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
 
-For a suitable selection of the parameter $\sigma$ (small enough), the resulting surface $\mathcal{S}$ is a smooth version of $\mathit{S}$, of class $C^{\infty}$. Notice also that we can control the degree of smoothness obtained by changing the value of the parameter $\sigma$. For $\sigma \rightarrow 0$, the surface obtained converges to the original skeleton $\mathcal{S}\rightarrow \mathit{S}$.
+For a suitable selection of the parameter $\sigma$ (small enough), the
+resulting surface $\mathcal{S}$ is a smooth version of $\mathit{S}$,
+of class $C^{\infty}$. Notice also that we can control the degree of
+smoothness obtained by changing the value of the parameter
+$\sigma$. For $\sigma \rightarrow 0$, the surface obtained converges
+to the original skeleton $\mathcal{S}\rightarrow \mathit{S}$.
 
-Notice also that we can generalize this process to any skeleton $\mathit{S}$ (not only triangulated surfaces), and the same regularity on $\mathcal{S}$ will be obtained.
-
-Next we describe all the required elements of the surface $\mathcal{S}$; in particular we describe a set of charts (atlas) that cover all the surface $\mathcal{S}$ and also expressions for the tangent, normal vectors and the area elements $dS$.
-
-
+Notice also that we can generalize this process to any skeleton
+$\mathit{S}$ (not only triangulated surfaces), and the same regularity
+on $\mathcal{S}$ will be obtained.
 
 
 
 
 
-For the sake of simplicity, we will asume that the skeleton is a flat triangulated geometry $\mathit{S}=\{\mathit{T}_j\}_{j=1}^{n_{tri}}$, nevertheless, we can generalize this process easily for skeletons defined by quadratic patches or more complicated elements.
 
-Let's consider all the points on the skeleton given by a list $\bQ_i=(x_i,y_i,z_i)\big|_{i=1}^{n_{points}}$ (the list shouldn't contain repeated points with the same coordinates and different index $i$). Let's also consider the set of all triangles in $\mathit{S}$ described as a triple of points in the previous list: $\{(\bP_1^j,\bP_2^j,\bP_3^j)\}_{j=1}^{n_{tri}}$, where $\bP_k^j=\bQ_i$ for certain $i$. We have that each triangle is the convex hull of three points: $\mathit{T}_j=Conv(\{\bP_1^j,\bP_2^j,\bP_3^j\})$. The set of all triangles must describe a closed surface where $(\bP^j_2-\bP^j_1)\times (\bP^j_3-\bP^j_1)$ must point to the exterior region. For each triangle we define a unit normal vector $\hat{\bN}^{tri}_j=\frac{(\bP^j_2-\bP^j_1)\times (\bP^j_3-\bP^j_1)}{|(\bP^j_2-\bP^j_1)\times (\bP^j_3-\bP^j_1)|}$, for $j=1,...,n_{tri}$.
 
-Next we will use the set of all flat triangles $\mathit{T}_j$ as the domain to map the surface $\mathcal{S}$. As the surface $\mathcal{S}$ will be close to the skeleton $\mathit{S}$, a naive approach to find that map would be to define a line for each point on $\mathit{T}_j$ that pass though it and has direction $\hat{\bN}^{tri}_j$, then find the intersection of that line with $\mathcal{S}$ (running a root finding Newton algorithm of one variable on the function $f(\bx)$ where $\bx$ is restricted to that line). This process would obviously create gaps on $\mathcal{S}$, as the normal vectors $\hat{\bN}^{tri}_j$ are discontinuous across adjacent triangles $\mathit{T}_j$. In order to avoid that, we define a pseudo-normal direction on each point $\bV$ of each triangle $\mathit{T}_j$ with the property that is a continuous function on $\mathit{S}$ and smooth in the interior of each triangle.
 
-For each vertex $\bQ_i=(x_i,y_i,z_i)\big|_{i=1}^{n_{points}}$, we define the vector "normal to the vertex" $\hat{\bN}_i^{vert}$ as a weighted average of the unit normal vectors of the triangles that share this vertex (see figure \ref{normalvert1}).
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=3in]{normal_vertex.png}%
-\end{center}
-\caption{Example of normal vector to a vertex. $\hat{\bN}_1^{vert}=\frac{\hat{\bN}_1^{tri}+\hat{\bN}_2^{tri}+\hat{\bN}_3^{tri}}{|\hat{\bN}_1^{tri}+\hat{\bN}_2^{tri}+\hat{\bN}_3^{tri}|}$}
-\label{normalvert1}
-\end{figure}
+Next we will use the set of all flat triangles $\mathit{T}_j$ as the
+domain to map the surface $\mathcal{S}$. As the surface $\mathcal{S}$
+will be close to the skeleton $\mathit{S}$, a naive approach to find
+that map would be to define a line for each point on $\mathit{T}_j$
+that pass though it and has direction $\hat{\bN}^{tri}_j$, then find
+the intersection of that line with $\mathcal{S}$ (running a root
+finding Newton algorithm of one variable on the function $f(\bx)$
+where $\bx$ is restricted to that line). This process would obviously
+create gaps on $\mathcal{S}$, as the normal vectors
+$\hat{\bN}^{tri}_j$ are discontinuous across adjacent triangles
+$\mathit{T}_j$. In order to avoid that, we define a pseudo-normal
+direction on each point $\bV$ of each triangle $\mathit{T}_j$ with the
+property that is a continuous function on $\mathit{S}$ and smooth in
+the interior of each triangle.
 
-If two or more neighbors triangles have the same  normal, they are counted only once in the calculation of the average $\hat{\bN}_i^{vert}$. See figure \ref{normalvert1} vs \ref{normalvert2}.
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=3in]{normal_vertex_2.png}%
-\end{center}
-\caption{Example of normal vector to a vertex. $\hat{\bN}_1^{vert}=\frac{\hat{\bN}_2^{tri}+\hat{\bN}_3^{tri}+\hat{\bN}_4^{tri}}{|\hat{\bN}_2^{tri}+\hat{\bN}_3^{tri}+\hat{\bN}_4^{tri}|}$, notice that $\hat{\bN}_1^{tri}$ doesn't appear as $\hat{\bN}_1^{tri}=\hat{\bN}_2^{tri}$}
-\label{normalvert2}
-\end{figure}
 
-In order to make the algorithm robust for cases where $\hat{\bN}_1^{tri}\approx\hat{\bN}_2^{tri}$ but not equal, we can generalize the definition of "normal to the vertex" by using, for example, the following weighted average:
 
-\begin{equation}
-\hat{\bN}_i^{vert}=\frac{\sum_{p=1}^P\alpha_p \hat{\bN}_p^{tri}}{|\sum_{p=1}^P\alpha_p \hat{\bN}_p^{tri}|}
-\end{equation}
-where the vertex $i$ has $P$ adjacent triangles and $\hat{\bN}_p^{tri}$ is the normal vector on each of the adjacent triangles. The weights $\alpha_p$ are defined by:
-
-\begin{equation}
-\alpha_p=\frac{1}{\sum_{q=1}^P\max(0,\cos(\hat{\bN}_p^{tri},\hat{\bN}_q^{tri}))}
-\end{equation}
-
-So far, for each triangle $j$ we have defined the three vertices $\bP_1^j,\bP_2^j,\bP_3^j$, the normal to the triangle $\hat{\bN}^{tri}_j$ and the 'normals' to each vertex of the triangle $\hat{\bN}_1^{tri,j},\hat{\bN}_2^{tri,j},\hat{\bN}_3^{tri,j}$.
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=4in]{normal_vert_genus_2.pdf}%
-\end{center}
-\caption{Skeleton $\{\mathit{T}_j\}_{j=1}^{n_{tri}}$ and vectors normal to each vertex}
-\label{normalvert3}
-\end{figure}
-
-In order to simplify the notation, we will remove the dependence on $j$ when there is no confusion about the triangle under consideration; therefore, for a particular triangle  we will consider the three vertices $\bP_1,\bP_2,\bP_3$, the normal to the triangle $\hat{\bN}^{tri}$ and the 'normals' to each vertex of the triangle $\hat{\bN}_1^{tri},\hat{\bN}_2^{tri},\hat{\bN}_3^{tri}$. We can write each point $\bX$ inside the triangle $j$ by a linear convex combination of the vertices: $\bX(u,v)=(1-u-v)\bP_1+u\bP_2+v\bP_3$, where $0\le u, 0\le v, u+v\le1$. we define a vector $\bV$ on each point as: $\bV(u,v)=(1-u-v)\hat{\bN}_1^{vert}+u\hat{\bN}_2^{vert}+v\hat{\bN}_3^{vert}$ (notice that $\bV$ is not normalized here). This vector $\bV$ is a 'deformation' of the normal vector $\hat{\bN}^{tri}$ of the triangle such that there is continuity of the vector $\bV$ across two neighbor triangles (see figure \ref{normalvert3}). Notice that, on each edge, the $\bV$ vector is a linear combination of only the two vectors $\hat{\bN}^{vert}$  that belong to that edge.
+In order to simplify the notation, we will remove the dependence on
+$j$ when there is no confusion about the triangle under consideration;
+therefore, for a particular triangle we will consider the three
+vertices $\bP_1,\bP_2,\bP_3$, the normal to the triangle
+$\hat{\bN}^{tri}$ and the 'normals' to each vertex of the triangle
+$\hat{\bN}_1^{tri},\hat{\bN}_2^{tri},\hat{\bN}_3^{tri}$. We can write
+each point $\bX$ inside the triangle $j$ by a linear convex
+combination of the vertices: $\bX(u,v)=(1-u-v)\bP_1+u\bP_2+v\bP_3$,
+where $0\le u, 0\le v, u+v\le1$. we define a vector $\bV$ on each
+point as:
+$\bV(u,v)=(1-u-v)\hat{\bN}_1^{vert}+u\hat{\bN}_2^{vert}+v\hat{\bN}_3^{vert}$
+(notice that $\bV$ is not normalized here). This vector $\bV$ is a
+'deformation' of the normal vector $\hat{\bN}^{tri}$ of the triangle
+such that there is continuity of the vector $\bV$ across two neighbor
+triangles (see figure \ref{normalvert3}). Notice that, on each edge,
+the $\bV$ vector is a linear combination of only the two vectors
+$\hat{\bN}^{vert}$ that belong to that edge.
 
 \begin{figure}[H]
 \begin{center}
