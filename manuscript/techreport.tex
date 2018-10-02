@@ -257,6 +257,9 @@ perturbation.
 
 
 
+existing
+work~\cite{fleishman2005,bloomenthal1991,sherstyuk1999,sherstyuk1999design}
+
 
 - description of skeleton
 
@@ -751,7 +754,7 @@ denote a polynomial of degree~$q$ in two variables as
   f(u,v) = \sum_{m+n \leq q} a_{mn} \, u^m \, v^n.
 \end{equation}
 The polynomial~$f$ above is said to be of order~$q$ and its expansion
-has~$(q+1)(q+2)/2$ linearly independent polynomials. Since 
+has~$(q+1)(q+2)/2$ linearly independent polynomials.
 
 
 
@@ -800,6 +803,9 @@ Finally, we obtain the orthogonal system at each discretization point as:
 
 
 
+\subsection{Newton Iteration}
+
+initial guess, etc.
 
 \subsection{Refinement}
 
@@ -860,7 +866,7 @@ surface with four times more points.
 
 
 
-\subsection{A Fast Adaptive Algorithm}
+\section{A Fast Adaptive Algorithm}
 \label{sec:fast-adap}
 
 
@@ -942,8 +948,36 @@ In this case we can also use the FMM to speed up this calculation.
 
 
 
+\section{Numerical Examples}
+\label{sec:examples}
+
+\subsection{Basic Surface Generation}
+\label{sec:basic}
+
+
+\subsection{Recovery of a Sphere}
+\label{sec:sphere}
+
+Smooth a large polygon into a sphere, see how close it gets
+
+
+\subsection{Large-scale Structures}
+\label{sec:large}
+
+Show the gun boat or jet
+
+
+
+\subsection{Modes of Failure}
+\label{sec:failure}
+
+Show the ringing example when skelton mesh is too large
+
+
+
 
 \section{Conclusions}
+\label{sec:conclusions}
 
 
 
@@ -971,8 +1005,7 @@ In this case we can also use the FMM to speed up this calculation.
 
 
 
-
-\bibliographystyle{unsrt}
+\bibliographystyle{abbrv}
 \bibliography{master}
 
   

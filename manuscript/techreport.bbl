@@ -1,10 +1,32 @@
 \begin{thebibliography}{1}
 
+\bibitem{barnett2018}
+A.~Barnett, J.~Magland, and L.~af~Klinteberg.
+\newblock {A Parallel Non-Uniform Fast Fourier Transform Library Based on an
+  "Exponential of Semicircle" Kernel}.
+\newblock 2018.
+\newblock arXiv:1808.06736 [math.NA].
+
+\bibitem{bloomenthal1991}
+J.~Bloomenthal and K.~Shoemake.
+\newblock Convolution surfaces.
+\newblock {\em SIGGRAPH Comput. Graph.}, 25(4):251--256, July 1991.
+
 \bibitem{bremer}
 J.~Bremer, Z.~Gimbutas, and V.~Rokhlin.
 \newblock A nonlinear optimization procedure for generalized {G}aussian
   quadratures.
 \newblock {\em SIAM J. Sci. Comput.}, 32(4):1761--1788, 2010.
+
+\bibitem{epstein_2016}
+C.~L. Epstein and M.~O'Neil.
+\newblock Smoothed corners and scattered waves.
+\newblock {\em SIAM J. Sci. Comput.}, 38:A2665--A2698, 2016.
+
+\bibitem{fleishman2005}
+S.~Fleishman, D.~Cohen-Or, and C.~T. Silva.
+\newblock Robust moving least-squares fitting with sharp features.
+\newblock {\em ACM Trans. Graph.}, 24(3):544--552, July 2005.
 
 \bibitem{gmsh}
 C.~Geuzaine and J.-F. Remacle.
@@ -12,17 +34,16 @@ C.~Geuzaine and J.-F. Remacle.
   post-processing facilities.
 \newblock {\em Int. J. Num. Methods Engrg.}, 79:1309--1331, 2009.
 
-\bibitem{epstein_2016}
-C.~L. Epstein and M.~O'Neil.
-\newblock Smoothed corners and scattered waves.
-\newblock {\em SIAM J. Sci. Comput.}, 38:A2665--A2698, 2016.
+\bibitem{sherstyuk1999design}
+A.~Sherstyuk.
+\newblock Interactive shape design with convolution surfaces.
+\newblock In {\em Proceedings Shape Modeling International '99. International
+  Conference on Shape Modeling and Applications}, pages 56--65, March 1999.
 
-\bibitem{barnett2018}
-A.~Barnett, J.~Magland, and L.~af~Klinteberg.
-\newblock {A Parallel Non-Uniform Fast Fourier Transform Library Based on an
-  "Exponential of Semicircle" Kernel}.
-\newblock 2018.
-\newblock arXiv:1808.06736 [math.NA].
+\bibitem{sherstyuk1999}
+A.~Sherstyuk.
+\newblock Kernel functions in convolution surfaces: a comparative analysis.
+\newblock {\em Visual Comput.}, 15:171--182, 1999.
 
 \bibitem{vioreanu_2014}
 B.~Vioreanu and V.~Rokhlin.
