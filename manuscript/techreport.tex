@@ -7,6 +7,8 @@
 \usepackage{amssymb}
 \usepackage{float}
 \usepackage[cmex10]{amsmath}
+\numberwithin{equation}{section}
+
 \usepackage{mathrsfs,amsthm}
 \usepackage{color}
 %\usepackage[scaled=.90]{helvet}
@@ -46,7 +48,7 @@
 
 %\usepackage[sort&compress]{natbib}
 
-\DeclareMathOperator\erf{erf}
+\DeclareMathOperator\erf{Erf}
 \DeclareMathOperator\Ei{Ei}
 \DeclareMathOperator\indic{I}
 \newcommand\bbR{\mathbb R}
@@ -211,7 +213,7 @@ numerical precision \emph{locally}.
 The existing scheme of rounding corners or two dimensional polyhedra
 by Epstein and O'Neil~\cite{epsteinXXXX} can be considered the first
 iteration of the algorithm in this work. In their work, the
-observation was map if corners of a polygon~$\Gamma_P$ were viewed as
+observation was that if corners of a polygon~$\Gamma_P$ were viewed as
 maps over the tangent line, convolution with a finite width
 bell-function results in a smoothed curve which locally preserves
 characteristics such as convexity. If the finite width bell is
@@ -398,25 +400,6 @@ various other skeleton patches; the vertex normal can, in general, be
 defined as some weighted average of the normals of the adjacent triangles.
 See Figure~\ref{normalvert1}. {\color{red} Update notation in Figure.}
 
-One such reasonable choice of weighting is that of what we will refer
-to as \emph{vertex angle}, not to be confused with the more commonly
-used dihedral angle in geometry. The vertex angle of triangle~$T^j$
-at vertex~$\vct{P}^j_\ell$ is merely the interior angle of the
-triangle at this vertex. Depending on the order of the vertex, the
-total sum of all vertex angles of all adjacent triangles will be
-different; denote by $\theta^j_\ell$ the vertex angle of
-triangle~$T^j$ at vertex~$\vct{P}^j_\ell$ and the total vertex angle
-(sum of all vertex angles) by~$A^j_\ell$. The vertex normals can then
-be computed using the vertex angle weighting as
-\begin{equation}
-  \vct{H}^j_\ell = \frac{1}{ A^j_\ell} \, 
-  \sum_{i \in \cT \vct{P}^j_\ell} 
-  \theta^j_\ell \,  \vct{N}^i.
-\end{equation}
-See Figure~\ref{normalvert2}.
-
-
-
 \begin{figure}[t]
   \centering
   \begin{subfigure}[b]{.3\linewidth}
@@ -446,151 +429,148 @@ See Figure~\ref{normalvert2}.
 
 
 
-- newton iteration
+
+One such reasonable choice of weighting is that of what we will refer
+to as \emph{vertex angle}, not to be confused with the more commonly
+used dihedral angle in geometry. The vertex angle of triangle~$T^j$
+at vertex~$\vct{P}^j_\ell$ is merely the interior angle of the
+triangle at this vertex. Depending on the order of the vertex, the
+total sum of all vertex angles of all adjacent triangles will be
+different; denote by $\theta^j_\ell$ the vertex angle of
+triangle~$T^j$ at vertex~$\vct{P}^j_\ell$ and the total vertex angle
+(sum of all vertex angles) by~$A^j_\ell$. The vertex normals can then
+be computed using the vertex angle weighting as
+\begin{equation}
+  \vct{H}^j_\ell = \frac{1}{ A^j_\ell} \, 
+  \sum_{i \in \cT \vct{P}^j_\ell} 
+  \theta^j_\ell \,  \vct{N}^i.
+\end{equation}
+See Figure~\ref{normalvert2}.
+Along the interior of skeleton triangle~$T^j$, the
+vectorfield~$\vct{H}$ is extended via convex combination:
+\begin{equation}
+  \vct{H}^j(u,v) = \vct{H}^j_1 + u \lp \vct{H}^j_2 - \vct{H}^j_1 \rp
+  + v \lp \vct{H}^j_3 - \vct{H}^j_1 \rp.
+\end{equation}
+Note that this vectorfield is now continuous across the edges of each
+skeleton triangle. See Figure~\ref{normalvert3}.
+
+The convolution surface~$\Gamma_C$ (i.e. the level-set $\Phi = C$)
+will be parameterized piecewise above/below each skeleton triangle as
+\begin{equation}\label{eq:h}
+  \vct{x}^j(u,v) = \vct{T}^j(u,v) + h^j(u,v) \, \vct{H}^j(u,v),
+\end{equation}
+with $\vct{x}^j$ denoting the chart which generates the patch~$\Gamma^j_C$
+from the skeleton mesh. The function~$h^j$ can be determined
+pointwise as the solution to the equation
+\begin{equation}
+  \Phi\lp \vct{x}^j(u,v)  \rp - C = 0.
+\end{equation}
+The above is still an implicit definition of the surface, but for a
+particular location~$(u,v)$ in parameter space, it can be solved
+for~$h(u,v)$ relatively easily using Newton's method, assuming that
+the~$\Phi$ can be easily evaluated. Newton's method also requires the
+evaluation of the derivative of~$\Phi$, which in this case can be
+computed as
+\begin{equation}
+  \begin{aligned}
+  \frac{\partial \Phi}{\partial h} &= \frac{\partial }{\partial h}
+  \int_V \phi\lp \vct{T} + h\, \vct{H} - \bx'\rp \, da(\vct{x}') \\
+  &= \int_V \vct{H} \cdot \nabla \phi\lp
+  \vct{T} + h\, \vct{H} - \bx'\rp \, da(\vct{x}'),
+\end{aligned}
+\end{equation}
+where we have suppressed the dependence on the patch~$j$.  The final
+surface is obtained piecewise by the collection of chartss~$\vct{x}^j$.
+Each chart~$\vct{x}^j:T_0 \to \bbR^3$ is smooth, and inherits the
+regularity properties of the convolution kernel~$\phi$. Here,~$T_0$
+denotes the standard simplex triangle $0 \leq u+v \leq 1$ with
+$u,v >0$.
 
 
 
-
-Let's consider a Gaussian function of 3 variables:
-$k(\bx)=\frac{1}{\sigma^3\sqrt{2\pi}^3}e^{-\frac{r^2}{2\sigma^2}}$,
-where $r=|\bx|$ and $\bx\subset \mathbb{R}^3$. For the moment we will
-consider $\sigma$ as a constant.  Let's define the convolution of the
-indicator function on $\mathit{V}$ and the Gaussian:
-$$f(\bx)=\int_{V}k(\bx-\by)dV_{\by}$$
-Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
-
-For a suitable selection of the parameter $\sigma$ (small enough), the
-resulting surface $\mathcal{S}$ is a smooth version of $\mathit{S}$,
-of class $C^{\infty}$. Notice also that we can control the degree of
-smoothness obtained by changing the value of the parameter
-$\sigma$. For $\sigma \rightarrow 0$, the surface obtained converges
-to the original skeleton $\mathcal{S}\rightarrow \mathit{S}$.
-
-Notice also that we can generalize this process to any skeleton
-$\mathit{S}$ (not only triangulated surfaces), and the same regularity
-on $\mathcal{S}$ will be obtained.
-
-
-
-
-
-
-
-
-
-Next we will use the set of all flat triangles $\mathit{T}_j$ as the
-domain to map the surface $\mathcal{S}$. As the surface $\mathcal{S}$
-will be close to the skeleton $\mathit{S}$, a naive approach to find
-that map would be to define a line for each point on $\mathit{T}_j$
-that pass though it and has direction $\hat{\bN}^{tri}_j$, then find
-the intersection of that line with $\mathcal{S}$ (running a root
-finding Newton algorithm of one variable on the function $f(\bx)$
-where $\bx$ is restricted to that line). This process would obviously
-create gaps on $\mathcal{S}$, as the normal vectors
-$\hat{\bN}^{tri}_j$ are discontinuous across adjacent triangles
-$\mathit{T}_j$. In order to avoid that, we define a pseudo-normal
-direction on each point $\bV$ of each triangle $\mathit{T}_j$ with the
-property that is a continuous function on $\mathit{S}$ and smooth in
-the interior of each triangle.
-
-
-
-
-In order to simplify the notation, we will remove the dependence on
-$j$ when there is no confusion about the triangle under consideration;
-therefore, for a particular triangle we will consider the three
-vertices $\bP_1,\bP_2,\bP_3$, the normal to the triangle
-$\hat{\bN}^{tri}$ and the 'normals' to each vertex of the triangle
-$\hat{\bN}_1^{tri},\hat{\bN}_2^{tri},\hat{\bN}_3^{tri}$. We can write
-each point $\bX$ inside the triangle $j$ by a linear convex
-combination of the vertices: $\bX(u,v)=(1-u-v)\bP_1+u\bP_2+v\bP_3$,
-where $0\le u, 0\le v, u+v\le1$. we define a vector $\bV$ on each
-point as:
-$\bV(u,v)=(1-u-v)\hat{\bN}_1^{vert}+u\hat{\bN}_2^{vert}+v\hat{\bN}_3^{vert}$
-(notice that $\bV$ is not normalized here). This vector $\bV$ is a
-'deformation' of the normal vector $\hat{\bN}^{tri}$ of the triangle
-such that there is continuity of the vector $\bV$ across two neighbor
-triangles (see figure \ref{normalvert3}). Notice that, on each edge,
-the $\bV$ vector is a linear combination of only the two vectors
-$\hat{\bN}^{vert}$ that belong to that edge.
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=4in]{normal_vertex_3.png}%
-\end{center}
-\caption{$\hat{\bN}_1^{tri}$ normal vector to the triangle. $\hat{\bN}_1^{vert},\hat{\bN}_2^{vert},\hat{\bN}_3^{vert}$ 'normal vector' on each vertex. $\bX(u,v)$ point on the triangle. $\bV(u,v)$ deformation of the normal on each point of the triangle.}
-\label{normalvert3}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=.65\linewidth]{normal_vertex_3.png}%
+  \caption{The interpolated value of the vertex normal to the interior
+    of the triangle.}
+  \label{normalvert3}
 \end{figure}
 
 
-The surface $\mathcal{S}$ can be divided into curved triangles $\mathcal{S}=\cup_{j=1}^{n_{tri}}\mathcal{T}_j$, where each point of the triangle $\mathcal{T}_j$ written as:
-
-\begin{equation}\label{chart0}
-\bY(u,v)=\bX(u,v)+\bV(u,v)h(u,v)
-\end{equation}
-
-for certain $u,v$, where $\bX(u,v)$ is a point on $\mathit{T}_j$, $h(u,v)$ is a real number that makes $\bX(u,v)+\bV(u,v)h(u,v)$ intersect with the surface $\mathcal{S}$, that is:
-
-\begin{equation}\label{newtoneq}
-f(\bX(u,v)+\bV(u,v)h(u,v))=\frac{1}{2}
-\end{equation}
- 
-Notice that the expression (\ref{chart0}) is a chart of the surface
-that maps the unitary triangle $0\le u, 0\le v, u+v\le1$ on a curved
-triangle $\mathcal{T}_j\subset \mathcal{S}$. According to the choice
-of the normals to each vertex, the set of all charts should is an
-atlas of the surface $\mathcal{S}$.
 
 
+% Let's consider a Gaussian function of 3 variables:
+% $k(\bx)=\frac{1}{\sigma^3\sqrt{2\pi}^3}e^{-\frac{r^2}{2\sigma^2}}$,
+% where $r=|\bx|$ and $\bx\subset \mathbb{R}^3$. For the moment we will
+% consider $\sigma$ as a constant.  Let's define the convolution of the
+% indicator function on $\mathit{V}$ and the Gaussian:
+% $$f(\bx)=\int_{V}k(\bx-\by)dV_{\by}$$
+% Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
+
+% For a suitable selection of the parameter $\sigma$ (small enough), the
+% resulting surface $\mathcal{S}$ is a smooth version of $\mathit{S}$,
+% of class $C^{\infty}$. Notice also that we can control the degree of
+% smoothness obtained by changing the value of the parameter
+% $\sigma$. For $\sigma \rightarrow 0$, the surface obtained converges
+% to the original skeleton $\mathcal{S}\rightarrow \mathit{S}$.
+
+% Notice also that we can generalize this process to any skeleton
+% $\mathit{S}$ (not only triangulated surfaces), and the same regularity
+% on $\mathcal{S}$ will be obtained.
 
 
 
-\subsection{The Local Coordinate System}
 
-In this section we find suitable expressions to obtain the tangent
-vectors $\bu$ and $\bv$ to the surface and the area element dS
-corresponding to the parametrization (\ref{chart0}):
 
+
+
+
+\subsection{Local Coordinates}
+
+In this section we find suitable expressions to obtain a local
+orthonormal basis along each patch of the surface~$\Gamma^j$, as well
+as the area element.
+Recall that the chart for the patch~$\Gamma^j$ is given by
 \begin{equation}\label{chart}
-\begin{aligned}
-\bY(u,v)&=\bX(u,v)+\bV(u,v)h(u,v)=\\
-&=(1-u-v)\bP^1+u\bP^2+v\bP^3+\\
-&+h(u,v)\Big((1-u-v)\hat{\bN}^{vert}_1+u\hat{\bN}^{vert}_2+v\hat{\bN}^{vert}_3\Big)
-\end{aligned}
+    \vct{x}^j(u,v) = \vct{T}^j(u,v) + h^j(u,v) \, \vct{H}^j(u,v).
 \end{equation}
-
-Taking partial derivative with $u$ we get:
-
-\begin{equation}\label{U_vector}
-\begin{aligned}
-\frac{\partial\bY(u,v)}{\partial u}&=\bP^2-\bP^1+h(u,v)\Big(\hat{\bN}^{vert}_2-\hat{\bN}^{vert}_1\Big)+\\
-&+\frac{\partial h(u,v)}{\partial u}\bV(u,v)
-\end{aligned}
+Taking the partial derivative with respect to~$u$ above, we have
+\begin{equation}\label{u_vector}
+  \begin{aligned}
+    \vct{x}^j_u(u,v) &=  \frac{\partial \vct{x}^j}{\partial u}(u,v) \\
+    &= \vct{T}^j_u + h(u,v) \,
+  \vct{H}^j_u   + \frac{\partial h}{\partial
+    u}(u,v)
+  \, \vct{H}^j(u,v).
+  \end{aligned}
 \end{equation}
-
-where the only unknown term is $\frac{\partial h(u,v)}{\partial u}$, as we found $h(u,v)$ as the solution of the nonlinear equation \ref{newtoneq}. We can use the fact that $\frac{\partial\bY(u,v)}{\partial u}$ is tangent to the surface $\mathcal{S}$ and the fact that $\nabla f$ is normal to $\mathcal{S}$ to obtain the missing therm:
-
+where the only unknown term is~$\partial h / \partial u$ (since it was
+only~$h$ that was computed via Newton's algorithm, as in the previous
+section).
+However, using the fact that~$\partial\vct{x}^j/\partial u$ must be
+tangent to the surface~$\Gamma_C$, and that~$\nabla \Phi$ is normal
+to~$\Gamma$ (easily shown from computation), we have
 \begin{equation}\label{U_vector_2}
-\begin{aligned}
-\frac{\partial h(u,v)}{\partial u}=-\frac{<\bP^2-\bP^1+h(u,v)\Big(\hat{\bN}^{vert}_2-\hat{\bN}^{vert}_1\Big),\nabla f>}{<\bV(u,v),\nabla f>}
-\end{aligned}
+  \frac{\partial h}{\partial u} = \frac{\lp \vct{T}^j_u + h \, \vct{H}^j_u
+  \rp \cdot \nabla \Phi }{\vct{H}^j \cdot \nabla \Phi}.
 \end{equation}
-similarly we obtain:
-
-\begin{equation}\label{V_vector}
-\begin{aligned}
-\frac{\partial\bY(u,v)}{\partial v}&=\bP^3-\bP^1+h(u,v)\Big(\hat{\bN}^{vert}_3-\hat{\bN}^{vert}_1\Big)+\\
-&+\frac{\partial h(u,v)}{\partial v}\bV(u,v)
-\end{aligned}
+A similar calculation can be used to obtain
+\begin{equation}\label{v_vector}
+    \vct{x}^j_v
+    = \vct{T}^j_v + h \,
+  \vct{H}^j_v   + \frac{\partial h}{\partial
+    v}
+  \, \vct{H}^j
 \end{equation}
-
-with:
-
-\begin{equation}\label{V_vector_2}
-\begin{aligned}
-\frac{\partial h(u,v)}{\partial v}=-\frac{<\bP^3-\bP^1+h(u,v)\Big(\hat{\bN}^{vert}_3-\hat{\bN}^{vert}_1\Big),\nabla f>}{<\bV(u,v),\nabla f>}
-\end{aligned}
+with
+\begin{equation}\label{v_vector_2}
+  \frac{\partial h}{\partial v} = \frac{\lp \vct{T}^j_v + h \, \vct{H}^j_v
+  \rp \cdot \nabla \Phi }{\vct{H}^j \cdot \nabla \Phi}.
 \end{equation}
+{\color{red} fix length scaling of chart to be consistent with
+  evarythign else, either normalize or don't}
+
 
 
 now we can write the area element $dS$ as:
@@ -606,6 +586,118 @@ now we can write the area element $dS$ as:
 % $$W_n=\Bigg|\frac{\partial\bY}{\partial u}(u_n,v_n)\times\frac{\partial\bY}{\partial v}(u_n,v_n)\Bigg|w_n$$
  
 As tangent reference system on the surface we use the vectors $\hat{\bu}, \hat{\bv}$; for the  $\hat{\bu}$ vector we normalize $\frac{\partial\bY(u,v)}{\partial u}$, and for the $\hat{\bv}$ vector we cross $\frac{\nabla f}{|\nabla f|}$ with $\hat{\bu}$.
+
+
+
+
+
+We now turn to describing a fast adaptive high-order algorithm for
+numerically approximating the surface~$\Gamma_C$, as constructed
+above, that is compatible with many boundary integral equation
+discretization schemes.
+
+
+
+
+
+
+
+
+\section{A Fast Algorithm}
+\label{sec:algorithm}
+
+The previous discussion has taken place without any numerical
+considerations. In order to make the scheme as described a viable
+numerical method, several elements have to be made computationally
+tractable: for example, numerical evaluation of ~$\Phi$ (a volume
+integral), approximation/discretization of the surface~$\Gamma_C$, and
+implementation of Newton's method to determine the function~$h$
+in~\eqref{eq:h}.
+We begin by reformulating the expression for~$\Phi$ in terms of a
+boundary integral, thereby obviating the need to mesh the interior
+volume of the region~$V$.
+
+
+\subsection{Boundary Integral Formulation}
+\label{sec:bif}
+
+Until this point, the convolution kernel~$\phi$ has not been
+specified, aside from suggestions that certain advantages come from it
+being compactly supported. In applications such as this, where
+convolution is being used as a method to generate what we could call a
+\emph{bandlimited surface}, there are two natural choices: a Gaussian
+and the Kaiser-Bessel window~\cite{barnett2018}. In this work we
+choose to use a Gaussian as the convolution kernel for various
+reasons, namely for the ease with which the divergence theorem can be
+applied to the volume convolution. The following identity allows us to
+directly represent~$\Phi$ as a boundary integral: 
+\begin{equation}
+  \Delta \lp \frac{1}{4\pi r} \erf \lp \frac{r}{\sqrt{2}\sigma} \rp
+  \rp = - \frac{1}{\lp 2\pi \sigma^2 \rp^{3/2}} e^{-r^2/2\sigma^2}.
+\end{equation}
+where~$\erf$ is defined to be an integral of the Gaussian:
+\begin{equation}
+\erf(r) = \frac{2}{\sqrt{\pi}} \int^r_0 e^{-t^2} \, dt.
+\end{equation}
+Using the above identity, we can rewrite~$\Phi$ as
+\begin{equation}
+  \begin{aligned}
+    \Phi(\vct{x}) &= \int_V \frac{1}{\lp 2\pi \sigma^2 \rp^{3/2}}
+    e^{-|\vct{x}-\vct{x}'|^2/2\sigma^2} \, dv(\vct{x}') \\
+    &= \int_V \Delta \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
+    \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
+    \rp \, dv(\vct{x}') \\
+    &= \int_V \vct{N}(\bx) \cdot \nabla_{\vct{x}}
+     \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
+    \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
+    \rp \, ds(\vct{x}')
+  \end{aligned}
+\end{equation}
+\begin{equation}\label{surf_f}
+\begin{aligned}
+f(\bx)&=\int_{V}k(\bx-\by)dV_{\by}=\int_{\mathit{S}}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
+&=\int_{\mathit{S}}\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)dS_{\by}
+\end{aligned}
+\end{equation}
+
+Notice that the resulting surface integral is smooth. Notice that for far distances between source and target, we have that $\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)\approx 1$ and $e^{-\frac{|\by-\bx|^2}{2\sigma^2}}\approx 0$ and we can approximate the integrand by:
+
+\begin{equation}
+\begin{aligned}
+&\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)\approx\\
+\approx &\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
+\end{aligned}
+\end{equation}
+
+Therefore, the far interactions can be efficiently evaluated by using the FMM for the double layer with constant density $=1$, while the near interactions can be evaluated directly as the integrand is a smooth function.
+
+The evaluation of $\nabla f(\bx)$ can also be obtained efficiently in the far field by evaluating the gradient of the double layer, while the near field is again a smooth function. Next we see the resulting expressions:
+
+\begin{equation}\label{surf_nablaf}
+\begin{aligned}
+\nabla f(\bx)&=\int_{\mathit{S}}\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
+&=\int_{\mathit{S}}-\bn(\by)\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)dS_{\by}+\\
++&\int_{\mathit{S}} -\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}(\bx-\by)<(\by-\bx)\cdot \hat{\bn}(\by)>dS_{\by}
+\end{aligned}
+\end{equation}
+
+%\begin{equation}
+%-\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}
+%\end{equation}
+
+where $r=|\bx-\by|$. In this case we also have that, for far distances between source and target, we can approximate the kernel by:
+
+\begin{equation}
+\begin{aligned}
+\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)\approx
+\nabla_{\bx}\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
+\end{aligned}
+\end{equation}
+
+Which is the kernel of the gradient of the double layer with density $=1$, therefore we can use again the FMM to compute it. For the near interaction, the kernel is again smooth.
+
+Notice that the use of the FMM to speed up the process implies that we have to run the Newton method to solve the equation \ref{newtoneq} simultaneously for all points of each triangle and all triangles at the same time $\bY_j(u_n,v_n)$ for $j=1,...,n_{tri}$ and $n=1,..,N$, where $n_{tri}$ is the total number of triangles of the skeleton $\mathit{S}$ and $N$ is the total number of nodes in the generalized quadrature rule used on the canonical triangle $(u,v)$. This implies to run an FMM call for each Newton iteration step with $Nn_{tri}$ source points and target points. Notice also that the target points will change for each iteration.
+
 
 
 
@@ -693,14 +785,22 @@ Notice that the definition of the surface $\mathcal{S}$ has not changed, as the 
 \end{figure}
 
 
-By doing this we obtain a new atlas with four times more triangles: $\{\mathcal{T}_j\}_{j=1}^{n_{tri}}\rightarrow \{\mathcal{T}_j\}_{j=1}^{4\cdot n_{tri}}$ where we can apply the discretization process of section \ref{disc} and obtain a discretized surface with four times more points. 
+By doing this we obtain a new atlas with four times more triangles:
+$\{\mathcal{T}_j\}_{j=1}^{n_{tri}}\rightarrow
+\{\mathcal{T}_j\}_{j=1}^{4\cdot n_{tri}}$ where we can apply the
+discretization process of section \ref{disc} and obtain a discretized
+surface with four times more points.
 
 
 
 
 
 
-\subsection{Adaptive Convolution Kernels}
+
+
+\subsection{A Fast Adaptive Algorithm}
+\label{sec:fast-adap}
+
 
 So far we have described how to generate a smooth surface from a closed flat triangulated surface $\mathit{S}$ (skeleton). The degree of smoothness is controled by the parameter $\sigma$. The value of $\sigma$ must be in proportion to the size of the triangles in $\mathit{S}$ (a typical value can be $\frac{1}{5}$ of the size of the triangles). This algorithm requires a regular triangularization of the surface $\mathit{S}$ with triangles of similar size.
 
@@ -747,68 +847,7 @@ This makes the calculation a bit more complicated, yet we can evaluate it by usi
 
 
 
-\section{A Fast Algorithm}
 
-
-One thing we notice in the definition of $f$ is that it requires the evaluation of a volume integral on $\mathit{V}$. The effective numerical calculation of this volume integral would require to mesh the volume interior to the surface skeleton. This process could be inconvenient for some reasons, and also slow.  In order to speed up this calculation and avoid the need of a volume mesh, we can change the volume integral by a surface integral by using the divergence theorem in the following way.
-
-Using the following identity:
-
-\begin{equation}
-\Delta\Big(\frac{1}{4\pi r}\erf\Big(\frac{r}{\sqrt{2}\sigma}\Big)\Big)=-\frac{1}{\sigma^3\sqrt{2\pi}^3}e^{-\frac{r^2}{2\sigma^2}}
-\end{equation}
- 
- we obtain:
- 
-\begin{equation}\label{surf_f}
-\begin{aligned}
-f(\bx)&=\int_{V}k(\bx-\by)dV_{\by}=\int_{\mathit{S}}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
-&=\int_{\mathit{S}}\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)dS_{\by}
-\end{aligned}
-\end{equation}
-
-Notice that the resulting surface integral is smooth. Notice that for far distances between source and target, we have that $\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)\approx 1$ and $e^{-\frac{|\by-\bx|^2}{2\sigma^2}}\approx 0$ and we can approximate the integrand by:
-
-\begin{equation}
-\begin{aligned}
-&\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)\approx\\
-\approx &\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
-\end{aligned}
-\end{equation}
-
-Therefore, the far interactions can be efficiently evaluated by using the FMM for the double layer with constant density $=1$, while the near interactions can be evaluated directly as the integrand is a smooth function.
-
-The evaluation of $\nabla f(\bx)$ can also be obtained efficiently in the far field by evaluating the gradient of the double layer, while the near field is again a smooth function. Next we see the resulting expressions:
-
-\begin{equation}\label{surf_nablaf}
-\begin{aligned}
-\nabla f(\bx)&=\int_{\mathit{S}}\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
-&=\int_{\mathit{S}}-\bn(\by)\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)dS_{\by}+\\
-+&\int_{\mathit{S}} -\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}(\bx-\by)<(\by-\bx)\cdot \hat{\bn}(\by)>dS_{\by}
-\end{aligned}
-\end{equation}
-
-%\begin{equation}
-%-\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}
-%\end{equation}
-
-where $r=|\bx-\by|$. In this case we also have that, for far distances between source and target, we can approximate the kernel by:
-
-\begin{equation}
-\begin{aligned}
-\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)\approx
-\nabla_{\bx}\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
-\end{aligned}
-\end{equation}
-
-Which is the kernel of the gradient of the double layer with density $=1$, therefore we can use again the FMM to compute it. For the near interaction, the kernel is again smooth.
-
-Notice that the use of the FMM to speed up the process implies that we have to run the Newton method to solve the equation \ref{newtoneq} simultaneously for all points of each triangle and all triangles at the same time $\bY_j(u_n,v_n)$ for $j=1,...,n_{tri}$ and $n=1,..,N$, where $n_{tri}$ is the total number of triangles of the skeleton $\mathit{S}$ and $N$ is the total number of nodes in the generalized quadrature rule used on the canonical triangle $(u,v)$. This implies to run an FMM call for each Newton iteration step with $Nn_{tri}$ source points and target points. Notice also that the target points will change for each iteration.
-
-
-
-\subsection{A Fast Adaptive Algorithm}
-\label{sec:fast-adap}
 
 In the adaptive case, we can still evaluate the function $f(\bx)$ and
 $\nabla f(\bx)$ efficiently using the FMM. Next we update the
