@@ -55,10 +55,8 @@
 \newcommand\bphi{\boldsymbol \phi}
 \newcommand\brho{\boldsymbol \rho}
 \newcommand\rect{\rm rect}
-\newcommand\bs{\boldsymbol s}
-\newcommand\bx{\boldsymbol x}
-\newcommand\by{\boldsymbol y}
-\newcommand\bE{\boldsymbol E}
+\newcommand\bx{\vct{x}}
+\newcommand\by{\vct{y}}
 \newcommand\ds{\boldsymbol ds}
 \newcommand\bH{\boldsymbol H}
 \newcommand\bF{\boldsymbol F}
@@ -463,7 +461,7 @@ will be parameterized piecewise above/below each skeleton triangle as
 with $\vct{x}^j$ denoting the chart which generates the patch~$\Gamma^j_C$
 from the skeleton mesh. The function~$h^j$ can be determined
 pointwise as the solution to the equation
-\begin{equation}
+\begin{equation}\label{eq:newton}
   \Phi\lp \vct{x}^j(u,v)  \rp - C = 0.
 \end{equation}
 The above is still an implicit definition of the surface, but for a
@@ -640,77 +638,141 @@ where~$\erf$ is defined to be an integral of the Gaussian:
 \erf(r) = \frac{2}{\sqrt{\pi}} \int^r_0 e^{-t^2} \, dt.
 \end{equation}
 Using the above identity, we can rewrite~$\Phi$ as
-\begin{equation}
+\begin{equation}\label{eq:surf}
   \begin{aligned}
     \Phi(\vct{x}) &= \int_V \frac{1}{\lp 2\pi \sigma^2 \rp^{3/2}}
     e^{-|\vct{x}-\vct{x}'|^2/2\sigma^2} \, dv(\vct{x}') \\
-    &= \int_V \Delta \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
+    &= - \int_V \Delta \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
     \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
     \rp \, dv(\vct{x}') \\
-    &= \int_V \vct{N}(\bx) \cdot \nabla_{\vct{x}}
+    &= - \int_S \vct{N}(\bx) \cdot \nabla_{\vct{x}}
      \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
     \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
-    \rp \, ds(\vct{x}')
+    \rp \, ds(\vct{x}') \\
+    &=\int_S  \vct{N}(\vct{x}) \cdot \lp \vct{x} -\vct{x}' \rp \lp
+    \frac{\erf \lp |\bx-\bx'|/ \sqrt{2}\sigma \rp
+    }{4\pi|\bx-\bx'|^3}
+    -\frac{\sqrt{\frac{2}{\pi}}e^{-|\bx-\bx'|^2/2\sigma^2}}{4\pi\sigma|\by-\bx|^2}
+    \rp \, da(\bx') \\
+    &= \int_S \psi(\bx-\bx') \, da(\bx').
   \end{aligned}
 \end{equation}
-\begin{equation}\label{surf_f}
-\begin{aligned}
-f(\bx)&=\int_{V}k(\bx-\by)dV_{\by}=\int_{\mathit{S}}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
-&=\int_{\mathit{S}}\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)dS_{\by}
-\end{aligned}
-\end{equation}
-
-Notice that the resulting surface integral is smooth. Notice that for far distances between source and target, we have that $\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)\approx 1$ and $e^{-\frac{|\by-\bx|^2}{2\sigma^2}}\approx 0$ and we can approximate the integrand by:
-
+Note that the kernel in the above surface integral, denoted by~$\psi$,
+is smooth. Furthermore, for even modestly large values of~$r$, we have
+that
 \begin{equation}
-\begin{aligned}
-&\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)(\by-\bx)\cdot\bn(\by)\approx\\
-\approx &\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
-\end{aligned}
+  \erf(r) \approx 1, \qquad e^{-r^2} \approx 0.
 \end{equation}
-
-Therefore, the far interactions can be efficiently evaluated by using the FMM for the double layer with constant density $=1$, while the near interactions can be evaluated directly as the integrand is a smooth function.
-
-The evaluation of $\nabla f(\bx)$ can also be obtained efficiently in the far field by evaluating the gradient of the double layer, while the near field is again a smooth function. Next we see the resulting expressions:
-
-\begin{equation}\label{surf_nablaf}
-\begin{aligned}
-\nabla f(\bx)&=\int_{\mathit{S}}\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
-&=\int_{\mathit{S}}-\bn(\by)\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)dS_{\by}+\\
-+&\int_{\mathit{S}} -\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}(\bx-\by)<(\by-\bx)\cdot \hat{\bn}(\by)>dS_{\by}
-\end{aligned}
-\end{equation}
-
-%\begin{equation}
-%-\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}
-%\end{equation}
-
-where $r=|\bx-\by|$. In this case we also have that, for far distances between source and target, we can approximate the kernel by:
-
+This means that in the far-field we can approximate the kernel~$\psi$ as
 \begin{equation}
-\begin{aligned}
-\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)\approx
-\nabla_{\bx}\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
-\end{aligned}
+  \psi(\bx-\bx') \approx -\vct{N}(\bx) \cdot \nabla_{\bx} \left(
+    \frac{1}{4\pi |\bx-\bx'| }\right).
 \end{equation}
+The above approximation is the same as the kernel appearing in
+double-layer potentials when solving Laplace's equation in three
+dimensions using integral equation methods. This type of kernel admits
+very efficient, asymptotically optimal~$n$-body summations via fast
+multipole methods~\cite{many}, and therefore the resulting boundary
+integral in~\eqref{eq:surf} can be applied efficiently.
+For a given target location~$\bx$, the surface integral above can be
+split into two pieces:
+\begin{equation}
+  \Phi(\bx) = \int_{S\setminus B(\bx,R)} \vct{N}(\bx) \cdot \nabla_{\bx} \left(
+    \frac{1}{4\pi |\bx-\bx'| }\right) \, da(\bx') +
+  \int_{S \cap B(\bx,R)} \psi(\bx-\bx') \, da(\bx'),
+\end{equation}
+where~$R$ is chosen such that~$\Phi(\bx)$ is computed to some
+specified accuracy~$\epsilon$. The first term above (the far-field)
+can be discretized and computed using an FMM for Laplace potentials;
+the second term can be discretized using quadratures for smooth
+functions and computed directly, without the aid of any fast algorithm.
+It easy to check that the gradient of the above expression can also be
+efficiently evaluated using an FMM, as the gradient of the far-field
+term is also a Laplace potential. The gradient can be expanded as:
+\begin{equation}\label{eq:surfgrad}
+    \nabla \Phi(\bx) =  ...
+\end{equation}
+{\color{red} Sign check and insert correct formula above.}
+% \begin{equation}\label{surf_nablaf}
+% \begin{aligned}
+%   \nabla f(\bx)&=\int_{\mathit{S}}\nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)dS_{\by}=\\
+%   &=\int_{\mathit{S}}-\bn(\by)\Bigg(\frac{\erf\big(\frac{|\by-\bx|}{\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|^3}-\frac{\sqrt{\frac{2}{\pi}}e^{-\frac{|\by-\bx|^2}{2\sigma^2}}}{4\pi\sigma|\by-\bx|^2}\Bigg)dS_{\by}+\\
+%   +&\int_{\mathit{S}}
+%   -\frac{e^{-\frac{r^2}{2\sigma^2}}(\sqrt{2}r^3+\sqrt{2}r\sigma^23)-\sigma^3\sqrt{\pi}3\erf{\big(\frac{r}{\sqrt{2}\sigma}}\big)}{r^5\sigma^3\pi^{3/2}4}(\bx-\by)<(\by-\bx)\cdot
+%   \hat{\bn}(\by)>dS_{\by}
+% \end{aligned}
+% \end{equation}
+%where $r=|\bx-\by|$. In this case we also have that, for far distances
+%between source and target, we can approximate the kernel by:
 
-Which is the kernel of the gradient of the double layer with density $=1$, therefore we can use again the FMM to compute it. For the near interaction, the kernel is again smooth.
+% \begin{equation}
+% \begin{aligned}
+%   \nabla_{\bx}\nabla_{\by}\Big(\frac{\erf\big(\frac{|\by-\bx|}
+% {\sqrt{2}\sigma}\big)}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)\approx
+%   \nabla_{\bx}\nabla_{\by}\Big(\frac{1}{4\pi|\by-\bx|}\Big)\cdot\bn(\by)
+% \end{aligned}
+% \end{equation}
 
-Notice that the use of the FMM to speed up the process implies that we have to run the Newton method to solve the equation \ref{newtoneq} simultaneously for all points of each triangle and all triangles at the same time $\bY_j(u_n,v_n)$ for $j=1,...,n_{tri}$ and $n=1,..,N$, where $n_{tri}$ is the total number of triangles of the skeleton $\mathit{S}$ and $N$ is the total number of nodes in the generalized quadrature rule used on the canonical triangle $(u,v)$. This implies to run an FMM call for each Newton iteration step with $Nn_{tri}$ source points and target points. Notice also that the target points will change for each iteration.
+% Which is the kernel of the gradient of the double layer with density
+% $=1$, therefore we can use again the FMM to compute it. For the near
+% interaction, the kernel is again smooth.
+
+With the above reformulation of the evaluation of~$\Phi$ as a boundary
+integral, and its calculation accelerated via an FMM, this means that
+the Newton iteration for determining~$h$ in~\eqref{eq:newton} can be
+performed \emph{simultaneously for every discretization point along
+  $S$}. We now turn to the actual high-order approximation of the
+smoothed surface, which will involve using a high-order quadrature
+along the skeleton mesh and approximation using orthogonal polynomials
+on the simplex.
 
 
 
 
-
-\subsection{High-Order Discretizations}
+\subsection{High-Order Discretization}
 \label{sec:disc}
 
+In this section we describe a method for discretizing the surface
+integral appearing in~\eqref{eq:surf} and subsequently approximating
+the convolution surface~$\Gamma_C$ using a piecewise polynomial
+approximation over the standard simplex triangle. Under our
+assumption, the skeleton surface is provided as a collection of flat
+triangles. In order to evaluate the boundary integral over this
+surface with kernel~$\psi$, we discretize the integral on each
+triangle using what are known as Vioreanu-Rokhlin
+quadratures~\cite{vioreanu_2014}. These quadrature rules are very
+efficient and are \emph{Gaussian-like} in that they integrate more
+functions than there are nodes in the quadrature. The actual order of
+the quadrature varies with the order of the underling implied
+interpolation, see~\cite{vioreanu_2014} for details.
+On the simplex~$T_0$, we
+denote a polynomial of degree~$q$ in two variables as
+\begin{equation}
+  f(u,v) = \sum_{m+n \leq q} a_{mn} \, u^m \, v^n.
+\end{equation}
+The polynomial~$f$ above is said to be of order~$q$ and its expansion
+has~$(q+1)(q+2)/2$ linearly independent polynomials. Since 
 
 
 
-In this section we propose a fast algorithm to discretize the surface to high order. As a result we will obtain, for each triangle $\mathcal{T}_j$, a set of points $(\bY_n=\bY(u_n,v_n))_{n=1}^N$ where $(u_n,v_n)_{n=1}^N$ are the nodes associated to a generalized Gaussian quadrature rule for smooth functions on the canonical triangle (see [Rokhlin Gaussian Smooth Triangle]). As a result, we will also obtain tangent and norlam vectors associated to each point $\hat{\bu}_n,\hat{\bv}_n,\hat{\bn}_n$, and a weight $dS_n$ to compute surface integrals of smooth functions on the surface to high order.
+considered a nextension of Gaussian quadrature to the triangle, as
+they 
 
-Let's consider a particular high order generalized Gaussian rule on the canonical triangle $(u_n,v_n,w_n)_{n=1}^N$, where $u_n,v_n$ are nodes and $w_n$ are weights. For each triangle $\mathcal{T}_j$ and each node $u_n,v_n$ we consider the equation of one variable $h$:
+
+propose a fast algorithm to discretize the surface
+to high order. As a result we will obtain, for each triangle
+$\mathcal{T}_j$, a set of points $(\bY_n=\bY(u_n,v_n))_{n=1}^N$ where
+$(u_n,v_n)_{n=1}^N$ are the nodes associated to a generalized Gaussian
+quadrature rule for smooth functions on the canonical triangle (see
+[Rokhlin Gaussian Smooth Triangle]). As a result, we will also obtain
+tangent and norlam vectors associated to each point
+$\hat{\bu}_n,\hat{\bv}_n,\hat{\bn}_n$, and a weight $dS_n$ to compute
+surface integrals of smooth functions on the surface to high order.
+
+Let's consider a particular high order generalized Gaussian rule on
+the canonical triangle $(u_n,v_n,w_n)_{n=1}^N$, where $u_n,v_n$ are
+nodes and $w_n$ are weights. For each triangle $\mathcal{T}_j$ and
+each node $u_n,v_n$ we consider the equation of one variable $h$:
 
 \begin{equation}\label{newtoneq}
 f(\bX(u_n,v_n)+\bV(u_n,v_n)h)=\frac{1}{2}
@@ -851,7 +913,7 @@ This makes the calculation a bit more complicated, yet we can evaluate it by usi
 
 In the adaptive case, we can still evaluate the function $f(\bx)$ and
 $\nabla f(\bx)$ efficiently using the FMM. Next we update the
-expressions \ref{surf_f} and \ref{surf_nablaf} for the variable
+expressions~\ref{eq:surf} and \ref{surf_nablaf} for the variable
 $\sigma(\bx)$ case:
 
  

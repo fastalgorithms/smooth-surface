@@ -1,3 +1,32 @@
-\begin{thebibliography}{}
+\begin{thebibliography}{1}
+
+\bibitem{bremer}
+J.~Bremer, Z.~Gimbutas, and V.~Rokhlin.
+\newblock A nonlinear optimization procedure for generalized {G}aussian
+  quadratures.
+\newblock {\em SIAM J. Sci. Comput.}, 32(4):1761--1788, 2010.
+
+\bibitem{gmsh}
+C.~Geuzaine and J.-F. Remacle.
+\newblock Gmsh: {A} 3-{D} finite element mesh generator with built-in pre- and
+  post-processing facilities.
+\newblock {\em Int. J. Num. Methods Engrg.}, 79:1309--1331, 2009.
+
+\bibitem{epstein_2016}
+C.~L. Epstein and M.~O'Neil.
+\newblock Smoothed corners and scattered waves.
+\newblock {\em SIAM J. Sci. Comput.}, 38:A2665--A2698, 2016.
+
+\bibitem{barnett2018}
+A.~Barnett, J.~Magland, and L.~af~Klinteberg.
+\newblock {A Parallel Non-Uniform Fast Fourier Transform Library Based on an
+  "Exponential of Semicircle" Kernel}.
+\newblock 2018.
+\newblock arXiv:1808.06736 [math.NA].
+
+\bibitem{vioreanu_2014}
+B.~Vioreanu and V.~Rokhlin.
+\newblock {Spectra of Multiplication Operators as a Numerical Tool}.
+\newblock {\em SIAM J. Sci. Comput.}, 36:A267--A288, 2014.
 
 \end{thebibliography}
