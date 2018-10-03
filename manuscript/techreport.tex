@@ -806,14 +806,11 @@ and node $(u_i,v_i)$, we wish to find a root of the equation
   \begin{aligned}
     f(h_{ji}) &= \Phi(\bx^j_i) - C \\
     &= \Phi\lp \vct{T}^j(u_i,v_i) + h_{ji} \, \vct{H}^j(u_i,v_i)
-    \rp - C,
+    \rp - C.
 \end{aligned}
 \end{equation}
-yielding the Newton iteration
-\begin{equation}
-  h_{ji}^{(k+1)} = h_{ji}^{(k)} - \frac{ f\lp h_{ji}^{(k)} \rp}
-{f'\lp h_{ji}^{(k)} \rp}.
-\end{equation}
+This is an equation in one variable that can be solved using the a
+simple one-dimensional Newton's method iteration.
 Each evaluation of the function~$f$ requires the evaluation of a
 boundary integral, however, an FMM can be used to compute~$\Phi$ at
 \emph{all} points~$\bx^j_i$, for all $i$ and~$j$, in time proportional
