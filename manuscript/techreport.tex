@@ -89,6 +89,7 @@
 \newtheorem{thm}{Theorem}
 \newtheorem{lemma}{Lemma}
 
+\newcommand{\cO}{\mathcal O}
 \newcommand{\cC}{\mathcal C}
 \newcommand{\cT}{\mathcal T}
 \newcommand{\Vo}{\mathcal V_0}
@@ -275,16 +276,7 @@ work~\cite{fleishman2005,bloomenthal1991,sherstyuk1999,sherstyuk1999design}
 
 
 \section{Smooth Level Sets via Convolution}
-
-
-
-- compare with epstein/oneil
-
-
-
-- OR for smooth surfaces, surface quadrature (fiddle with normals)
-
-
+\label{sec:smooth}
 
 The main mathematical observation of the algorithm presented in this
 work is the following: the convolution of a piecewise function, $f$
@@ -528,6 +520,7 @@ $u,v >0$.
 
 
 \subsection{Local Coordinates}
+\label{sec:local}
 
 In this section we find suitable expressions to obtain a local
 orthonormal basis along each patch of the surface~$\Gamma^j$, as well
@@ -732,7 +725,8 @@ on the simplex.
 
 
 
-\subsection{High-Order Discretization}
+\subsection{Discretization, Approximation, and the Newton
+  Iteration}
 \label{sec:disc}
 
 In this section we describe a method for discretizing the surface
@@ -749,63 +743,92 @@ functions than there are nodes in the quadrature. The actual order of
 the quadrature varies with the order of the underling implied
 interpolation, see~\cite{vioreanu_2014} for details.
 On the simplex~$T_0$, we
-denote a polynomial of degree~$q$ in two variables as
+denote a polynomial of degree~$p$ in two variables as
 \begin{equation}
-  f(u,v) = \sum_{m+n \leq q} a_{mn} \, u^m \, v^n.
+  f(u,v) = \sum_{m+n \leq p} a_{mn} \, u^m \, v^n.
 \end{equation}
-The polynomial~$f$ above is said to be of order~$q$ and its expansion
-has~$(q+1)(q+2)/2$ linearly independent polynomials.
+The polynomial~$f$ above is said to be of total degree~$p$ and its
+expansion has~$(p+1)(p+2)/2$ linearly independent polynomials.  For
+example, Vioreanu-Rokhlin quadratures on the simplex for~$p=4$ have
+$15=(4+1)(4+2)/2$ nodes and integrate exactly all polynomials in~$u,v$
+with total degree~$q=7$ (i.e. 36 functions). When necessary, we report the
+number of points in the Vioreanu-Rokhlin quadrature rule instead of
+the ultimate order.
+We will denote by~$n_p$ the number of polynomials of total degree less
+than or equal to~$p$,~$n_p = (p+1)(p+2)/2$.
 
+To this end, each skeleton triangle is discretized using an
+$n_q$-point Vioreanu-Rokhlin quadrature scheme with nodes~$\{
+u_k,v_k\}$ and weights~$\{ w_k \}$ on~$T_0$, the parameterization
+domain.
+This replaces the surface integral representation for~$\Phi$ with the
+discrete sum
+\begin{equation}
+  \Phi(\bx) \approx \sum_{j = 1}^M \sum_{k = 1}^{n_q} w_k \, \psi \lp
+  \bx-\vct{T}^j(u_k,v_k)\rp \, \left| \vct{N}^j(u_k,v_k) \right|.
+\end{equation}
+The discretization above is independent of the target point~$\bx$
+because the integrand is smooth.  The target points will eventually,
+after the Newton iteration has converged, lie on the
+surface~$\Phi = C$. Denoting by~$p$ the ultimate order of the
+approximation of the piecewise patches~$\Gamma^j$, for a given
+function~$h$ we construct the image of~$n_p$ Vioreanu-Rokhlin nodes
+along~$\Gamma^j$ as
+\begin{equation}
+  \bx^j_i = \vct{T}^j(u_i,v_i) + h^j(u_i,v_i) \, \vct{H}^j(u_i,v_i),
+  \qquad \text{for } i = 1,\ldots,n_p.
+\end{equation}
+Via interpolation, the collection of points~$\bx^j_i$ defines a
+curvilinear triangle of degree~$p$. I.e., the patch~$\Gamma^j$ has
+been approximately parameterized as
+\begin{equation}
+  \vct{\Gamma}^j(u,v) \approx \sum_{m+n \leq p}^p \alpha_{mn} \, u^m
+  \, v^n.
+\end{equation}
+Using the expressions of Section~\ref{sec:local}, once Newton's method
+has converged the local coordinate system and metric tensor along the
+surface (with respect to local parameterizations over~$T_0$) can be
+calculated. This avoids numerical or spectral differentiation of the
+above formula.
+Note that the order of the quadrature along~$S$ and the order~$p$ of
+the approximation of~$\Gamma^j$ are \emph{independent}. Often it will
+be useful to use a very high order rule for discretization the
+boundary integral representation of~$\Phi$ and a modest order of
+approximation, e.g. 2, 4, or 6, for the level set.
 
-
-considered a nextension of Gaussian quadrature to the triangle, as
-they 
-
-
-propose a fast algorithm to discretize the surface
-to high order. As a result we will obtain, for each triangle
-$\mathcal{T}_j$, a set of points $(\bY_n=\bY(u_n,v_n))_{n=1}^N$ where
-$(u_n,v_n)_{n=1}^N$ are the nodes associated to a generalized Gaussian
-quadrature rule for smooth functions on the canonical triangle (see
-[Rokhlin Gaussian Smooth Triangle]). As a result, we will also obtain
-tangent and norlam vectors associated to each point
-$\hat{\bu}_n,\hat{\bv}_n,\hat{\bn}_n$, and a weight $dS_n$ to compute
-surface integrals of smooth functions on the surface to high order.
-
-Let's consider a particular high order generalized Gaussian rule on
-the canonical triangle $(u_n,v_n,w_n)_{n=1}^N$, where $u_n,v_n$ are
-nodes and $w_n$ are weights. For each triangle $\mathcal{T}_j$ and
-each node $u_n,v_n$ we consider the equation of one variable $h$:
-
+With this formulation and parameterization laid out, we now turn to
+the details of the Newton iteration used to locate points on the
+surface~$\Phi = C$.  For notational purposes,
+let~$h_{ji} = h^j(u_i,v_i)$ and~$h^{(k)}_{ji}$ be the~$k$th iterate of
+$h_{ji}$ in Newton's method. For a particular skeleton triangle~$T^j$
+and node $(u_i,v_i)$, we wish to find a root of the equation
 \begin{equation}\label{newtoneq}
-f(\bX(u_n,v_n)+\bV(u_n,v_n)h)=\frac{1}{2}
-\end{equation}
-
-We run the Newton's method to find the root. In order to do that we need a fast method to compute both $f$ and $\nabla f$. Next section is about a fast algorithm to compute it.
-
-Notice that the value of $h$ depends on $u_n,v_n$, therefore we can write $h(u_n,v_n)$. Once this value is found, we can obtain the tangent and normal vectors to the surface at those points $\bY_n$ by evaluating the expressions \ref{U_vector}, \ref{U_vector_2} and \ref{V_vector} and \ref{V_vector_2}. We can also obtain the weights using \ref{dS} as:
-
-\begin{equation}\label{dS_n}
-\begin{aligned}
- W_n=\Bigg|\frac{\partial\bY(u_n,v_n)}{\partial u}\times\frac{\partial\bY(u_n,v_n)}{\partial v}\Bigg|w_n
+  \begin{aligned}
+    f(h_{ji}) &= \Phi(\bx^j_i) - C \\
+    &= \Phi\lp \vct{T}^j(u_i,v_i) + h_{ji} \, \vct{H}^j(u_i,v_i)
+    \rp - C,
 \end{aligned}
 \end{equation}
-
-Finally, we obtain the orthogonal system at each discretization point as:
-
+yielding the Newton iteration
 \begin{equation}
-\begin{aligned}
-\bn_n=\frac{\nabla f(\bY_n)}{|\nabla f(\bY_n)|},\  \  \  \   \ 
-\bu_n=\frac{\frac{\partial\bY(u_n,v_n)}{\partial u}}{|\frac{\partial\bY(u_n,v_n)}{\partial u}|},\  \  \  \   \
-\bv_n=\bn_n\times\bu_n
-\end{aligned}
+  h_{ji}^{(k+1)} = h_{ji}^{(k)} - \frac{ f\lp h_{ji}^{(k)} \rp}
+{f'\lp h_{ji}^{(k)} \rp}.
 \end{equation}
+Each evaluation of the function~$f$ requires the evaluation of a
+boundary integral, however, an FMM can be used to compute~$\Phi$ at
+\emph{all} points~$\bx^j_i$, for all $i$ and~$j$, in time proportional
+to~$\cO \lp (n_p+n_q)M \rp$, i.e. linear in the total number of
+targets and sources (discretization points).  Each of the Newton
+iterations for~$h_{ji}$ are one-dimensional, and independent; the
+evaluation of~$f$ and~$f'$ are merely accelerated using an
+FMM. Expressions for~$f$ and~$f'$ above can be derived using
+expressions for~$\Phi$ and $\nabla \Phi$ from the previous section.
+The Newton iterations can be stopped once $|f| < \epsilon$ for all
+$i$~and~$j$.
 
 
 
-\subsection{Newton Iteration}
 
-initial guess, etc.
 
 \subsection{Refinement}
 
@@ -869,17 +892,43 @@ surface with four times more points.
 \section{A Fast Adaptive Algorithm}
 \label{sec:fast-adap}
 
+So far we have described how to generate an infinitely smooth surface
+from a closed flat triangulated skeleton surface~$S$. For any value
+of~$\sigma$ in the smoothing kernel~$\phi$ the surface inherits the
+regularity of~$\phi$. However, the actual magnitude of the values of
+curvature and higher derivatives of the surface directly depend on the
+magnitude of~$\sigma$; ideally the smooth surface should in some way
+respect the behavior of the underlying skeleton (even though it may be
+piecewise linear). In practice, when using a Gaussian smoothing
+kernel, a typical value of~$\sigma$ which produces reasonable results
+(heuristically) is~$\sigma \approx D/5$, where~$D$ is the local
+diameter of triangles of the skeleton mesh. When~$\sigma$ is much
+smaller than this, edges of skeleton mesh start to appear in the
+smooth surface; when~$\sigma$ is too large, all features of the
+skeleton mesh are convolved away.
 
-So far we have described how to generate a smooth surface from a closed flat triangulated surface $\mathit{S}$ (skeleton). The degree of smoothness is controled by the parameter $\sigma$. The value of $\sigma$ must be in proportion to the size of the triangles in $\mathit{S}$ (a typical value can be $\frac{1}{5}$ of the size of the triangles). This algorithm requires a regular triangularization of the surface $\mathit{S}$ with triangles of similar size.
-
-In this section we would like to apply this algorithm to geometries with multiscale features. In order to achieve that we need to have a variable degree of smoothness across the surface (dictated by the size of each triangle). That is, if the skeleton has small features in certain region, we need a small $\sigma$ near that region, yet, if the skeleton has at the same time big features in other region, we need a larger $\sigma$ near that region.
-
-In order to achieve that we need to modify the definition of the function $f(\bx)$. The rest of the procedure to build the atlas and the discretization of the charts remains unchanged. Next we define the function $f(\bx)$ for the adaptive case:
-
+In order to apply the algorithm of this manuscript to skeleton meshes
+which have multiscale features, a convolution kernel must be used that
+locally adapts to triangle sizes (diameters).
+That is, if the skeleton mesh contains fine-scale features in a
+certain region (and has equally small mesh elements in that region),
+then the width~$\sigma$ of the smoothing kernel should be scaled down
+so as not to wash away the structure. This means that the
+kernel~\emph{cannot} be merely a function of~$\bx-\bx'$, and therefore
+cannot be a true convolution.
+In the adaptive case,
+we propose to use the following kernel to construct the level-set
+function~$\Phi_\ell$:
 \begin{equation}
-f(\bx)=\int_{V}\frac{1}{\sigma ^3(\bx)\sqrt{2\pi}^3}e^{-\frac{|\bx-\by|^2}{2\sigma^2(\bx)}}dV_{\by}
+  \phi_\ell(\bx,\bx') = \frac{1}{\lp 2\pi \sigma(\bx)^2 \rp^3/2}
+  e^{-|\bx-\bx'|^2/2\sigma(\bx)^2},
 \end{equation}
-Now we define the surface $\mathcal{S}=\{\bx \mid f(\bx)=\frac{1}{2}\}$.
+where the function~$\sigma$ will be constructed below to adapt to the
+scale of the skeleton mesh and the subscripts~$\ell$ denote
+\emph{local}. The dependence of~$\sigma$ on the target~$\bx$ and not
+the source~$\bx'$ is chosen so as to make the kernel compatible with
+fast multipole methods in the far-field.
+
 
 The function $\sigma(\bx)$ is a $C^{\infty}(\mathbb{R}^3)$ with a value at $\bx$ approximately proportional to the size of the nearest triangle. Next we propose two possibilities (see (\ref{sigma1}) and (\ref{sigma2})):
 
