@@ -109,18 +109,17 @@
     Aplicaciones Multimedia (ITEAM), 
     Universidad Polit\`ecnica
     de Val\`encia, 46022 Val\`encia, Spain.
-    {\em email}: {\sf felipe.vico@gmail.com,}}, \,
+    {\em Email}: \texttt{felipe.vico@gmail.com,}}, \,
 Leslie Greengard\thanks{Courant Institute of Mathematical Sciences,
          New York University, 
          251 Mercer Street,
-         New York, NY 10012-1110.
-{\em email}: {\sf greengard@cims.nyu.edu}. Research supported in
-    part by ... }, \, 
+         New York, NY 10012.
+{\em Email}: \texttt{greengard@cims.nyu.edu}. }, \, 
 and Michael O'Neil\thanks{Courant Institute of Mathematical Sciences,
          New York University, 
          251 Mercer Street,
-         New York, NY 10012-1110.
-{\em email}: {\sf oneil@cims.nyu.edu}. Research supported in part by
+         New York, NY 10012.
+{\em Email}: \texttt{oneil@cims.nyu.edu}. Research supported in part by
   the Office of Naval Research under award numbers
     \#N00014-17-1-2059 and \#N00014-17-1-2451.}}
 
@@ -139,56 +138,60 @@ and Michael O'Neil\thanks{Courant Institute of Mathematical Sciences,
 
 
 \begin{abstract}
-  In this paper we present an algorithm to generate infinitely
-  differentiable smooth surfaces of arbitrary shape. The surfaces can
-  have arbitrary genus and multi-scale details.  The algorithm relies
-  on the observation that convolution of a Gaussian in three
-  dimensions with the indicator function of a closed bounded
-  region~$\Omega$ generates a smooth function~$\Phi$ of three
-  variables. Level sets of $\Phi$ then define infinitely smooth
-  surfaces embedded in three dimensions.  With careful choices of the
-  original skeleton volume~$\Omega_0$, and its skeleton surface
-  mesh~$\Gamma_0$, the level set obtained via convolution is a
-  \emph{smoothed} version of the original (possibly non-smooth)
-  surface skeleton.  Flat regions and convexity are preserved, up to
-  discretization error.  The bandlimit of the surface is locally
-  controlled by the size of the skeleton mesh and the (variable) width
-  of the convolving Gaussian.  The volume convolution is accelerated
-  by an application of the divergence theorem and a fast multipole
-  method for the resulting kernel.  We demonstrate the effectiveness
-  and scaling of the algorithm using surface skeletons based on
-  quadratic triangulations computed from commercial CAD and meshing
-  software.  Upon completion, the resulting smooth surface is
-  described by an atlas which maps the original quadratic triangles on
-  the skeleton mesh to curvilinear triangles of arbitrarily high
-  order.
+  In this paper we present an algorithm to construct infinitely
+  differentiable smooth surfaces of arbitrary shape.  The surfaces can
+  have non-trivial genus and multi-scale details, and the algorithm
+  used in generating them have computational complexity which is
+  linear in the number of input~\emph{skeleton mesh elements}.  Using
+  a convolution-like calculation, a level-set function~$\Phi$ is
+  evaluated via convolution in~$\bbR^3$ of a volume indicator function
+  with a smooth kernel.  Level sets of~$\Phi$ then define infinitely
+  smooth surfaces, and with careful choice of the original skeleton,
+  the~$\Phi=1/2$ surface is a \emph{smoothed} version of the original
+  (possibly non-smooth) object.  Along the boundary of the object,
+  flat regions and convexity are preserved, up to discretization
+  error.  The bandlimit of the surface is locally controlled by the
+  size of the input skeleton mesh and the (variable) width of the
+  convolving kernel.  The volume convolution is accelerated by an
+  application of the divergence theorem and a fast multipole method
+  for the resulting boundary integral formulation.  We demonstrate the
+  effectiveness and scaling of the algorithm using surface skeletons
+  obtained from commercial CAD and meshing software.  Upon completion,
+  the resulting smooth surface is described by an atlas which maps the
+  original skeleton mesh to curvilinear triangles of arbitrarily high
+  order.\\
+
+  \noindent {\bf Keywords.} High-order surface discretization, level set,
+  fast multipole method, mesh generation, boundary integrals.
+
 \end{abstract}
 
-{\bf Keywords.} High-order Surface Discretization.
-Level Set. Convolution.
-  Fast multipole method. Meshing algorithm.
 
 
 
 \section{Introduction}
 
-Integral equation methods for numerically solving many of the PDEs of
-classical mathematical physics, e.g. electromagnetics, fluid dynamics,
-heat flow, have come a long way over the past few decades with the
-advent of fast multipole methods~\cite{}. In two dimensions, it is
-often the case that near machine precision can be reached in solving
-these PDEs using a modest number of unknown defined along geometries
-which are known to high-order using either global parameterizations or
-local piecewise-polynomial parameterizations. The associated
-quadratures for the logarithmically singular Green's functions are
-well-developed, and can be coupled with modern FMMs with only a modest
-overhead in computational cost~\cite{qbxfmm,etc}. However, the story
-is still being developed in three dimensions and most of the details
-still need to be filled in.  While the three dimensional fast
-algorithms (FMMs, etc.) for computing the associated $N$-body
-calculations which couple with iterative solvers are well-developed,
-quadratures for the weakly-singular integral operators are much a work
-in progress~\cite{qbx3d,bremer,bruno}.  Even with these tools, it is
+Integral equation methods for numerically solving many of the partial
+differential equations (PDEs) of classical mathematical physics,
+e.g. electromagnetics, fluid dynamics, heat flow, have greatly
+advanced over the few decades with advent of fast multipole
+methods~\cite{song1997multilevel,coifman1993fast,tornberg-2008}. In
+two dimensions, it is often the case that near machine precision can
+be reached in solving these PDEs using a modest number of unknown
+defined along geometries which are known to high-order using either
+global parameterizations or local piecewise-polynomial
+parameterizations~\cite{helsing2015determination,helsing}. The
+associated quadratures for the logarithmically singular Green's
+functions are well-developed, and can be coupled with modern FMMs with
+only a modest overhead in computational
+cost~\cite{hao_2014,rachh_2016}.
+However, the story is still being developed in
+three dimensions and most of the details still need to be filled in.
+While the three dimensional fast algorithms (FMMs, etc.) for computing
+the associated $N$-body calculations which couple with iterative
+solvers are well-developed, quadratures for the weakly-singular
+integral operators are much a work in
+progress~\cite{wala2018qbx,bremer-2015,bruno2001fast}.  Even with these tools, it is
 still possible to demonstrate high-order convergence and near machine
 precision accuracy for solving the PDEs of mathematical
 physics. However, the geometries that can be address are basically
@@ -199,15 +202,15 @@ algorithms which generate high-order curvilinear triangles or
 quadrilateral patches.  One such software package that offers this
 featuer is Gmsh~\cite{gmsh}, but in order to do so it requires, upon
 input, a CAD-compatible file describing the original geometry.  In
-this work, this type of tool is augmented with an algorithm which
-can bootstrap low-order \emph{skeleton} meshes, such as flat
-triangles, in to globally smooth high-order surfaces without the
-singularities often encountered when using related methods, such as
-subdivision surface generation (is this even true? there's
-singularities, right?). The algorithm proposed in this work is able to
-accomplish such a result by formally using a global convolution to
-define a $C^\infty$ surface which can be evaluated to any fixed,
-numerical precision \emph{locally}.
+this work, this type of tool is augmented with an algorithm which can
+bootstrap low-order \emph{skeleton} meshes, such as flat triangles, in
+to globally smooth high-order surfaces without the singularities often
+encountered when using related methods, such as subdivision surface
+generation (is this even true? there's singularities, right?). The
+algorithm proposed in this work is able to accomplish such a result by
+formally using a global convolution to define a $C^\infty$ surface
+which can be evaluated to any fixed, numerical precision
+\emph{locally}.
 
 The existing scheme of rounding corners or two dimensional polyhedra
 by Epstein and O'Neil~\cite{epsteinXXXX} can be considered the first

@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{barnett2018}
 A.~Barnett, J.~Magland, and L.~af~Klinteberg.
@@ -12,11 +12,23 @@ J.~Bloomenthal and K.~Shoemake.
 \newblock Convolution surfaces.
 \newblock {\em SIGGRAPH Comput. Graph.}, 25(4):251--256, July 1991.
 
-\bibitem{bremer}
-J.~Bremer, Z.~Gimbutas, and V.~Rokhlin.
-\newblock A nonlinear optimization procedure for generalized {G}aussian
-  quadratures.
-\newblock {\em SIAM J. Sci. Comput.}, 32(4):1761--1788, 2010.
+\bibitem{bremer-2015}
+J.~Bremer, A.~Gillman, and P.-G. Martinsson.
+\newblock A high-order accelerated direct solver for integral equations on
+  curved surfaces.
+\newblock {\em BIT Num. Math.}, 55:367--397, 2015.
+
+\bibitem{bruno2001fast}
+O.~P. Bruno and L.~A. Kunyansky.
+\newblock A fast, high-order algorithm for the solution of surface scattering
+  problems: {B}asic implementation, tests, and applications.
+\newblock {\em J. Comput. Phys.}, 169(1):80--110, 2001.
+
+\bibitem{coifman1993fast}
+R.~Coifman, V.~Rokhlin, and S.~Wandzura.
+\newblock The fast multipole method for the wave equation: A pedestrian
+  prescription.
+\newblock {\em IEEE Antennas Propag. Mag.}, 35(3):7--12, 1993.
 
 \bibitem{epstein_2016}
 C.~L. Epstein and M.~O'Neil.
@@ -34,6 +46,30 @@ C.~Geuzaine and J.-F. Remacle.
   post-processing facilities.
 \newblock {\em Int. J. Num. Methods Engrg.}, 79:1309--1331, 2009.
 
+\bibitem{hao_2014}
+S.~Hao, A.~H. Barnett, P.-G. Martinsson, and P.~Young.
+\newblock High-order accurate {N}ystrom discretization of integral equations
+  with weakly singular kernels on smooth curves in the plane.
+\newblock {\em Adv. Comput. Math.}, 40:245--272, 2014.
+
+\bibitem{helsing2015determination}
+J.~Helsing and A.~Karlsson.
+\newblock Determination of normalized magnetic eigenfields in microwave
+  cavities.
+\newblock {\em IEEE Trans. Microw. Theory Tech.}, 63(5):1457--1467, 2015.
+
+\bibitem{helsing}
+J.~Helsing and R.~Ojala.
+\newblock {C}orner singularities for elliptic problems: {I}ntegral equations,
+  graded meshes, quadrature, and compressed inverse preconditioning.
+\newblock {\em J. Comput. Phys.}, 227(20):8820--8840, 2008.
+
+\bibitem{rachh_2016}
+M.~Rachh, A.~Kl\"ockner, and M.~O'Neil.
+\newblock Fast algorithms for {Q}uadrature by {E}xpansion {I}: {G}lobally valid
+  expansions.
+\newblock {\em J. Comput. Phys.}, 345:706--731, 2017.
+
 \bibitem{sherstyuk1999design}
 A.~Sherstyuk.
 \newblock Interactive shape design with convolution surfaces.
@@ -45,9 +81,26 @@ A.~Sherstyuk.
 \newblock Kernel functions in convolution surfaces: a comparative analysis.
 \newblock {\em Visual Comput.}, 15:171--182, 1999.
 
+\bibitem{song1997multilevel}
+J.~Song, C.-C. Lu, and W.~C. Chew.
+\newblock Multilevel fast multipole algorithm for electromagnetic scattering by
+  large complex objects.
+\newblock {\em IEEE Trans. Antennas Propag.}, 45(10):1488--1493, 1997.
+
+\bibitem{tornberg-2008}
+A.-K. Tornberg and L.~Greengard.
+\newblock {A fast multipole method for the three-dimensional Stokes equations}.
+\newblock {\em J. Comput. Phys.}, 227:1613--1619, 2008.
+
 \bibitem{vioreanu_2014}
 B.~Vioreanu and V.~Rokhlin.
 \newblock {Spectra of Multiplication Operators as a Numerical Tool}.
 \newblock {\em SIAM J. Sci. Comput.}, 36:A267--A288, 2014.
+
+\bibitem{wala2018qbx}
+M.~Wala and A.~Kl\"ockner.
+\newblock {A Fast Algorithm for Quadrature by Expansion in Three Dimensions}.
+\newblock 2018.
+\newblock arXiv:1805.06106 [math.NA].
 
 \end{thebibliography}
