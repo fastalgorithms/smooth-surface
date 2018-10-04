@@ -64,6 +64,13 @@ J.~Helsing and R.~Ojala.
   graded meshes, quadrature, and compressed inverse preconditioning.
 \newblock {\em J. Comput. Phys.}, 227(20):8820--8840, 2008.
 
+\bibitem{oneil2018surface}
+M.~O'Neil.
+\newblock {Second-kind integral equations for the Laplace-Beltrami problem on
+  surfaces in three dimensions}.
+\newblock {\em Adv. Comput. Math.}, 2018.
+\newblock To appear.
+
 \bibitem{rachh_2016}
 M.~Rachh, A.~Kl\"ockner, and M.~O'Neil.
 \newblock Fast algorithms for {Q}uadrature by {E}xpansion {I}: {G}lobally valid

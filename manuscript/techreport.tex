@@ -184,57 +184,62 @@ parameterizations~\cite{helsing2015determination,helsing}. The
 associated quadratures for the logarithmically singular Green's
 functions are well-developed, and can be coupled with modern FMMs with
 only a modest overhead in computational
-cost~\cite{hao_2014,rachh_2016}.
-However, the story is still being developed in
-three dimensions and most of the details still need to be filled in.
-While the three dimensional fast algorithms (FMMs, etc.) for computing
-the associated $N$-body calculations which couple with iterative
-solvers are well-developed, quadratures for the weakly-singular
-integral operators are much a work in
-progress~\cite{wala2018qbx,bremer-2015,bruno2001fast}.  Even with these tools, it is
-still possible to demonstrate high-order convergence and near machine
-precision accuracy for solving the PDEs of mathematical
-physics. However, the geometries that can be address are basically
-relegated to those that are globally parameterizable:
-e.g. deformations of torii and spheres.  The main roadblock to
+cost~\cite{hao_2014,rachh_2016}.  However, the story is still being
+developed in three dimensions and most of the details still need to be
+filled in.  While the three dimensional fast algorithms (FMMs, etc.)
+for computing the associated $N$-body calculations which couple with
+iterative solvers are well-developed, quadratures for the
+weakly-singular integral operators are much a work in
+progress~\cite{wala2018qbx,bremer-2015,bruno2001fast}.  Even with
+these tools, it is still possible to demonstrate high-order
+convergence and near machine precision accuracy for solving the PDEs
+of mathematical physics. However, the geometries that can be addressed
+are basically relegated to those that are globally parameterizable:
+e.g. deformations of torii and
+spheres~\cite{bremer-2015,oneil2018surface}.  The main roadblock to
 obtaining high-order surface discretizations is the lack of meshing
 algorithms which generate high-order curvilinear triangles or
 quadrilateral patches.  One such software package that offers this
-featuer is Gmsh~\cite{gmsh}, but in order to do so it requires, upon
+feature is Gmsh~\cite{gmsh}, but in order to do so it requires, upon
 input, a CAD-compatible file describing the original geometry.  In
 this work, this type of tool is augmented with an algorithm which can
-bootstrap low-order \emph{skeleton} meshes, such as flat triangles, in
-to globally smooth high-order surfaces without the singularities often
-encountered when using related methods, such as subdivision surface
-generation (is this even true? there's singularities, right?). The
-algorithm proposed in this work is able to accomplish such a result by
-formally using a global convolution to define a $C^\infty$ surface
-which can be evaluated to any fixed, numerical precision
-\emph{locally}.
+bootstrap low-order \emph{skeleton} meshes, such as flat triangles, to
+globally smooth high-order surfaces. The scheme proposed in this work
+is able to accomplish such a result by formally using a global
+convolution to define a level-set function, whose level-sets are
+$C^\infty$ surfaces, and then \emph{locally} meshing the level-set to
+any fixed, numerical precision.
 
-The existing scheme of rounding corners or two dimensional polyhedra
-by Epstein and O'Neil~\cite{epsteinXXXX} can be considered the first
+The existing scheme of rounding corners of polygons and edges and
+corners polyhedra in three dimensions
+by Epstein and O'Neil~\cite{epstein_2016} can be considered the first
 iteration of the algorithm in this work. In their work, the
-observation was that if corners of a polygon~$\Gamma_P$ were viewed as
+observation was that if corners of a polygon~$P$ were viewed as
 maps over the tangent line, convolution with a finite width
-bell-function results in a smoothed curve which locally preserves
-characteristics such as convexity. If the finite width bell is
-replaced with a truncated Gaussian which has decayed to
-size~$\epsilon$, then the resulting geometry is $C^\infty$, up to
-numerically precision $\epsilon$ ({\color{red} define more specifically what we
-mean here}). This entire calculation is a one-dimensional once the map
+bell-function results in a smooth curve which locally preserves
+characteristics of the original polygon, such as convexity and large
+flat regions. If the finite-width bell is
+replaced with a Gaussian which has decayed to
+size~$\epsilon$, then the resulting geometry is
+an~$\epsilon$-approximation to a true $C^\infty$ curve.
+This entire calculation is one-dimensional once the map
 of the corner over the tangent line is calculated. Extending this
 scheme, as is, to three dimensions is mathematically straightforward
 but computationally and algorithmically slightly complicated by the
-fact that many local maps have to be constructed wherever there are
-edges or corners.
+fact that many local maps have to be constructed, and then patched
+together, wherever there are edges or corners.
 
 However, the scheme described above can be reformulated as a volume
 convolution in which no local maps need to be constructed, only
-evaluation of the indicator function of the region~$\Omega_P$ bounded
-by the polygon~$\Gamma_P$. The convolution of this indicator function
+evaluation of the indicator function of the region~$D$ bounded
+by the polygon~$P$. While these two formulations are not
+mathematically equivalent, much of their behavior is very similar.
+The convolution of this indicator function
 with a Gaussian defined in~$\bbR^2$ defines an infinitely
-differentiable function~$\Phi = \Phi(x,y)$. Furthermore, the curve
+differentiable function~$\Phi = \Phi(x,y)$.
+
+
+Furthermore, the curve
 $\Gamma_{1/2}$ defined by the level set $\Phi(x,y) = 1/2$ coincides
 with the boundary~$\Gamma_P$, for some suitable construction of local
 maps. This scheme, volume convolution and level-set tracing, extends
@@ -259,6 +264,11 @@ skeleton, the smooth surface generated by the perturbed skeleton
 remains unchanged at every point except for a neighborhood of the
 perturbation.
 
+
+
+ without the singularities often
+encountered when using related methods., such as subdivision surface
+generation (is this even true? there's singularities, right?).
 
 
 existing
