@@ -4,8 +4,7 @@
 A.~Barnett, J.~Magland, and L.~af~Klinteberg.
 \newblock {A Parallel Non-Uniform Fast Fourier Transform Library Based on an
   "Exponential of Semicircle" Kernel}.
-\newblock 2018.
-\newblock arXiv:1808.06736 [math.NA].
+\newblock {\em arXiv [math.NA]}, 1808.06736, 2018.
 
 \bibitem{bloomenthal1991}
 J.~Bloomenthal and K.~Shoemake.
@@ -30,6 +29,17 @@ R.~Coifman, V.~Rokhlin, and S.~Wandzura.
   prescription.
 \newblock {\em IEEE Antennas Propag. Mag.}, 35(3):7--12, 1993.
 
+\bibitem{cottrell}
+J.~A. Cottrell, T.~J.~R. Hughes, and Y.~Bazilevs.
+\newblock {\em Isogeometric Analysis: Toward Integration of CAD and FEA}.
+\newblock Wiley, West Sussex, UK, 2009.
+
+\bibitem{dapogny2014remesh}
+C.~Dapogny, C.~Dobrzynski, and P.~Frey.
+\newblock Three-dimensional adaptive domain remeshing, implicit domain meshing,
+  and applications to free and moving boundary problems.
+\newblock {\em J. Comput. Phys.}, 262:358--378, 2914.
+
 \bibitem{epstein_2016}
 C.~L. Epstein and M.~O'Neil.
 \newblock Smoothed corners and scattered waves.
@@ -45,6 +55,12 @@ C.~Geuzaine and J.-F. Remacle.
 \newblock Gmsh: {A} 3-{D} finite element mesh generator with built-in pre- and
   post-processing facilities.
 \newblock {\em Int. J. Num. Methods Engrg.}, 79:1309--1331, 2009.
+
+\bibitem{greengard-1997}
+L.~Greengard and V.~Rokhlin.
+\newblock {A new version of the Fast Multipole Method for the Laplace equation
+  in three dimensions}.
+\newblock {\em Acta Numerica}, 6:229--269, 1997.
 
 \bibitem{hao_2014}
 S.~Hao, A.~H. Barnett, P.-G. Martinsson, and P.~Young.
@@ -63,6 +79,13 @@ J.~Helsing and R.~Ojala.
 \newblock {C}orner singularities for elliptic problems: {I}ntegral equations,
   graded meshes, quadrature, and compressed inverse preconditioning.
 \newblock {\em J. Comput. Phys.}, 227(20):8820--8840, 2008.
+
+\bibitem{hughes2005isogeometric}
+T.~J. Hughes, J.~A. Cottrell, and Y.~Bazilevs.
+\newblock {Isogeometric analysis: CAD, finite elements, NURBS, exact geometry
+  and mesh refinement}.
+\newblock {\em Computer methods in applied mechanics and engineering},
+  194(39-41):4135--4195, 2005.
 
 \bibitem{oneil2018surface}
 M.~O'Neil.
@@ -88,6 +111,12 @@ A.~Sherstyuk.
 \newblock Kernel functions in convolution surfaces: a comparative analysis.
 \newblock {\em Visual Comput.}, 15:171--182, 1999.
 
+\bibitem{simpson2014acoustic}
+R.~N. Simpson, M.~A. Scott, M.~Taus, D.~C. Thomas, and H.~Lian.
+\newblock Acoustic isogeometric boundary element analysis.
+\newblock {\em Computer Methods in Applied Mechanics and Engineering},
+  269:265--290, 2014.
+
 \bibitem{song1997multilevel}
 J.~Song, C.-C. Lu, and W.~C. Chew.
 \newblock Multilevel fast multipole algorithm for electromagnetic scattering by
@@ -107,7 +136,6 @@ B.~Vioreanu and V.~Rokhlin.
 \bibitem{wala2018qbx}
 M.~Wala and A.~Kl\"ockner.
 \newblock {A Fast Algorithm for Quadrature by Expansion in Three Dimensions}.
-\newblock 2018.
-\newblock arXiv:1805.06106 [math.NA].
+\newblock {\em arXiv [math.NA]}, 1805.06106, 2018.
 
 \end{thebibliography}
