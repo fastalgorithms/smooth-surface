@@ -175,18 +175,18 @@ Integral equation methods for numerically solving many of the partial
 differential equations (PDEs) of classical mathematical physics,
 e.g. electromagnetics, fluid dynamics, heat flow, have greatly
 advanced over the few decades along with advent of fast multipole
-methods~\cite{song1997multilevel,coifman1993fast,tornberg-2008}. In
+methods (FMMs)~\cite{song1997multilevel,coifman1993fast,tornberg-2008}. In
 two dimensions, it is often the case that nearly machine precision
 accuracy can be reached in solving these PDEs using integral equation
 discretizations with a modest number of unknowns defined along
-geometries which are defined to high-order using either global
+geometries which are defined to high-order, by either global
 parameterizations or local piecewise-polynomial
 parameterizations~\cite{helsing2015determination,helsing}. The
 associated quadratures for the logarithmically singular Green's
 functions are well-developed, and can be coupled with modern FMMs with
 not much additional computational cost~\cite{hao_2014,rachh_2016}.
-However, the story is still being developed in three dimensions and
-most of the details still need to be filled in.  While the three
+However, the story is still being developed in three dimensions, and
+many details still need to be worked out.  While the three
 dimensional fast algorithms (FMMs, etc.)  for computing the associated
 $n$-body calculations are well-developed, quadratures for the
 discretization of weakly-singular integral operators are much a work
@@ -198,14 +198,24 @@ the PDEs of mathematical physics (using integral equation methods).
 However, the geometries that can be
 addressed are basically relegated to those that are globally
 parameterizable: e.g. deformations of torii and
-spheres~\cite{bremer-2015,oneil2018surface}.  The main roadblock to
+spheres~\cite{bremer-2015,oneil2018surface}.
+The main impetus behind the quest for high-order
+geometries and equally high-order solvers is one of reducing overall
+computational cost; often is the case, particularly in high-frequency
+wave propagation problems, that for the same overall accuracy
+high-order methods require 
+fewer flops per discretization point than do low-order methods.
+
+The main roadblock to
 obtaining high-order surface discretizations is the lack of meshing
 algorithms which generate high-order curvilinear triangles or
-quadrilateral patches.  One software package that does offers this
+quadrilateral patches.  One such software package that does offers this
 desirable 
 feature is Gmsh~\cite{gmsh}, but in order to do so it requires, upon
-input, a CAD-compatible file describing the original geometry.  In
-this work, this type of tool is augmented with an algorithm which can
+input, a computer aided drafting (CAD)-compatible
+file describing the original geometry.  In the work of this paper, 
+workflows such as that required for Gmsh are complemented
+with an algorithm which can
 bootstrap low-order \emph{skeleton} meshes, such as flat triangles, to
 globally smooth high-order surfaces. The scheme proposed in this work
 is able to accomplish such a result by formally using a global
@@ -213,13 +223,16 @@ convolution to define a level-set function, whose level-sets are
 $C^\infty$ surfaces, and then \emph{locally} meshing the level-set to
 any fixed, numerical precision.
 
-The existing scheme of rounding corners of polygons and edges and
-corners polyhedra in three dimensions
+
+
+The existing scheme of rounding corners of polygons, and edges and
+corners polyhedra, in three dimensions
 by Epstein and O'Neil~\cite{epstein_2016} can be considered the first
 iteration of the algorithm in this work. In their work, the
 observation was that if corners of a polygon~$P$ were viewed as
 maps over the tangent line, convolution with a finite width
-bell-function results in a smooth curve which locally preserves
+bell-function results in a smooth curve~$\gamma_{\text{loc}}$
+which locally preserves
 characteristics of the original polygon, such as convexity and large
 flat regions. If the finite-width bell is
 replaced with a Gaussian which has decayed to
@@ -230,7 +243,7 @@ of the corner over the tangent line is calculated. Extending this
 scheme, as is, to three dimensions is mathematically straightforward
 but computationally and algorithmically slightly complicated by the
 fact that many local maps have to be constructed, and then patched
-together, wherever there are edges or corners.
+together wherever there are edges or corners.
 
 However, the scheme described above can be reformulated as a volume
 convolution in which no local maps need to be constructed, only
@@ -240,29 +253,16 @@ mathematically equivalent, much of their behavior is very similar.
 The convolution of this indicator function
 with a Gaussian defined in~$\bbR^2$ defines an infinitely
 differentiable function~$\Phi = \Phi(x,y)$.
-
-
-Furthermore, the curve
-$\Gamma_{1/2}$ defined by the level set $\Phi(x,y) = 1/2$ coincides
-with the boundary~$\Gamma_P$, for some suitable construction of local
-maps. This scheme, volume convolution and level-set tracing, extends
+Furthermore, the curve $\gamma_{1/2}$ defined by the level
+set $\Phi = 1/2$ is very close to the curve generated in the
+original local convolution scheme,~$\gamma_{\text{loc}}$.
+This second scheme, volume convolution and level-set tracing, extends
 directly and \emph{easily} to three dimensions, both mathematically
-and computationally (assuming) that the indicator function can be
-evaluated.
-
-
-
-
-- need higher-order geoemtries for high order solvers (this will be
-lower cost in the long run, particularly for wave propagation
-problems)
-
-
-The method presented here consist of finding a smooth version
-$C^{\infty}$ of a given arbitrary geometry (non-smooth in general)
-that we will call skeleton, where convexity, genus and flat parts are
-preserved. The resulting smooth geometry has a local dependency on the
-skeleton, therefore, if a small change is made at certain point of the
+and computationally (assuming that the indicator function can be
+evaluated).
+Additionally,  the resulting smooth geometry has a local dependency on the
+skeleton (depending on the numerical support of the convolution
+kernel), and therefore, if a small local change is made to the
 skeleton, the smooth surface generated by the perturbed skeleton
 remains unchanged at every point except for a neighborhood of the
 perturbation.
@@ -281,39 +281,60 @@ infinitely smooth surface (and corresponding high-order triangulation)
 which shares the qualitative features of the low-order flat
 triangulation. This is not exactly a remeshing algorithm, but
 certainly related. In~\cite{dapogny2014remesh}, the authors propose a
-local method for mesh repair
-(adjusting size/aspect ratio of mesh elements) based on a local
-interpolation and adjustment of control points. This algorithm is able
-to generate very high-quality mesh repairs, but is limited to
-curvilinear triangles of 2nd-order. To go one-step further, there are
-many existing algorithms for constructing surfaces not from flat
-triangulations, but rather merely from point clouds in~$\bbR^3$.
+local method for mesh repair (adjusting size/aspect ratio of mesh
+elements) based on a local interpolation and adjustment of control
+points. This algorithm is able to generate very high-quality mesh
+repairs, but is limited to curvilinear triangles of 2nd-order. To go
+one-step further, there are many existing algorithms for constructing
+surfaces not only from flat triangulations, but rather from merely
+point clouds in~$\bbR^3$.  These methods include, most notably, moving
+least squares surface reconstruction~\cite{fleishman2005}. This method
+works as described, computing a smooth surface based on a local
+least-squares approximation of the data, and also has the advantage of
+being able to handle point clouds and triangulations that are noisy,
+for example those obtained from three dimensional scanning devices. In
+its current form, the algorithm of this paper does not handle this
+regime, but extensions to noisy skeleton meshes are possible.
 
-
-without the singularities often encountered when using related
-methods., such as subdivision surface generation (is this even true?
-there's singularities, right?).
-
-
-existing
-work~\cite{fleishman2005,bloomenthal1991,sherstyuk1999,sherstyuk1999design}
-
-
-subdivision surface~\cite{}
+A class of algorithms that are related to the one presented in this
+work, and introduced almost 30 years ago, is that of convolution
+surfaces~\cite{bloomenthal1991,sherstyuk1999,sherstyuk1999design}.
+Convolution surfaces were inspired by an earlier iteration of surface
+construction used in molecular modeling and animation based on
+computing iso-potential surfaces from point
+sources~\cite{blinn1982}. Convolution surfaces generate an implicit
+surface by computing the convolution of a radially symmetric Gaussian
+kernel with the characteristic function of \emph{the surface}. The
+algorithm of our paper instead computes the convolution of a Gaussian
+with the characteristic function of \emph{the volume}, which has many
+desirable properties over the latter. Furthermore, out algorithm has
+an adaptive version in which the level sets are not computing via
+convolution anymore, but rather via integration of a variable-width
+Gaussian, a completely novel scheme which allows for fine-scale
+structure in the skeleton mesh.  Sub-division
+surfaces~\cite{derose1998subdivision,zorin1996interpolating} share
+some elements in common with this earlier version of convolution
+surfaces in that they are generated from some set of skeleton
+points/lines/elements, A scheme presented in~\cite{ying2004simple}
+constructs large parameterized patches from an initial skeleton
+surface using piecewise maps and partitions of unity to blend them
+together.
 
 
 
 Lastly, it is important to point out the work that has been done in
-the area of isogeometric
-analysis~\cite{cottrell,hughes2005isogeometric,simpson2014acoustic}
-with regard to boundary element and boundary integral equation
-methods. Isogeometric analysis is a framework for dealing directly
-with CAD geometries ....
-
-
-
-
-
+the area of isogeometric analysis
+(IGA)~\cite{cottrell,hughes2005isogeometric,simpson2014acoustic} with
+regard to boundary element and boundary integral equation methods. IGA
+is a framework for dealing directly with CAD geometries, and provides
+a robust set of tools for surface refinement, manipulation, and
+discretization. There have been several PDE and integral equation
+solvers constructed based on IGA, and considerable progress has been
+made toward coupling CAD systems with finite element methods. These
+schemes are complementary to the one presented in this work, which
+acts on an original low-order mesh, not the original CAD
+geometry. Extending the ides of this manuscript to skeletons in
+CAD-compatible formats is a work in progress.
 
 The paper is organized as follows: In Section~\ref{sec:smooth} we lay
 out the mathematical formulation, via convolution, of generating a
@@ -326,7 +347,7 @@ multipole method.  Various aspects of the numerical implementation are
 discussed. In Section~\ref{sec:adaptive}, an adaptive version of the
 algorithm is developed to handle skeleton meshes with multiscale
 features.  Section~\ref{sec:examples} contains several numerical
-examples demonstrating the efficiency and results of our algorithm,
+examples demonstrating the efficiency and behavior of our algorithm,
 and concluding discussion is provided in
 Section~\ref{sec:conclusions}.
 

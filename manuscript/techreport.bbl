@@ -6,6 +6,11 @@ A.~Barnett, J.~Magland, and L.~af~Klinteberg.
   "Exponential of Semicircle" Kernel}.
 \newblock {\em arXiv [math.NA]}, 1808.06736, 2018.
 
+\bibitem{blinn1982}
+J.~F. Blinn.
+\newblock {A Generalization of Algebraic Surface Drawing}.
+\newblock {\em ACM Trans. Graphics}, 1:235--256, 1982.
+
 \bibitem{bloomenthal1991}
 J.~Bloomenthal and K.~Shoemake.
 \newblock Convolution surfaces.
@@ -39,6 +44,12 @@ C.~Dapogny, C.~Dobrzynski, and P.~Frey.
 \newblock Three-dimensional adaptive domain remeshing, implicit domain meshing,
   and applications to free and moving boundary problems.
 \newblock {\em J. Comput. Phys.}, 262:358--378, 2914.
+
+\bibitem{derose1998subdivision}
+T.~DeRose, M.~Kass, and T.~Truong.
+\newblock Subdivision surfaces in character animation.
+\newblock In {\em Proceedings of the 25th annual conference on Computer
+  graphics and interactive techniques}, pages 85--94. ACM, 1998.
 
 \bibitem{epstein_2016}
 C.~L. Epstein and M.~O'Neil.
@@ -137,5 +148,17 @@ B.~Vioreanu and V.~Rokhlin.
 M.~Wala and A.~Kl\"ockner.
 \newblock {A Fast Algorithm for Quadrature by Expansion in Three Dimensions}.
 \newblock {\em arXiv [math.NA]}, 1805.06106, 2018.
+
+\bibitem{ying2004simple}
+L.~Ying and D.~Zorin.
+\newblock A simple manifold-based construction of surfaces of arbitrary
+  smoothness.
+\newblock {\em ACM Trans. Graphics}, 23(3):271--275, 2004.
+
+\bibitem{zorin1996interpolating}
+D.~Zorin, P.~Schr{\"o}der, and W.~Sweldens.
+\newblock Interpolating subdivision for meshes with arbitrary topology.
+\newblock In {\em Proceedings of the 23rd annual conference on Computer
+  graphics and interactive techniques}, pages 189--192. ACM, 1996.
 
 \end{thebibliography}
