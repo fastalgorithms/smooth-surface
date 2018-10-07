@@ -352,15 +352,15 @@ and concluding discussion is provided in
 Section~\ref{sec:conclusions}.
 
 
-\section{Smooth Level Sets via Convolution}
+\section{Smooth Surfaces via Convolution}
 \label{sec:smooth}
 
 The main mathematical observation of the algorithm presented in this
 work is the following: the convolution of a piecewise function, $f$
 (possibly discontinuous), with a $C^\infty$ kernel, $\phi$, results in
 another $C^\infty$ function, $\Phi$. This fact is of course true in any
-dimension, and in particular, if we define $\indic_\Omega$ to be the
-indicator function of a closed and bounded
+dimension, and in particular, if we define $\indic_V$ to be the
+characteristic function of a closed and bounded
 region~$V \subset \bbR^3$ with orientable surface~$S$, then
 the convolution with a kernel~$\phi$ is given by
 \begin{equation}
@@ -381,33 +381,39 @@ surfaces~$\Gamma_C$ embedded in~$\bbR^3$.
 
 If~$\phi$ is compactly supported and $\int \phi = 1$ then flat regions
 of~$S$ which extend beyond the range of~$\phi$ are preserved
-along the~$\Phi = 1/2$ level set. This can easily be shown in the
-one-dimensional case~\cite{epstein_2016} and is straightforward so
+along the~$\Phi = 1/2$ level set, and~$\Gamma_C$ inherits the
+regularity of~$\phi$. This can easily be shown in the
+one-dimensional case~\cite{epstein_2016} and is straightforward to
 show in higher dimensions. Furthermore, for compactly supported~$\phi$
 the above convolution is a completely local calculation, and therefore
 has optimal asymptotic computational scaling regardless of the
 implementation. However, there is of course a tradeoff: kernels with
-narrow support preserve small features of the domain~$\Omega$ and its
-boundary~$\Gamma$, and therefore may produce areas of high
+narrow support preserve small features of the domain~$V$ and its
+boundary~$S$, and therefore may produce areas of high
 curvature. Convolution with significantly wider kernels require a
-significant increase in computational cost over the narrow case.
+significant increase in computational cost over the narrow case, as
+well as resulting in overly smoothed surfaces.
 
-Furthermore, the above volume integral can be reformulated as a
+With computational considerations in mind, one way to immediately
+obtain a decrease in dimensionality of the previous calculation is the
+following:
+the above volume integral can be reformulated as a
 boundary integral via an application of the divergence
-theorem. If~$\phi$ can be chosen as an exact
-function,~$\phi = \nabla \cdot \vct{F}$, for some
-vectorfield~$\vct{F}$, then we have that:
+theorem. If one can obtain a kernel~$\phi$ that is an exact
+function, i.e.~$\phi = \nabla \cdot \vct{F}$ for some
+vectorfield~$\vct{F}$, then we have that
 \begin{equation}
   \begin{aligned}
-    \Phi(\bx) &= \int_{V} \nabla \cdot \vct{F}(\bx-\bx') \, dv(\bx') \\
-    &= \int_{S} \bn(\bx') \cdot \vct{F}(\bx-\bx') \, da(\bx')
+    \Phi(\bx) &= \int_{V} \nabla_{\bx'} \cdot \vct{F}(\bx-\bx') \, dv(\bx') \\
+    &= \int_{S} \bn(\bx') \cdot \vct{F}(\bx-\bx') \, da(\bx'),
   \end{aligned}
 \end{equation}
 where~$\bn(\bx')$ is the outward unit normal to the surface~$S$ at the
-point~$\bx'$. The above formula will turn out to be useful in
+point~$\bx'$. The above formula is very useful in
 designing a fast algorithm, but we will put it aside for now as it is
+mathematically
 equivalent to the volume calculation. We now turn to computing an
-atlas (i.e. a collection of parameterizations) describing the
+atlas (i.e. a collection of charts or parameterizations) describing the
 convolution surface~$\Gamma_C$.
 
 
@@ -420,36 +426,40 @@ In what follows, the boundary~$S$ of the original volume~$V$ will be
 referred to as the \emph{skeleton surface}. Often~$S$ will be supplied
 as a low-order mesh (e.g. flat triangles), and will be assumed to be
 water-tight and oriented (i.e. have a consistent collection of normal
-vectors). The construction of the atlas will be described assuming an
+vectors). This will be referred to as the \emph{skeleton mesh}.
+The construction of the atlas will be described assuming an
 initial collection of flat skeleton triangles, but is straightforward
 to extend to other configurations (e.g. quadratic triangles, flat
 quadrilaterals, etc.). To this end, the skeleton surface~$S$ is the
 union of~$M$ triangles~$T^j$, $j=1,\ldots,M$, with each triangle
 having vertices denoted
 by~$\{ \vct{P}^j_1,\vct{P}^j_2,\vct{P}^j_3 \} $.
-Therefore, each skeleton triangle is parameterized as:
+Therefore, each skeleton triangle can be parameterized as:
 \begin{equation}
   \vct{T}^j(u,v) = \vct{P}^j_1 + u \lp \vct{P}^j_2 - \vct{P}^j_1 \rp
   + v \lp \vct{P}^j_3 - \vct{P}^j_1 \rp,
 \end{equation}
 and has Frenet basis defined by
 \begin{equation}
-\vct{T}^j_u = \frac{\vct{P}^j_2 - \vct{P}^j_1}{\left| \vct{P}^j_2 -
-    \vct{P}^j_1 \right|}, \qquad
-\vct{T}^j_v = \frac{\vct{P}^j_3 - \vct{P}^j_1}{\left| \vct{P}^j_3 -
-    \vct{P}^j_1 \right|}, \qquad
+\vct{T}^j_u = \vct{P}^j_2 - \vct{P}^j_1, \qquad
+\vct{T}^j_v = \vct{P}^j_3 - \vct{P}^j_1, \qquad
 \vct{N}^j =  \vct{T}^j_u \times \vct{T}^j_v.
 \end{equation}
-Despite the assumption of water-tightness on the skeleton mesh, the
-normal vectors are obviously discontinuous across triangle edges. The
-following construction of an atlas will be based on a mapping of each
+Note that the above basis along~$T^j$ is not an orthonormal one;
+denote the normalized basis
+by~$\hat{\vct{T}}^j_u$,~$\hat{\vct{T}}^j_v$,~$\hat{\vct{N}}^j$ (which
+is comprised on unit vectors, but not orthogonal ones). Despite the
+assumption of water-tightness on the skeleton mesh, the normal vectors
+are obviously discontinuous across triangle edges. The following
+construction of an atlas will be based on computing a mapping of each
 skeleton triangle to a high-order curvilinear one along the
-surface~$\Gamma_{1/2}$. In order to define a unique \emph{mapping
-  direction} (since vectors along the normal direction will intersect
-at arbitrarily close locations to the skeleton mesh), we define the
-vectorfield~$\vct{H}$ along the surface to be a local averaging of the
-unit normal vectors. We begin by defining~$\vct{H}$ at each of the
-vertices.  First, denote the list of triangles for
+surface~$\Gamma_C$. In order to define a unique \emph{mapping
+  direction} (since vectors along the normal direction will often
+intersect at arbitrarily close locations to the skeleton mesh), we
+define the vectorfield~$\vct{H}$ along the surface to be a local
+averaging of the unit normal vectors~$\hat{\vct{N}}^j$.
+We begin by defining~$\vct{H}$
+at each of the vertices.  First, denote the list of triangles for
 which~$\vct{P}^j_\ell$ is a common vertex by~$\cT \vct{P}^j_\ell$,
 \begin{equation}
   \cT \vct{P}^j_\ell = \left\{ i \text{ such that } T^i \text{
@@ -460,13 +470,15 @@ is then set to be
 \begin{equation}
   \vct{H}^j_\ell = \frac{1}{
     \left|  \cT \vct{P}^j_\ell \right| } \sum_{i \in \cT
-    \vct{P}^j_\ell} \vct{N}^i.
+    \vct{P}^j_\ell} \hat{\vct{N}}^i,
 \end{equation}
+where~$|\mathcal A|$ denotes the cardinality of the set~$\mathcal A$.
 The above is merely a local averaging of the normal vectors associated
 with each triangle that shares~$\vct{P}^j_\ell$, and the
 vector~$\vct{H}^j_\ell$ will be referred to as the \emph{vertex normal}
 at~$\vct{P}^j_\ell$. This construction extends straightforwardly to
-various other skeleton patches; the vertex normal can, in general, be
+various other types of
+skeleton patches; the vertex normal can, in general, be
 defined as some weighted average of the normals of the adjacent triangles.
 See Figure~\ref{normalvert1}. {\color{red} Update notation in Figure.}
 
@@ -504,16 +516,18 @@ One such reasonable choice of weighting is that of what we will refer
 to as \emph{vertex angle}, not to be confused with the more commonly
 used dihedral angle in geometry. The vertex angle of triangle~$T^j$
 at vertex~$\vct{P}^j_\ell$ is merely the interior angle of the
-triangle at this vertex. Depending on the order of the vertex, the
-total sum of all vertex angles of all adjacent triangles will be
-different; denote by $\theta^j_\ell$ the vertex angle of
+triangle at this vertex. Depending on the behavior of~$S$ at the
+vertex,
+the total sum of all vertex angles of all adjacent triangles will be
+different (i.e. if the surface is planar at~$\vct{P}^j_\ell$, the
+total vertex angle is~$2\pi$).  Denote by $\theta^j_\ell$ the vertex angle of
 triangle~$T^j$ at vertex~$\vct{P}^j_\ell$ and the total vertex angle
 (sum of all vertex angles) by~$A^j_\ell$. The vertex normals can then
 be computed using the vertex angle weighting as
 \begin{equation}
   \vct{H}^j_\ell = \frac{1}{ A^j_\ell} \, 
   \sum_{i \in \cT \vct{P}^j_\ell} 
-  \theta^j_\ell \,  \vct{N}^i.
+  \theta^j_\ell \,  \hat{\vct{N}}^i.
 \end{equation}
 See Figure~\ref{normalvert2}.
 Along the interior of skeleton triangle~$T^j$, the
@@ -526,7 +540,8 @@ Note that this vectorfield is now continuous across the edges of each
 skeleton triangle. See Figure~\ref{normalvert3}.
 
 The convolution surface~$\Gamma_C$ (i.e. the level-set $\Phi = C$)
-will be parameterized piecewise above/below each skeleton triangle as
+will be parameterized as a piecewise map above/below each skeleton
+triangle in the direction~$\vct{H}$ as
 \begin{equation}\label{eq:h}
   \vct{x}^j(u,v) = \vct{T}^j(u,v) + h^j(u,v) \, \vct{H}^j(u,v),
 \end{equation}
@@ -538,8 +553,8 @@ pointwise as the solution to the equation
 \end{equation}
 The above is still an implicit definition of the surface, but for a
 particular location~$(u,v)$ in parameter space, it can be solved
-for~$h(u,v)$ relatively easily using Newton's method, assuming that
-the~$\Phi$ can be easily evaluated. Newton's method also requires the
+for~$h(u,v)$ relatively easily using Newton's method.
+Newton's method also requires the
 evaluation of the derivative of~$\Phi$, which in this case can be
 computed as
 \begin{equation}
@@ -550,9 +565,10 @@ computed as
   \vct{T} + h\, \vct{H} - \bx'\rp \, da(\vct{x}'),
 \end{aligned}
 \end{equation}
-where we have suppressed the dependence on the patch~$j$.  The final
-surface is obtained piecewise by the collection of chartss~$\vct{x}^j$.
-Each chart~$\vct{x}^j:T_0 \to \bbR^3$ is smooth, and inherits the
+where we have suppressed the dependence on the patch~$j$ and local
+coordinates~$u,v$.  The final surface is obtained as the
+collection of these charts~$\vct{x}^j$.  Each
+chart~$\vct{x}^j:T_0 \to \bbR^3$ is smooth, and inherits the
 regularity properties of the convolution kernel~$\phi$. Here,~$T_0$
 denotes the standard simplex triangle $0 \leq u+v \leq 1$ with
 $u,v >0$.
@@ -600,7 +616,7 @@ $u,v >0$.
 \label{sec:local}
 
 In this section we find suitable expressions to obtain a local
-orthonormal basis along each patch of the surface~$\Gamma^j$, as well
+ basis along each patch of the surface~$\Gamma^j$, as well
 as the area element.
 Recall that the chart for the patch~$\Gamma^j$ is given by
 \begin{equation}\label{chart}
@@ -610,62 +626,46 @@ Taking the partial derivative with respect to~$u$ above, we have
 \begin{equation}\label{u_vector}
   \begin{aligned}
     \vct{x}^j_u(u,v) &=  \frac{\partial \vct{x}^j}{\partial u}(u,v) \\
-    &= \vct{T}^j_u + h(u,v) \,
-  \vct{H}^j_u   + \frac{\partial h}{\partial
+    &= \vct{T}^j_u + h^j(u,v) \,
+  \vct{H}^j_u   + \frac{\partial h^j}{\partial
     u}(u,v)
   \, \vct{H}^j(u,v).
   \end{aligned}
 \end{equation}
-where the only unknown term is~$\partial h / \partial u$ (since it was
+where the only unknown term is~$\partial h^j / \partial u$ (since it was
 only~$h$ that was computed via Newton's algorithm, as in the previous
 section).
 However, using the fact that~$\partial\vct{x}^j/\partial u$ must be
 tangent to the surface~$\Gamma_C$, and that~$\nabla \Phi$ is normal
 to~$\Gamma$ (easily shown from computation), we have
 \begin{equation}\label{U_vector_2}
-  \frac{\partial h}{\partial u} = \frac{\lp \vct{T}^j_u + h \, \vct{H}^j_u
+  \frac{\partial h^j}{\partial u} = \frac{\lp \vct{T}^j_u + h^j \, \vct{H}^j_u
   \rp \cdot \nabla \Phi }{\vct{H}^j \cdot \nabla \Phi}.
 \end{equation}
 A similar calculation can be used to obtain
 \begin{equation}\label{v_vector}
     \vct{x}^j_v
-    = \vct{T}^j_v + h \,
-  \vct{H}^j_v   + \frac{\partial h}{\partial
+    = \vct{T}^j_v + h^j \,
+  \vct{H}^j_v   + \frac{\partial h^j}{\partial
     v}
   \, \vct{H}^j
 \end{equation}
 with
 \begin{equation}\label{v_vector_2}
-  \frac{\partial h}{\partial v} = \frac{\lp \vct{T}^j_v + h \, \vct{H}^j_v
+  \frac{\partial h^j}{\partial v} = \frac{\lp \vct{T}^j_v + h^j \,
+    \vct{H}^j_v
   \rp \cdot \nabla \Phi }{\vct{H}^j \cdot \nabla \Phi}.
 \end{equation}
-{\color{red} fix length scaling of chart to be consistent with
-  evarythign else, either normalize or don't}
-
-
-
-now we can write the area element $dS$ as:
-
-\begin{equation}\label{dS}
-\begin{aligned}
- dS=\Bigg|\frac{\partial\bY(u,v)}{\partial u}\times\frac{\partial\bY(u,v)}{\partial v}\Bigg|dudv
-\end{aligned}
+The area element along~$\Gamma^j_C$ is then easily computed as
+\begin{equation}\label{eq:da}
+ da = \left| \bx^j_u \times \bx^j_v \right| \, du \, dv.
 \end{equation}
-  
-%therefore:
- 
-% $$W_n=\Bigg|\frac{\partial\bY}{\partial u}(u_n,v_n)\times\frac{\partial\bY}{\partial v}(u_n,v_n)\Bigg|w_n$$
- 
-As tangent reference system on the surface we use the vectors $\hat{\bu}, \hat{\bv}$; for the  $\hat{\bu}$ vector we normalize $\frac{\partial\bY(u,v)}{\partial u}$, and for the $\hat{\bv}$ vector we cross $\frac{\nabla f}{|\nabla f|}$ with $\hat{\bu}$.
+The normal vector along the surface can be calculated
+as~$\nabla \Phi$.
 
-
-
-
-
-We now turn to describing a fast adaptive high-order algorithm for
-numerically approximating the surface~$\Gamma_C$, as constructed
-above, that is compatible with many boundary integral equation
-discretization schemes.
+We now turn to describing a fast high-order algorithm for numerically
+approximating the surface~$\Gamma_C$ that is compatible with a myriad
+of boundary integral equation discretization schemes.
 
 
 
