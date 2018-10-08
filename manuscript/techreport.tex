@@ -664,8 +664,8 @@ The normal vector along the surface can be calculated
 as~$\nabla \Phi$.
 
 We now turn to describing a fast high-order algorithm for numerically
-approximating the surface~$\Gamma_C$ that is compatible with a myriad
-of boundary integral equation discretization schemes.
+approximating the surface~$\Gamma_C$ that is compatible with standard
+boundary integral equation discretization schemes.
 
 
 
@@ -677,7 +677,7 @@ of boundary integral equation discretization schemes.
 \section{A Fast Algorithm}
 \label{sec:algorithm}
 
-The previous discussion has taken place without any numerical
+The previous discussion mostly omitted any numerical
 considerations. In order to make the scheme as described a viable
 numerical method, several elements have to be made computationally
 tractable: for example, numerical evaluation of ~$\Phi$ (a volume
@@ -703,10 +703,10 @@ reasons, namely for the ease with which the divergence theorem can be
 applied to the volume convolution. The following identity allows us to
 directly represent~$\Phi$ as a boundary integral: 
 \begin{equation}
-  \Delta \lp \frac{1}{4\pi r} \erf \lp \frac{r}{\sqrt{2}\sigma} \rp
-  \rp = - \frac{1}{\lp 2\pi \sigma^2 \rp^{3/2}} e^{-r^2/2\sigma^2}.
+  \Delta \lp \frac{1}{4\pi |\bx|} \erf \lp \frac{|\bx|}{\sqrt{2}\sigma} \rp
+  \rp = - \frac{1}{\lp 2\pi \sigma^2 \rp^{3/2}} e^{-|\bx|^2/2\sigma^2},
 \end{equation}
-where~$\erf$ is defined to be an integral of the Gaussian:
+where~$\erf$ is defined to as the integral of the Gaussian:
 \begin{equation}
 \erf(r) = \frac{2}{\sqrt{\pi}} \int^r_0 e^{-t^2} \, dt.
 \end{equation}
@@ -718,11 +718,11 @@ Using the above identity, we can rewrite~$\Phi$ as
     &= - \int_V \Delta \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
     \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
     \rp \, dv(\vct{x}') \\
-    &= - \int_S \vct{N}(\bx) \cdot \nabla_{\vct{x}}
+    &= - \int_S \hat{\vct{N}}(\bx') \cdot \nabla_{\bx'}
      \lp \frac{1}{4\pi |\vct{x}-\vct{x}'|}
     \erf \lp \frac{|\vct{x} - \vct{x}'|}{\sqrt{2}\sigma} \rp
     \rp \, ds(\vct{x}') \\
-    &=\int_S  \vct{N}(\vct{x}) \cdot \lp \vct{x} -\vct{x}' \rp \lp
+    &=- \int_S  \hat{\vct{N}}(\vct{x}') \cdot \lp \vct{x} -\vct{x}' \rp \lp
     \frac{\erf \lp |\bx-\bx'|/ \sqrt{2}\sigma \rp
     }{4\pi|\bx-\bx'|^3}
     -\frac{\sqrt{\frac{2}{\pi}}e^{-|\bx-\bx'|^2/2\sigma^2}}{4\pi\sigma|\by-\bx|^2}
@@ -738,7 +738,7 @@ that
 \end{equation}
 This means that in the far-field we can approximate the kernel~$\psi$ as
 \begin{equation}
-  \psi(\bx-\bx') \approx -\vct{N}(\bx) \cdot \nabla_{\bx} \left(
+  \psi(\bx-\bx') \approx -\hat{\vct{N}}(\bx') \cdot \nabla_{\bx'} \left(
     \frac{1}{4\pi |\bx-\bx'| }\right).
 \end{equation}
 The above approximation is the same as the kernel appearing in
@@ -750,7 +750,8 @@ boundary integral in~\eqref{eq:surf} can be applied efficiently.  For
 a given target location~$\bx$, the surface integral above can be split
 into two pieces:
 \begin{equation}
-  \Phi(\bx) = \int_{S\setminus B(\bx,R)} \vct{N}(\bx) \cdot \nabla_{\bx} \left(
+  \Phi(\bx) \approx -\int_{S\setminus B(\bx,R)} \hat{\vct{N}}(\bx')
+  \cdot \nabla_{\bx} \left(
     \frac{1}{4\pi |\bx-\bx'| }\right) \, da(\bx') +
   \int_{S \cap B(\bx,R)} \psi(\bx-\bx') \, da(\bx'),
 \end{equation}
@@ -794,10 +795,10 @@ With the above reformulation of the evaluation of~$\Phi$ as a boundary
 integral, and its calculation accelerated via an FMM, this means that
 the Newton iteration for determining~$h$ in~\eqref{eq:newton} can be
 performed \emph{simultaneously for every discretization point along
-  $S$}. We now turn to the actual high-order approximation of the
-smoothed surface, which will involve using a high-order quadrature
-along the skeleton mesh and approximation using orthogonal polynomials
-on the simplex.
+  $S$}. We now turn to the actual approximation of the
+smoothed surface using high-order piecewise polynomial interpolation
+and a discussion of the discretization of the above integrals.
+
 
 
 
