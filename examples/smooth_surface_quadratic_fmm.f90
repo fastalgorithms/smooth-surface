@@ -1,377 +1,381 @@
 program Smooth_Surface_Quadratic
-use some_types
-implicit none
+  use some_types
+  implicit none
 
 
-interface
+  interface
+     subroutine setup_tree_sigma_geometry(Main_box,Geometry1)
+       use some_types
+       type (Geometry), intent(inout) :: Geometry1
+       type (Box), pointer :: Main_box
+     end subroutine setup_tree_sigma_geometry
+  end interface
+  
+  interface
+     subroutine find_smooth_surface(Geometry1,alpha,Main_box)
+       use some_types
+       type (Geometry), intent(inout) :: Geometry1
+       real ( kind = 8 ), intent(in) :: alpha
+       type (Box), pointer :: Main_box
+     end subroutine find_smooth_surface
+  end interface
+
+  
+  integer,parameter :: seed = 86456   !This is for random stuff
+  type (Box), pointer :: Main_box
+  type (Geometry), allocatable :: Geometry1
+  integer ( kind = 8 ) N,n_order_sk,n_order_sf, count,n_refinement
+  integer(8) :: adaptive_flag
+  character(len=50) nombre,filename
+  real ( kind = 8 ) :: alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3)
+  real(kind=8) :: x0,y0,z0,a_nada,b_nada,c_nada
+
+  !This is usually 78 always
+  n_order_sk=78
+
+  !Make your choice (number of points per smooth triangle)
+  n_order_sf=45
+  !    n_order_sf=78
+
+  !set n_refinement=0 if no refinement, =1 to split each smooth
+  !triangle into 4, =2 to split each triangle into 4^2=16 and so on..
+  n_refinement = 2
+
+  ! adaptive_flag=1 to enable adaptivity, if adaptive_flag=0 then
+  ! sigma is constant and has an appropriate value conmmensured with
+  ! the size of the triangle
+  adaptive_flag=1
+
+
+  allocate(Geometry1)
+
+  !
+  ! Uncomment one of the following geometries
+  !
+  !    nombre='Round_1.msh'
+  !    filename='Round_1_n45_r0.gov'
+  !  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='Round_2.msh'
+  !    filename='Round_2_n78_r2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='Cube_substraction.msh'
+  !    filename='Cube_substraction_n78_r2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  
+  !    nombre='Multiscale_1.msh'
+  !    filename='Multiscale_1_n78_r2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  !    nombre='Multiscale_2.msh'
+  !    filename='Multiscale_2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.0d0
+  
+  
+  !    nombre='Round_genus_2.msh'
+  !    filename='Round_genus_2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=3.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='Multires_cavidad_esfera.msh'
+  !    filename='Multires_cavidad_esfera.gov'
+!!!  point inside to check Gauss integral
+  !    x0=-1.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='sphere_union.msh'
+  !    filename='sphere_union.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  !    nombre='sphere_substraction.msh'
+  !    filename='sphere_substraction.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+  
+  
+  !    nombre='substraction2_v2.msh'
+  !    filename='substraction2_v2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.7d0
+  !    y0=0.3d0
+  !    z0=1.0d0
+  
+  
+  nombre=  '../geometries/cunya/cunya1.msh'
+  filename='../geometries/cunya/cunya1.gov'
+  !  point inside to check Gauss integral
+  x0=-0.3d0
+  y0=-0.3d0
+  z0=1.0d0
+
+
+  !    nombre='cunya_local.msh'
+  !    filename='cunya_local.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.6d0
+  !    y0=0.2d0
+  !    z0=1.0d0
+
+
+  !    nombre='cunya_2_1.msh'
+  !    filename='cunya_2_1.gov'
+!!!  point inside to check Gauss integral
+  !    x0=-0.2d0
+  !    y0=0.2d0
+  !    z0=1.0d0
+
+  !    nombre='torus_box.msh'
+  !    filename='torus_box.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=1.0d0
+  !    z0=0.0d0
+
+
+
+  !    nombre='open_cavity_30deg_v2.msh'
+  !    filename='open_cavity_30deg_v2.gov'
+!!!  point inside to check Gauss integral
+  !    x0=1.5d0
+  !    y0=0.0d0
+  !    z0=0.0d0
+
+
+  !    nombre='cubo_esfera_multires.msh'
+  !    filename='cubo_esfera_multires_n78_r1.gov'
+!!!  point inside to check Gauss integral
+  !    x0=-.6d0
+  !    y0=-.6d0
+  !    z0=0.6d0
+
+
+  !    nombre='esfera_esfera.msh'
+  !    filename='esfera_esfera_n78_r1.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=-1.5d0
+
+
+  !    nombre='capsule_multiscale.msh'
+  !    filename='capsule_multiscale_n78_r1.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.1d0
+  !    z0=.2d0
+
+  !    nombre='../geometries/sci_fi/sci_fi_3.msh'
+  !    filename='../geometries/sci_fi/sci_fi_3.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.01d0
+  !    z0=.02d0
+
+  !    nombre='../geometries/big_genus/high_genus_3.msh'
+  !    filename='../geometries/big_genus/high_genus_3.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.5d0
+  !    y0=0.5d0
+  !    z0=0.5d0
+
+
+
+
+  !    nombre='../geometries/antenna/parabolic_antenna.msh'
+  !    filename='../geometries/antenna/parabolic_antenna.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.75d0
+  !    z0=.00d0
+
+
+  !    nombre='../geometries/jet/jet_fighter.msh'
+  !    filename='../geometries/jet/jet_fighter.gov'
+  ! point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=-4000
+
+  !nombre='../geometries/war_ship/mi_barco_simple_13.msh'
+  !filename='../geometries/war_ship/mi_barco_simple_13.gov'
+  ! point inside to check Gauss integral
+  !x0=0.0d0
+  !y0=0.0d0
+  !z0=-.50d0
+
+  !    nombre='huge_genus_4.msh'
+  !    filename='huge_genus_4_r1.gov'
+!!!  point inside to check Gauss integral
+  !    x0=1.5d0
+  !    y0=1.5d0
+  !    z0=1.5d0
+
+
+  !    nombre='pico_2.msh'
+  !    filename='pico_2_n78_r1.gov'
+  !    point inside to check Gauss integral
+  !    x0=0d0
+  !    y0=0d0
+  !    z0=2.0d0
+
+  !    nombre='two_cavity_filter.msh'
+  !    filename='two_cavity_filter_n78_r0.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0d0
+  !    y0=0d0
+  !    z0=-0.5d0
+
+
+
+  !    nombre='prueba_cilindro.msh'
+  !    filename='prueba_cilindro.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=2.0d0
+
+
+
+  !    nombre='../geometries/jet/jet_fighter.msh'
+  !    filename = '../geometries/jet/jet_fighter.gov'
+  !    x0 = 0
+  !    y0 = 0
+  !    z0 = -4000
+
+  !    nombre='simplest_cube_quadratic.msh'
+  !    filename='simplest_cube_quadratic.gov'
+!!!  point inside to check Gauss integral
+  !    x0=0.0d0
+  !    y0=0.0d0
+  !    z0=1.5d0
+
+
+  call leemsh(Geometry1,nombre,n_order_sk,n_order_sf)
+  call funcion_skeleton(Geometry1,n_order_sk)
+
+  !    do count=1,Geometry1%npoints
+  !        write (*,*) Geometry1%skeleton_Points(1,count),Geometry1%skeleton_Points(2,count)
+  !        write (*,*) Geometry1%skeleton_Points(3,count)
+  !        read (*,*)
+  !    enddo
+
+  call funcion_normal_vert(Geometry1)
+  call find_centroids_sigmas(Geometry1,adaptive_flag)
+  alpha=1.0d0/maxval(Geometry1%sgmas)**2/5.0d0
+  write (*,*) 'Alpha: ',alpha
+
+  do count=1,n_refinement
+    call refine_geometry(Geometry1,n_order_sf)
+  enddo
+
+  call funcion_Base_Points(Geometry1,n_order_sf)
+
+  write (*,*) 'Geometry information '
+  write (*,*) 'File name           : ', nombre
+  write (*,*) 'Number of triangles : ', Geometry1%ntri
+  write (*,*) 'Number of points    : ', Geometry1%npoints
+  write (*,*) 'Number of points on the smooth surface: ',Geometry1%n_Sf_points
+  write (*,*) 'Number of points on the skeleton: ',Geometry1%n_Sk_points
+
+
+  call setup_tree_sigma_geometry(Main_box,Geometry1)
+  write (*,*) 'No llega nunca'
+  call find_smooth_surface(Geometry1,alpha,Main_box)
+
+  
+  !    do count=1,Geometry1%n_Sf_points
+  !        write (*,*) 'Points :', Geometry1%S_smooth(count,1),Geometry1%S_smooth(count,2),Geometry1%S_smooth(count,3)
+  !        write (*,*) 'Normals :', Geometry1%N_smooth(count,1),Geometry1%N_smooth(count,2),Geometry1%N_smooth(count,3)
+  !        write (*,*) 'U vect :', Geometry1%ru_smooth(count,1),Geometry1%ru_smooth(count,2),Geometry1%ru_smooth(count,3)
+  !        write (*,*) 'V vect :', Geometry1%rv_smooth(count,1),Geometry1%rv_smooth(count,2),Geometry1%rv_smooth(count,3)
+  !        write (*,*) 'w:', Geometry1%w_smooth(count)
+  !        read (*,*)
+  !    enddo
+  
+  call record_Geometry(Geometry1,filename)
+  call check_Gauss(Geometry1,x0,y0,z0)
+
+
+  !
+  ! now plot the smoothed geometry by oversampling and plotting
+  ! flat triangles in VTK ASCII format
+
+  filename='../geometries/cunya/cunya1-smooth.vtk'
+  call plotSmoothGeometryVTK(Geometry1, filename)
+
+  stop
+end program Smooth_Surface_Quadratic
+
+
+
+
+
+
 subroutine setup_tree_sigma_geometry(Main_box,Geometry1)
-    use some_types
-        type (Geometry), intent(inout) :: Geometry1
-        type (Box), pointer :: Main_box
-    end subroutine
-end interface
-
-interface
-    subroutine find_smooth_surface(Geometry1,alpha,Main_box)
-        use some_types
-        type (Geometry), intent(inout) :: Geometry1
-        real ( kind = 8 ), intent(in) :: alpha
-        type (Box), pointer :: Main_box
-    end subroutine
-end interface
-
-integer,parameter :: seed = 86456   !This is for random stuff
-type (Box), pointer :: Main_box
-type (Geometry), allocatable :: Geometry1
-integer ( kind = 8 ) N,n_order_sk,n_order_sf, count,n_refinement,adaptive_flag
-character(len=50) nombre,filename
-real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c_nada
-
-    n_order_sk=78   !This is usually 78 always
-
-!Make your choice (number of points per smooth triangle)
-    n_order_sf=45
-!    n_order_sf=78
-
-!set n_refinement=0 if no refinement, =1 to split each smooth triangle into 4, =2 to split each triangle into 4^2=16 and so on..
-    n_refinement=0
-
-! adaptive_flag=1 to enable adaptivity, if adaptive_flag=0 then sigma is constant and has an appropriate value conmmensured with the size of the triangle
-    adaptive_flag=1
-
-
-    allocate(Geometry1)
-
-
-!Uncomment one of the following geometries
-
-!    nombre='Round_1.msh'
-!    filename='Round_1_n45_r0.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='Round_2.msh'
-!    filename='Round_2_n78_r2.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='Cube_substraction.msh'
-!    filename='Cube_substraction_n78_r2.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='Multiscale_1.msh'
-!    filename='Multiscale_1_n78_r2.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-!    nombre='Multiscale_2.msh'
-!    filename='Multiscale_2.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='Round_genus_2.msh'
-!    filename='Round_genus_2.gov'
-!!!  point inside to check Gauss integral
-!    x0=3.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='Multires_cavidad_esfera.msh'
-!    filename='Multires_cavidad_esfera.gov'
-!!!  point inside to check Gauss integral
-!    x0=-1.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='sphere_union.msh'
-!    filename='sphere_union.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='sphere_substraction.msh'
-!    filename='sphere_substraction.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='substraction2_v2.msh'
-!    filename='substraction2_v2.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.7d0
-!    y0=0.3d0
-!    z0=1.0d0
-
-
-    nombre=  '../geometries/cunya/cunya1.msh'
-    filename='../geometries/cunya/cunya1.gov'
-    !  point inside to check Gauss integral
-    x0=-0.3d0
-    y0=-0.3d0
-    z0=1.0d0
-
-
-!    nombre='cunya_local.msh'
-!    filename='cunya_local.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.6d0
-!    y0=0.2d0
-!    z0=1.0d0
-
-
-!    nombre='cunya_2_1.msh'
-!    filename='cunya_2_1.gov'
-!!!  point inside to check Gauss integral
-!    x0=-0.2d0
-!    y0=0.2d0
-!    z0=1.0d0
-
-!    nombre='torus_box.msh'
-!    filename='torus_box.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=1.0d0
-!    z0=0.0d0
-
-
-
-!    nombre='open_cavity_30deg_v2.msh'
-!    filename='open_cavity_30deg_v2.gov'
-!!!  point inside to check Gauss integral
-!    x0=1.5d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='cubo_esfera_multires.msh'
-!    filename='cubo_esfera_multires_n78_r1.gov'
-!!!  point inside to check Gauss integral
-!    x0=-.6d0
-!    y0=-.6d0
-!    z0=0.6d0
-
-
-!    nombre='esfera_esfera.msh'
-!    filename='esfera_esfera_n78_r1.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=-1.5d0
-
-
-!    nombre='capsule_multiscale.msh'
-!    filename='capsule_multiscale_n78_r1.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.1d0
-!    z0=.2d0
-
-!    nombre='../geometries/sci_fi/sci_fi_3.msh'
-!    filename='../geometries/sci_fi/sci_fi_3.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.01d0
-!    z0=.02d0
-
-!    nombre='../geometries/big_genus/high_genus_3.msh'
-!    filename='../geometries/big_genus/high_genus_3.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.5d0
-!    y0=0.5d0
-!    z0=0.5d0
-
-
-
-
-!    nombre='../geometries/antenna/parabolic_antenna.msh'
-!    filename='../geometries/antenna/parabolic_antenna.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.75d0
-!    z0=.00d0
-
-
-!    nombre='../geometries/jet/jet_fighter.msh'
-!    filename='../geometries/jet/jet_fighter.gov'
-    ! point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=-4000
-
-    !nombre='../geometries/war_ship/mi_barco_simple_13.msh'
-    !filename='../geometries/war_ship/mi_barco_simple_13.gov'
-    ! point inside to check Gauss integral
-    !x0=0.0d0
-    !y0=0.0d0
-    !z0=-.50d0
-
-!    nombre='huge_genus_4.msh'
-!    filename='huge_genus_4_r1.gov'
-!!!  point inside to check Gauss integral
-!    x0=1.5d0
-!    y0=1.5d0
-!    z0=1.5d0
-
-
-!    nombre='pico_2.msh'
-!    filename='pico_2_n78_r1.gov'
-!    point inside to check Gauss integral
-!    x0=0d0
-!    y0=0d0
-!    z0=2.0d0
-
-!    nombre='two_cavity_filter.msh'
-!    filename='two_cavity_filter_n78_r0.gov'
-!!!  point inside to check Gauss integral
-!    x0=0d0
-!    y0=0d0
-!    z0=-0.5d0
-
-
-
-!    nombre='prueba_cilindro.msh'
-!    filename='prueba_cilindro.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=2.0d0
-
-
-
-!    nombre='../geometries/jet/jet_fighter.msh'
-!    filename = '../geometries/jet/jet_fighter.gov'
-!    x0 = 0
-!    y0 = 0
-!    z0 = -4000
-
-!    nombre='simplest_cube_quadratic.msh'
-!    filename='simplest_cube_quadratic.gov'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.5d0
-
-
-!    point inside to check Gauss integral
-
-    call leemsh(Geometry1,nombre,n_order_sk,n_order_sf)
-
-
-    call funcion_skeleton(Geometry1,n_order_sk)
-!    do count=1,Geometry1%npoints
-!        write (*,*) Geometry1%skeleton_Points(1,count),Geometry1%skeleton_Points(2,count)
-!        write (*,*) Geometry1%skeleton_Points(3,count)
-!        read (*,*)
-!    enddo
-
-    call funcion_normal_vert(Geometry1)
-    call find_centroids_sigmas(Geometry1,adaptive_flag)
-    alpha=1.0d0/maxval(Geometry1%sgmas)**2/5.0d0
-    write (*,*) 'Alpha: ',alpha
-
-    do count=1,n_refinement
-!        write (*,*) 'ntri antes: ', Geometry1%ntri,Geometry1%n_Sk_points
-        call refine_geometry(Geometry1,n_order_sf)
-!        write (*,*) 'ntri despues: ', Geometry1%ntri,Geometry1%n_Sk_points
-!        read (*,*)
-    enddo
-
-    call funcion_Base_Points(Geometry1,n_order_sf)
-
-    write (*,*) 'Geometry information '
-    write (*,*) 'File name           : ', nombre
-    write (*,*) 'Number of triangles : ', Geometry1%ntri
-    write (*,*) 'Number of points    : ', Geometry1%npoints
-    write (*,*) 'Number of points on the smooth surface: ',Geometry1%n_Sf_points
-    write (*,*) 'Number of points on the skeleton: ',Geometry1%n_Sk_points
-
-
-    call setup_tree_sigma_geometry(Main_box,Geometry1)
-    write (*,*) 'No llega nunca'
-    call find_smooth_surface(Geometry1,alpha,Main_box)
-
-
-!    do count=1,Geometry1%n_Sf_points
-!        write (*,*) 'Points :', Geometry1%S_smooth(count,1),Geometry1%S_smooth(count,2),Geometry1%S_smooth(count,3)
-!        write (*,*) 'Normals :', Geometry1%N_smooth(count,1),Geometry1%N_smooth(count,2),Geometry1%N_smooth(count,3)
-!        write (*,*) 'U vect :', Geometry1%ru_smooth(count,1),Geometry1%ru_smooth(count,2),Geometry1%ru_smooth(count,3)
-!        write (*,*) 'V vect :', Geometry1%rv_smooth(count,1),Geometry1%rv_smooth(count,2),Geometry1%rv_smooth(count,3)
-!        write (*,*) 'w:', Geometry1%w_smooth(count)
-!        read (*,*)
-!    enddo
-
-    call record_Geometry(Geometry1,filename)
-    call check_Gauss(Geometry1,x0,y0,z0)
-
-
-    !
-    ! now plot the smoothed geometry by oversampling and plotting
-    ! flat triangles in VTK ASCII format
-    
-    filename='../geometries/cunya/cunya1-smooth.vtk'
-    call plotSmoothGeometryVTK(Geometry1, filename)
-
-    stop
-end program
-
-
-
-
-subroutine setup_tree_sigma_geometry(Main_box,Geometry1)
-use some_types
-implicit none
-
-interface
-    subroutine Setup_tree_add_all(Current_box,Pts,N,radius,max_depth,current_depth,Box_limits)
-        use some_types
-        integer (kind = 8 ), intent(in) :: N
-        type (Box), pointer :: Current_box
-        real ( kind = 8 ), intent(in) :: Pts(3,N),Box_limits(3,2),radius
-        integer ( kind = 8 ), intent(in) :: max_depth,current_depth
-    end subroutine
-end interface
-
-interface
-    subroutine allocate_tree_points(Current_box)
-        use some_types
-        type (Box), pointer :: Current_box
-    end subroutine
-end interface
-
-interface
-    subroutine Locate_all_on_tree(Current_box,Pts,N,sgma_v,radius,Box_limits)
-        use some_types
-        integer ( kind = 8 ), intent(in) :: N
-        type (Box), pointer :: Current_box
-        real ( kind = 8 ), intent(in) :: Pts(3,N),Box_limits(3,2),sgma_v(N),radius
-    end subroutine
-end interface
-
-interface
-    subroutine Setup_Colleagues(Current_box,current_depth)
-        use some_types
-        type (Box), pointer :: Current_box
-        integer ( kind = 8 ), intent(in) :: current_depth
-    end subroutine
-end interface
+  use some_types
+  implicit none
+
+  interface
+     subroutine Setup_tree_add_all(Current_box,Pts,N,radius,max_depth,current_depth,Box_limits)
+       use some_types
+       integer (kind = 8 ), intent(in) :: N
+       type (Box), pointer :: Current_box
+       real ( kind = 8 ), intent(in) :: Pts(3,N),Box_limits(3,2),radius
+       integer ( kind = 8 ), intent(in) :: max_depth,current_depth
+     end subroutine Setup_tree_add_all
+  end interface
+
+  interface
+     subroutine allocate_tree_points(Current_box)
+       use some_types
+       type (Box), pointer :: Current_box
+     end subroutine allocate_tree_points
+  end interface
+
+  interface
+     subroutine Locate_all_on_tree(Current_box,Pts,N,sgma_v,radius, &
+         Box_limits)
+       use some_types
+       integer ( kind = 8 ), intent(in) :: N
+       type (Box), pointer :: Current_box
+       real ( kind = 8 ), intent(in) :: Pts(3,N),Box_limits(3,2),sgma_v(N),radius
+     end subroutine Locate_all_on_tree
+  end interface
+
+  interface
+     subroutine Setup_Colleagues(Current_box,current_depth)
+       use some_types
+       type (Box), pointer :: Current_box
+       integer ( kind = 8 ), intent(in) :: current_depth
+     end subroutine Setup_Colleagues
+  end interface
 
 
 !List of calling arguments
