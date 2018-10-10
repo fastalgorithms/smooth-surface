@@ -62,10 +62,6 @@
 
       call gettargandtreemem(ns,sources,nt,targ,lmem,nlbox,nlevels,
      1      nboxes)
-      call prinf('lmem=*',lmem,1)
-      call prinf('nlbox=*',nlbox,1)
-      call prinf('nboxes=*',nboxes,1)
-      call prinf('nlevels=*',nlevels,1)
 
       norder = 4
       norder3 = norder*norder*norder
@@ -78,13 +74,6 @@
       call gettargandtree(ns,sources,nt,targ,itree,ipointer,
      1      treecenters,boxsize,norder,targ2,iptr)
 
-       call prinf('iptr=*',iptr,nboxes)
-
- 2100 format(3(2x,e11.5))
-
-      do i=1,nt2
-         write(23,2100) targ2(1,i),targ2(2,i),targ2(3,i)
-      enddo
 
 c
 cc      evaluate predefined function at these nodes
