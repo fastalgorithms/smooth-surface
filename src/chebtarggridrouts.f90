@@ -34,21 +34,22 @@ subroutine precompphi(eps,ns,sources,nt,dumtarg,norder, &
       
       implicit real *8 (a-h,o-z)
 interface      
-      subroutine reorganizechebtree(nboxnew,nlevnew,ltreenew, &
-         itree,iptr,treecenters,boxsize,nboxes, &
-         nlevels,nlbox,norder,nt2, &
+      subroutine reorganizechebtree(itree,ltree,iptr,treecenters, &
+         boxsize,nboxes, &
+         nlevels,nlbox,ntargbox,norder,nt2, &
          targets,fcoeffs,irefineflag,icompflag)
-
        implicit real *8 (a-h,o-z)
-       integer, intent(in) ::  nboxnew,nlevnew,ltreenew
+       integer, intent(inout) :: nboxes,nlevels,nlbox,nt2
        integer, dimension(:), intent(inout) ::  itree
-       integer, iptr(7)
+       integer, dimension(:), intent(inout) :: ntargbox
+       integer iptr(7)
        real *8, dimension(:,:), intent(inout) :: treecenters
        real *8, dimension(:), intent(inout) :: boxsize
-       integer nboxes,nlevels,norder,nt2
+       integer norder
        real *8, dimension(:,:), intent(inout) :: targets
        real *8, dimension(:), intent(inout) :: fcoeffs
-       integer, icompflag(nboxnew),irefineflag(nboxes)
+       integer, dimension(:), intent(inout) :: icompflag
+       integer, intent(in), dimension(:) :: irefineflag
       end subroutine
 end interface         
 
@@ -77,8 +78,8 @@ end interface
       real *8, allocatable :: xmatc(:,:)
       real *8, allocatable :: tails(:)
       integer, allocatable :: irefineflag(:)
+      integer, allocatable :: icompflag(:)
 
-      integer, allocatable :: laddrtail(:,:)
 
 !
 !c      temporary variables
@@ -228,14 +229,13 @@ end interface
         irefineflag(i) = 0
         if(nchild.eq.0.and.ntargbox(i).gt.0) then
            ii = itree(iptr(6)+i-1)
-           call matvec(norder3,norder3,xmatc,fvals(ii),fcoeffs(ii))
+           call dmatvec(norder3,norder3,xmatc,fvals(ii),fcoeffs(ii))
            call comptail(norder,norder3,fcoeffs,tails(i))
            if(tails(i).gt.eps) irefineflag(i) = 1
         endif
       enddo
       
       call prin2('tails=*',tails,nboxes)
-      call prinf('irefineflag=*',irefineflag,nboxes)
 
 
       do i=1,nboxes
@@ -244,34 +244,14 @@ end interface
       enddo
   
       irefineflag(6) = 1
+      call prinf('irefineflag=*',irefineflag,nboxes)
 
-      allocate(laddrtail(2,0:nlevels))
 
-!
-!!       count number of additional boxes to be formed
-!
-      
-      nextra = 0
-      nlevnew = nlevels
-      do i=1,nboxes
-         if(irefineflag(i).eq.1) nextra = nextra + 1
-         nchild = itree(iptr(4)+i-1)
-         if(nchild.eq.0.and.ntargbox(i).gt.0) nlevnew = nlevels+1
-      enddo
-
-      nboxnew = nboxes + nextra
-
-      ltreenew = 2*(nlevnew+1)+12*(nboxnew)
-
-      allocate(icompflag(nboxnew))
-
-      call reorganizechebtree(nextra,nlevnew,ltreenew, &
-         itree,iptr,treecenters,boxsize,nboxes, &
-         nlevels,nlbox,norder,nt2, &
+      allocate(icompflag(nboxes))
+      call reorganizechebtree(itree,ltree,iptr,treecenters,boxsize, &
+         nboxes, &
+         nlevels,nlbox,ntargbox,norder,nt2, &
          targets,fcoeffs,irefineflag,icompflag)
-
-
-
 
 
 end subroutine precompphi 
@@ -462,22 +442,204 @@ implicit real *8 (a-h,o-z)
 
 end subroutine
 !-----------------------------------
-      subroutine reorganizechebtree(nboxnew,nlevnew,ltreenew, &
-         itree,iptr,treecenters,boxsize,nboxes, &
-         nlevels,nlbox,norder,nt2, &
+      subroutine reorganizechebtree(itree,ltree,iptr,treecenters, &
+         boxsize,nboxes, &
+         nlevels,nlbox,ntargbox,norder,nt2, &
          targets,fcoeffs,irefineflag,icompflag)
 
        implicit real *8 (a-h,o-z)
-       integer, intent(in) ::  nboxnew,nlevnew,ltreenew
+       integer, intent(inout) :: nboxes,nlevels,nlbox,nt2
        integer, dimension(:), intent(inout) ::  itree
-       integer, iptr(7)
+       integer iptr(7)
+       integer, dimension(:), intent(inout) :: ntargbox
        real *8, dimension(:,:), intent(inout) :: treecenters
        real *8, dimension(:), intent(inout) :: boxsize
-       integer nboxes,nlevels,norder,nt2
+       integer norder
        real *8, dimension(:,:), intent(inout) :: targets
        real *8, dimension(:), intent(inout) :: fcoeffs
-       integer, icompflag(nboxnew),irefineflag(nboxes)
+       integer, intent(inout), dimension(:) :: icompflag
+       integer, intent(in), dimension(:) :: irefineflag
+
+       integer, allocatable :: tntargbox(:),ticompflag(:)
+       integer, allocatable :: laddrtail(:,:),tilev(:),tladdr(:,:)
+       integer, allocatable :: tiparent(:),tnchild(:),tichild(:,:)
+       integer, allocatable :: tifcoeffs(:)
+       integer tiptr(7)
+       real *8, allocatable :: ttargets(:,:),tboxsize(:)
+       real *8, allocatable :: tcenters(:,:)
+
+!
+!!       count number of additional boxes to be formed
+!
+      
+      nextra = 0
+      do i=1,nboxes
+         if(irefineflag(i).eq.1) nextra = nextra + 8
+         nchild = itree(iptr(4)+i-1)
+         if(nchild.eq.0.and.ntargbox(i).gt.0) nlevnew = nlevels+1
+      enddo
 
 
+      nboxnew = nboxes + nextra
+
+      ltreenew = 2*(nlevnew+1)+12*(nboxnew)
+
+
+
+      norder3 = norder*norder*norder
+      nlboxextra = norder3*nextra
+
+      allocate(tntargbox(nboxnew),ticompflag(nboxnew))
+      allocate(ttargets(3,nlboxextra))
+      allocate(laddrtail(2,0:nlevels+1),tladdr(2,0:nlevels+1))
+      allocate(tilev(nboxnew),tnchild(nboxnew),tichild(8,nboxnew))
+      allocate(tifcoeffs(nboxnew),tiparent(nboxnew))
+      allocate(tcenters(3,nboxnew))
+
+!
+!!      copy everything into temporary arrays
+!
+
+      do i=0,nlevnew
+         laddrtail(1,i) = 0
+         laddrtail(2,i) = -1
+      enddo
+
+      do i=0,nlevels
+         tladdr(1,i) = itree(2*i+1)
+         tladdr(2,i) = itree(2*i+2)
+      enddo
+
+      tladdr(1,nlevels+1) = nboxes+1
+      tladdr(2,nlevels+1) = nboxes
+
+      call prinf('itree=*',itree,ltree)
+
+
+      do i=1,nboxes
+         tilev(i) = itree(iptr(2)+i-1)
+         tiparent(i) = itree(iptr(3)+i-1)
+         tnchild(i) = itree(iptr(4)+i-1)
+         do j=1,8
+            tichild(j,i) = itree(iptr(5)+8*(i-1)+j-1)
+         enddo
+         tifcoeffs(i) = itree(iptr(6)+i-1)
+         tntargbox(i) = ntargbox(i)
+         ticompflag(i) = 0
+         do j=1,3
+            tcenters(j,i) = treecenters(j,i)
+         enddo
+      enddo
+
+      nboxestmp = nboxes
+      do ilev = 0,nlevels
+         laddrtail(1,ilev+1) = nboxes+1
+         do ibox = itree(2*ilev+1),itree(2*ilev+2)
+            if(irefineflag(ibox).eq.1) then
+               do i=1,8
+                  ii = 2
+                  jj = 2
+                  if(i.eq.1.or.i.eq.2.or.i.eq.5.or.i.eq.6) ii = 1
+                  if(i.lt.5) jj = 1
+                  nboxes = nboxes + 1
+                  ticompflag(nboxes) = 1
+                  tcenters(1,nboxes) = treecenters(1,ibox)+(-1)**i* &
+                                        boxsize(ilev)/8.0d0
+                  tcenters(2,nboxes) = treecenters(2,ibox)+(-1)**ii* &
+                                        boxsize(ilev)/8.0d0
+                  tcenters(3,nboxes) = treecenters(3,ibox)+(-1)**jj* &
+                                        boxsize(ilev)/8.0d0
+                  tnchild(nboxes) = 0
+                  do j=1,8
+                     tichild(j,nboxes) = -1
+                  enddo
+                  tiparent(nboxes) = ibox
+                  tntargbox(nboxes) = 1
+                  tilev(nboxes) = ilev+1
+                  ticompflag(nboxes) = 1
+               enddo
+            endif
+         enddo
+         laddrtail(2,ilev+1) = nboxes
+      enddo
+
+      deallocate(itree,treecenters)
+      allocate(itree(ltreenew),treecenters(3,nboxes))
+
+!
+!!      reset the iptr array
+!
+        iptr(1) = 1
+        iptr(2) = iptr(1)+2*(nlevnew+1)
+        iptr(3) = iptr(2)+nboxes
+        iptr(4) = iptr(3)+nboxes
+        iptr(5) = iptr(4)+nboxes
+        iptr(6) = iptr(5)+8*nboxes
+        iptr(7) = iptr(6)+nboxes
+
+!c      itree(iptr(1)) - laddr
+!       itree(iptr(2)) - ilevel
+!       itree(iptr(3)) - iparent
+!       itree(iptr(4)) - nchild
+!       itree(iptr(5)) - ichild
+!       itree(iptr(6)) - pointer to fcoeffs array
+
+
+      curbox = 1
+      do ilev=0,nlevnew
+         itree(2*ilev+1) = curbox
+         do ibox = tladdr(1,ilev),tladdr(2,ilev)
+            itree(iptr(2)+curbox-1) = tilev(ibox)
+            itree(iptr(4)+curbox-1) = tnchild(ibox)
+            treecenters(1,curbox) = tcenters(1,ibox)
+            treecenters(2,curbox) = tcenters(2,ibox)
+            treecenters(3,curbox) = tcenters(3,ibox)
+            iboxtocurbox(ibox) = curbox
+            curbox = curbox + 1
+         enddo
+
+         do ibox = laddrtail(1,ilev),laddrtail(2,ilev)
+            itree(iptr(2)+curbox-1) = tilev(ibox)
+            itree(iptr(4)+curbox-1) = tnchild(ibox)
+            treecenters(1,curbox) = tcenters(1,ibox)
+            treecenters(2,curbox) = tcenters(2,ibox)
+            treecenters(3,curbox) = tcenters(3,ibox)
+            iboxtocurbox(ibox) = curbox
+            curbox = curbox + 1
+         enddo
+         itree(2*ilev+2) = curbox-1
+      enddo
+
+!
+!!         handle the parent child part of the tree using the
+!          mapping iboxtocurbox
+
+       do ibox=1,nboxes
+          if(tiparent(ibox).eq.-1) &
+            itree(iptr(3)+iboxtocurbox(ibox)-1) = -1
+          if(tiparent(ibox).gt.0) itree(iptr(3)+iboxtocurbox(ibox)-1)=&
+               iboxtocurbox(tiparent(ibox))
+          do i=1,8
+             if(tichild(i,ibox).eq.-1) &
+                itree(iptr(5)+(iboxtocurbox(ibox)-1)*8+i-1)=-1
+             if(tichild(i,ibox).gt.0) &
+                itree(iptr(5)+(iboxtocurbox(ibox)-1)*8+i-1)= &
+                     iboxtocurbox(tichild(i,ibox))
+          enddo
+       enddo
+
+!
+!!        fix fcoeffs
+!
+
+!      call prinf('nboxes=*',nboxes,1)
+!      call prinf('ticompflag=*',ticompflag,nboxes)
+!      call prinf('laddrtail=*',laddrtail,2*(nlevnew+1))
+!      call prinf('tnchild=*',tnchild,nboxes)
+!      call prin2('tcenters=*',tcenters,3*nboxes)
+!      call prinf('tichild=*',tichild,8*nboxes)
+!      call prinf('tilev=*',tilev,nboxes)
+!      call prinf('tiparent=*',tiparent,nboxes)
+!      call prinf('ticompflag=*',ticompflag,nboxes)
 
 end subroutine
