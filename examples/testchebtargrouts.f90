@@ -87,11 +87,14 @@ end interface
       enddo
 
       eps = 1.0d-9
-      norder = 4
+      norder = 8
 
       call precompphi(eps,ns,sources,nt,dumtarg,norder,itree,ltree, &
          nlevels,nboxes,nlbox,iptr,treecenters,boxsize,nt2,fcoeffs, &
          fun1)
+       call prinf('nboxes=*',nboxes,1)
+       call prinf('nt2=*',nt2,1)
+       
 
 
 

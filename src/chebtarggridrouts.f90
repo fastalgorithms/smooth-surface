@@ -36,28 +36,32 @@ subroutine precompphi(eps,ns,sources,nt,dumtarg,norder, &
 interface      
       subroutine reorganizechebtree(itree,ltree,iptr,treecenters, &
          boxsize,nboxes, &
-         nlevels,nlbox,ntargbox,norder,nt2, &
-         irefineflag,icompflag,itreeout,ltreeout, &
+         nlevels,ntargbox,norder,nt2, targets, fcoeffs,&
+         irefineflag,ibcompflag,itcompflag,itreeout,ltreeout, &
          iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
-         nt2out,targetsout,fcoeffsout)
+         ntargboxout,nt2out,targetsout,fcoeffsout)
 
        implicit real *8 (a-h,o-z)
-       integer, intent(inout) :: nboxes,nlevels,nlbox,nt2
+       integer, intent(inout) :: nboxes,nlevels,nt2
        integer, dimension(:), intent(in) ::  itree
        integer iptr(7)
        integer, dimension(:), intent(in) :: ntargbox
        real *8, dimension(:,:), intent(in) :: treecenters
-       real *8, dimension(:), intent(in) :: boxsize
+       real *8, intent(in) :: boxsize(0:nlevels)
+       real *8, dimension(:,:), intent(in) :: targets
+       real *8, dimension(:), intent(in) :: fcoeffs
        integer norder
-       integer, intent(inout), dimension(:) :: icompflag
+       integer, intent(out), allocatable :: ibcompflag(:)
+       integer, intent(out), allocatable :: itcompflag(:)
        integer, intent(in), dimension(:) :: irefineflag
 
 
        integer, intent(out), allocatable :: itreeout(:)
        integer, intent(out) :: ltreeout,iptrout(7),nboxesout, &
               nlevelsout,nt2out
-       real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
-               boxsizeout(:)
+       integer, intent(out), allocatable :: ntargboxout(:)
+       real *8, intent(out), allocatable :: targetsout(:,:), &
+              fcoeffsout(:), boxsizeout(:),treecentersout(:,:)
       end subroutine
 end interface         
 
@@ -78,6 +82,7 @@ end interface
 
       real *8, allocatable :: targets(:,:)
       real *8, allocatable :: fvals(:)
+      real *8, allocatable :: fvalstmp(:)
 
       integer, allocatable :: itreetmp(:)
       integer ipointer(32)
@@ -86,12 +91,14 @@ end interface
       real *8, allocatable :: xmatc(:,:)
       real *8, allocatable :: tails(:)
       integer, allocatable :: irefineflag(:)
-      integer, allocatable :: icompflag(:)
+      integer, allocatable :: ibcompflag(:)
+      integer, allocatable :: itcompflag(:)
 
       integer, allocatable :: itreeout(:)
+      integer, allocatable :: ntargboxout(:)
       integer iptrout(7)
       real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
-            boxsizeout(:)
+            boxsizeout(:),treecentersout(:,:)
       
 
 
@@ -182,7 +189,7 @@ end interface
         enddo
 
         
-
+        itarg = 0
         ictr = 1
         norder3 = norder*norder*norder
         
@@ -193,6 +200,7 @@ end interface
 
 
         allocate(targets(3,nt2),fvals(nt2),fcoeffs(nt2))
+        allocate(fvalstmp(norder3))
 
         do ibox = 1,nboxes 
            nchild = itree(iptr(4)+ibox-1)
@@ -230,44 +238,121 @@ end interface
 !
       allocate(xmatc(norder3,norder3))
       call getxmatc(norder,norder3,xmatc)
+      do i=1,nboxes
+         nchild = itree(iptr(4)+i-1)
+         if(nchild.eq.0.and.ntargbox(i).gt.0) then
+              ii = itree(iptr(6)+i-1)
+              call matvec(norder3,norder3,xmatc,fvals(ii),fcoeffs(ii))
+        endif
+      enddo
 
 !
 !c         compute the coefficients
 !
 !
 !
-      allocate(tails(nboxes),irefineflag(nboxes))
-      do i=1,nboxes
-        nchild = itree(iptr(4)+i-1)
-        tails(i) = 0
-        irefineflag(i) = 0
-        if(nchild.eq.0.and.ntargbox(i).gt.0) then
-           ii = itree(iptr(6)+i-1)
-           call dmatvec(norder3,norder3,xmatc,fvals(ii),fcoeffs(ii))
-           call comptail(norder,norder3,fcoeffs,tails(i))
-           if(tails(i).gt.eps) irefineflag(i) = 1
-        endif
-      enddo
+
+      iflag = 1
+
+      maxit = 100
+
+      do iter = 1,maxit
+        call prinf('iter=*',iter,1)
+        rmaxerr = 0
+        iflag = 0 
+        allocate(tails(nboxes),irefineflag(nboxes))
+        do i=1,nboxes
+           nchild = itree(iptr(4)+i-1)
+           tails(i) = 0
+           irefineflag(i) = 0
+           if(nchild.eq.0.and.ntargbox(i).gt.0) then
+              ii = itree(iptr(6)+i-1)
+              call comptail(norder,norder3,fcoeffs(ii),tails(i))
+              if(tails(i).gt.eps) then
+                 irefineflag(i) = 1
+                 iflag = 1
+              endif
+              if(tails(i).gt.rmaxerr) rmaxerr = tails(i)
+           endif
+         enddo
+         call prin2('rmaxerr=*',rmaxerr,1)
+
+         if(iflag.eq.0) goto 2000
       
-      call prin2('tails=*',tails,nboxes)
+!         call prin2('tails=*',tails,nboxes)
+!         call prinf('iflag=*',iflag,1)
 
 
-      do i=1,nboxes
+!      do i=1,nboxes
+!         irefineflag(i) = 0
+!      enddo
+!  
+!      irefineflag(6) = 1
+!      call prinf('irefineflag=*',irefineflag,nboxes)
+!         read *, ii
 
-         irefineflag(i) = 0
+
+         call reorganizechebtree(itree,ltree,iptr,treecenters, &
+            boxsize,nboxes, &
+            nlevels,ntargbox,norder,nt2, targets, fcoeffs,&
+            irefineflag,ibcompflag,itcompflag,itreeout,ltreeout, &
+            iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
+            ntargboxout,nt2out,targetsout,fcoeffsout)
+
+
+            deallocate(itree,treecenters,boxsize,ntargbox,targets, &
+               fcoeffs)
+
+            ltree = ltreeout
+            nboxes = nboxesout
+            nlevels = nlevelsout
+            nt2 = nt2out
+
+!            call prinf('ltree=*',ltree,1)
+!            call prinf('nboxes=*',nboxes,1)
+!            call prinf('nlevels=*',nlevels,1)
+!            call prinf('nt2=*',nt2,1)
+            
+
+            allocate(itree(ltree),treecenters(3,nboxes), &
+               boxsize(0:nlevels),targets(3,nt2),fcoeffs(nt2), &
+               ntargbox(nboxes))
+
+            iptr = iptrout
+            itree = itreeout
+            treecenters = treecentersout
+            boxsize(0:nlevels) = boxsizeout(0:nlevels)
+            targets = targetsout
+            fcoeffs = fcoeffsout
+            ntargbox = ntargboxout
+
+!            call prinf('ibcompflag=*',ibcompflag,nboxes)
+!            call prinf('ifcoeffs=*',itree(iptr(6)),nboxes)
+
+            do i=1,nboxes
+               if(ibcompflag(i).eq.1) then
+!                  call prinf('i=*',i,1)
+                  ii = itree(iptr(6)+i-1)
+!                  call prin2('targets=*',targets(1,ii),3*norder3)
+                  do j=1,norder3
+                     iii = ii+j-1
+                     call fun1(targets(1,iii),targets(2,iii),&
+                        targets(3,iii),fvalstmp(j))
+                  enddo
+!                  call prin2('fvalstmp=*',fvalstmp,norder3)
+                  call matvec(norder3,norder3,xmatc,fvalstmp,& 
+                     fcoeffs(ii))
+!                  call prin2('fcoeffs=*',fcoeffs(ii),norder3)
+               endif
+            enddo
+
+            deallocate(tails,irefineflag,itreeout,treecentersout, &
+             boxsizeout,ntargboxout,targetsout,fcoeffsout) 
+            deallocate(itcompflag,ibcompflag)
+
       enddo
-  
-      irefineflag(6) = 1
-      call prinf('irefineflag=*',irefineflag,nboxes)
+ 2000 continue      
 
-
-      allocate(icompflag(nboxes))
-      call reorganizechebtree(itree,ltree,iptr,treecenters, &
-         boxsize,nboxes, &
-         nlevels,nlbox,ntargbox,norder,nt2, &
-         irefineflag,icompflag,itreeout,ltreeout, &
-         iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
-         nt2out,targetsout,fcoeffsout)
 
 end subroutine precompphi 
 !-------------------------------------------     
@@ -423,14 +508,18 @@ subroutine comptail(norder,norder3,fcoeffs,tail)
     real *8 fcoeffs(*),tail
 
     tail = 0
+    rnorder = norder + 0.0d0
 
     do ii = 1,norder
       do jj = 1,norder
          do kk = 1,norder
 
-            i = ii+jj+kk
-            if(i.ge.norder) then
-                iind = (ii-1)*norder*norder + (jj-1)*norder+kk
+            i = ii+jj+kk-3
+            ri = sqrt((ii-1.0d0)**2 + (jj-1.0d0)**2 + (kk-1.0d0)**2)
+            if(ri.ge.rnorder) then
+!            if(ii.eq.norder.or.jj.eq.norder.or.kk.eq.norder) then
+!            if(i.ge.norder) then
+                iind = (ii-1)*norder*norder+(jj-1)*norder+kk
                 tail = tail + abs(fcoeffs(iind))**2
             endif
          enddo
@@ -442,7 +531,7 @@ end subroutine
 
 subroutine matvec(m,n,a,x,y)
 implicit real *8 (a-h,o-z)
-   real *8 a(m,*),x(*),y(*)
+   real *8 a(m,n),x(n),y(m)
    
    do i=1,m
      y(i) = 0
@@ -459,64 +548,71 @@ end subroutine
 !-----------------------------------
       subroutine reorganizechebtree(itree,ltree,iptr,treecenters, &
          boxsize,nboxes, &
-         nlevels,nlbox,ntargbox,norder,nt2, &
-         irefineflag,icompflag,itreeout,ltreeout, &
+         nlevels,ntargbox,norder,nt2, targets,fcoeffs,&
+         irefineflag,ibcompflag,itcompflag,itreeout,ltreeout, &
          iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
-         nt2out,targetsout,fcoeffsout)
+         ntargboxout,nt2out,targetsout,fcoeffsout)
 
        implicit real *8 (a-h,o-z)
-       integer, intent(inout) :: nboxes,nlevels,nlbox,nt2
+       integer, intent(inout) :: nboxes,nlevels,nt2
        integer, dimension(:), intent(in) ::  itree
        integer iptr(7)
        integer, dimension(:), intent(in) :: ntargbox
        real *8, dimension(:,:), intent(in) :: treecenters
-       real *8, dimension(:), intent(in) :: boxsize
+       real *8, intent(in) :: boxsize(0:nlevels)
+       real *8, dimension(:,:), intent(in) :: targets
+       real *8, dimension(:), intent(in) :: fcoeffs
        integer norder
-       integer, intent(inout), dimension(:) :: icompflag
+       integer, intent(out), allocatable :: ibcompflag(:)
+       integer, intent(out), allocatable :: itcompflag(:)
        integer, intent(in), dimension(:) :: irefineflag
 
 
        integer, intent(out), allocatable :: itreeout(:)
        integer, intent(out) :: ltreeout,iptrout(7),nboxesout, &
               nlevelsout,nt2out
-       real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
-               boxsizeout(:)
+       integer, intent(out), allocatable :: ntargboxout(:)
+       real *8, intent(out), allocatable :: targetsout(:,:), &
+              fcoeffsout(:), boxsizeout(:),treecentersout(:,:)
 
 
-       integer, allocatable :: tntargbox(:),ticompflag(:)
+       integer, allocatable :: tntargbox(:),tibcompflag(:)
        integer, allocatable :: laddrtail(:,:),tilev(:),tladdr(:,:)
        integer, allocatable :: tiparent(:),tnchild(:),tichild(:,:)
-       integer, allocatable :: tifcoeffs(:)
        integer tiptr(7)
        real *8, allocatable :: ttargets(:,:),tboxsize(:)
        real *8, allocatable :: tcenters(:,:)
        integer curbox
        integer, allocatable :: iboxtocurbox(:)
+       real *8 xpts(norder),wts(norder),utmp,vtmp
 
 !
 !!       count number of additional boxes to be formed
 !
       
       nextra = 0
+      nlevelsout = nlevels
       do i=1,nboxes
          if(irefineflag(i).eq.1) nextra = nextra + 8
          nchild = itree(iptr(4)+i-1)
-         if(nchild.eq.0.and.ntargbox(i).gt.0) nlevelsout = nlevels+1
+         ilev = itree(iptr(2)+i-1)
+         if(ilev.eq.nlevels.and.irefineflag(i).eq.1) &
+             nlevelsout = nlevels+1
       enddo
 
 
       nboxesout = nboxes + nextra
 
-      ltreeout = 2*(nlevelsout+1)+12*(nboxnew)
+      ltreeout = 2*(nlevelsout+1)+12*(nboxesout)
 
 
 
       norder3 = norder*norder*norder
 
-      allocate(tntargbox(nboxesout),ticompflag(nboxesout))
+      allocate(tntargbox(nboxesout),tibcompflag(nboxesout))
       allocate(laddrtail(2,0:nlevels+1),tladdr(2,0:nlevels+1))
       allocate(tilev(nboxesout),tnchild(nboxesout),tichild(8,nboxesout))
-      allocate(tifcoeffs(nboxesout),tiparent(nboxesout))
+      allocate(tiparent(nboxesout))
       allocate(tcenters(3,nboxesout))
 
 !
@@ -536,7 +632,7 @@ end subroutine
       tladdr(1,nlevels+1) = nboxes+1
       tladdr(2,nlevels+1) = nboxes
 
-      call prinf('itree=*',itree,ltree)
+!      call prinf('itree=*',itree,ltree)
 
 
       do i=1,nboxes
@@ -546,9 +642,9 @@ end subroutine
          do j=1,8
             tichild(j,i) = itree(iptr(5)+8*(i-1)+j-1)
          enddo
-         tifcoeffs(i) = itree(iptr(6)+i-1)
          tntargbox(i) = ntargbox(i)
-         ticompflag(i) = 0
+         tibcompflag(i) = 0
+         if(tnchild(i).eq.0.and.ntargbox(i).gt.0) tibcompflag(i) = 2
          do j=1,3
             tcenters(j,i) = treecenters(j,i)
          enddo
@@ -559,13 +655,16 @@ end subroutine
          laddrtail(1,ilev+1) = nboxesout+1
          do ibox = itree(2*ilev+1),itree(2*ilev+2)
             if(irefineflag(ibox).eq.1) then
+               tnchild(ibox) = 8
+               tibcompflag(ibox) = -1
                do i=1,8
                   ii = 2
                   jj = 2
                   if(i.eq.1.or.i.eq.2.or.i.eq.5.or.i.eq.6) ii = 1
                   if(i.lt.5) jj = 1
                   nboxesout = nboxesout + 1
-                  ticompflag(nboxesout) = 1
+                  tichild(i,ibox) = nboxesout
+                  tibcompflag(nboxesout) = 1
                   tcenters(1,nboxesout)=treecenters(1,ibox)+(-1)**i*&
                                         boxsize(ilev)/8.0d0
                   tcenters(2,nboxesout)=treecenters(2,ibox)+(-1)**ii*&
@@ -579,40 +678,53 @@ end subroutine
                   tiparent(nboxesout) = ibox
                   tntargbox(nboxesout) = 1
                   tilev(nboxesout) = ilev+1
-                  ticompflag(nboxesout) = 1
+                  tibcompflag(nboxesout) = 1
                enddo
             endif
          enddo
          laddrtail(2,ilev+1) = nboxesout
       enddo
 
-      allocate(itreeout(ltreeout),treecenters(3,nboxesout))
+!      call prinf('nboxesout=*',nboxesout,1)
+!      call prinf('ltreeout=*',ltreeout,1)
+
+
+      allocate(itreeout(ltreeout),treecentersout(3,nboxesout))
+      allocate(ntargboxout(nboxesout),iboxtocurbox(nboxesout))
+      allocate(boxsizeout(0:nlevelsout),ibcompflag(nboxesout))
 
 !
 !!      reset the iptr array
 !
         iptrout(1) = 1
-        iptrout(2) = iptr(1)+2*(nlevelsout+1)
-        iptrout(3) = iptr(2)+nboxesout
-        iptrout(4) = iptr(3)+nboxesout
-        iptrout(5) = iptr(4)+nboxesout
-        iptrout(6) = iptr(5)+8*nboxesout
-        iptrout(7) = iptr(6)+nboxesout
+        iptrout(2) = iptrout(1)+2*(nlevelsout+1)
+        iptrout(3) = iptrout(2)+nboxesout
+        iptrout(4) = iptrout(3)+nboxesout
+        iptrout(5) = iptrout(4)+nboxesout
+        iptrout(6) = iptrout(5)+8*nboxesout
+        iptrout(7) = iptrout(6)+nboxesout
 
-!c      itree(iptr(1)) - laddr
-!       itree(iptr(2)) - ilevel
-!       itree(iptr(3)) - iparent
-!       itree(iptr(4)) - nchild
-!       itree(iptr(5)) - ichild
-!       itree(iptr(6)) - pointer to fcoeffs array
+!        call prinf('nlevels=*',nlevels,1)
+!
+!        call prinf('nboxesout=*',nboxesout,1)
+!        call prinf('nlevelsout=*',nlevelsout,1)
+!        call prinf('iptrout=*',iptrout,7)
 
+
+
+!      call prinf('laddrtail=*',laddrtail,2*(nlevels+2))
+!      call prinf('tladdr=*',tladdr,2*(nlevels+1))
 
       curbox = 1
       do ilev=0,nlevelsout
          itreeout(2*ilev+1) = curbox
          do ibox = tladdr(1,ilev),tladdr(2,ilev)
-            itreeout(iptr(2)+curbox-1) = tilev(ibox)
-            itreeout(iptr(4)+curbox-1) = tnchild(ibox)
+!            call prinf('ibox=*',ibox,1)
+!            call prinf('curbox=*',curbox,1)
+            itreeout(iptrout(2)+curbox-1) = tilev(ibox)
+            itreeout(iptrout(4)+curbox-1) = tnchild(ibox)
+            itreeout(iptrout(6)+curbox-1) = -1
+            ibcompflag(curbox) = tibcompflag(ibox)
             treecentersout(1,curbox) = tcenters(1,ibox)
             treecentersout(2,curbox) = tcenters(2,ibox)
             treecentersout(3,curbox) = tcenters(3,ibox)
@@ -622,8 +734,12 @@ end subroutine
          enddo
 
          do ibox = laddrtail(1,ilev),laddrtail(2,ilev)
-            itreeout(iptr(2)+curbox-1) = tilev(ibox)
-            itreeout(iptr(4)+curbox-1) = tnchild(ibox)
+!            call prinf('ibox=*',ibox,1)
+!            call prinf('curbox=*',curbox,1)
+            itreeout(iptrout(2)+curbox-1) = tilev(ibox)
+            itreeout(iptrout(4)+curbox-1) = tnchild(ibox)
+            itreeout(iptrout(6)+curbox-1) = -1
+            ibcompflag(curbox) = tibcompflag(ibox)
             treecentersout(1,curbox) = tcenters(1,ibox)
             treecentersout(2,curbox) = tcenters(2,ibox)
             treecentersout(3,curbox) = tcenters(3,ibox)
@@ -633,40 +749,100 @@ end subroutine
          enddo
          itreeout(2*ilev+2) = curbox-1
       enddo
+!      call prinf('itreeout=*',itreeout(iptrout(4)),nboxesout)
+!      call prinf('tichild=*',tichild,8*nboxesout)
+!      call prinf('iboxtocurbox=*',iboxtocurbox,nboxesout)
+
 
 !
 !!         handle the parent child part of the tree using the
 !          mapping iboxtocurbox
 
+       ictr = 1
        do ibox=1,nboxesout
           if(tiparent(ibox).eq.-1) &
-            itreeout(iptr(3)+iboxtocurbox(ibox)-1) = -1
+            itreeout(iptrout(3)+iboxtocurbox(ibox)-1) = -1
           if(tiparent(ibox).gt.0) &
-               itreeout(iptr(3)+iboxtocurbox(ibox)-1)=&
+               itreeout(iptrout(3)+iboxtocurbox(ibox)-1)=&
                iboxtocurbox(tiparent(ibox))
           do i=1,8
              if(tichild(i,ibox).eq.-1) &
-                itreeout(iptr(5)+(iboxtocurbox(ibox)-1)*8+i-1)=-1
+                itreeout(iptrout(5)+(iboxtocurbox(ibox)-1)*8+i-1)=-1
              if(tichild(i,ibox).gt.0) &
-                itreeout(iptr(5)+(iboxtocurbox(ibox)-1)*8+i-1)= &
+                itreeout(iptrout(5)+(iboxtocurbox(ibox)-1)*8+i-1)= &
                      iboxtocurbox(tichild(i,ibox))
           enddo
+          
+          nchild = itreeout(iptrout(4)+ibox-1)
+          if(nchild.eq.0.and.ntargboxout(ibox).gt.0) then
+             itreeout(iptrout(6)+ibox-1) = ictr
+             ictr = ictr + norder3
+          endif
        enddo
 
-       call prinf('itreeout=*',itreeout,ltreeout)
+       nt2out = ictr-1
+       allocate(fcoeffsout(nt2out),targetsout(3,nt2out), &
+          itcompflag(nt2out))
 
+!       call prinf('iptrout=*',iptrout,7)
 !
-!!        fix fcoeffs
-!
+!       call prinf('itreeout=*',itreeout,ltreeout)
+!       call prinf('nchild=*',itreeout(iptrout(4)),nboxesout)
 
-!      call prinf('nboxes=*',nboxes,1)
-!      call prinf('ticompflag=*',ticompflag,nboxes)
-!      call prinf('laddrtail=*',laddrtail,2*(nlevnew+1))
-!      call prinf('tnchild=*',tnchild,nboxes)
-!      call prin2('tcenters=*',tcenters,3*nboxes)
-!      call prinf('tichild=*',tichild,8*nboxes)
-!      call prinf('tilev=*',tilev,nboxes)
-!      call prinf('tiparent=*',tiparent,nboxes)
-!      call prinf('ticompflag=*',ticompflag,nboxes)
+
+!        call prinf('ticompflag=*',tibcompflag,nboxesout)
+!
+!!        fix targets and fcoeffs
+!
+       itype = 1
+       call chebexps(itype,norder,xpts,utmp,vtmp,wts)
+       
+       do i=0,nlevels
+          boxsizeout(i) = boxsize(i)
+       enddo
+
+       if(nlevelsout.eq.nlevels+1) &
+          boxsizeout(nlevelsout) = boxsizeout(nlevels)/2.0d0
+
+!       call prin2('boxsizeout=*',boxsizeout,nlevelsout+1)   
+       do ibox=1,nboxesout
+          if(tibcompflag(ibox).eq.2) then
+              curbox = iboxtocurbox(ibox)
+!              call prinf('ibox=*',ibox,1)
+!              call prinf('curbox=*',curbox,1)
+              ii = itree(iptr(6)+ibox-1)
+              jj = itreeout(iptrout(6)+curbox-1)
+!              call prinf('ii=*',ii,1)
+!              call prinf('jj=*',jj,1)
+              do i=1,norder3
+                 fcoeffsout(jj+i-1) = fcoeffs(ii+i-1)
+                 targetsout(1,jj+i-1) = targets(1,ii+i-1)
+                 targetsout(2,jj+i-1) = targets(2,ii+i-1)
+                 targetsout(3,jj+i-1) = targets(3,ii+i-1)
+                 itcompflag(jj+i-1) = 0
+              enddo
+          endif
+
+          if(tibcompflag(ibox).eq.1) then
+             curbox = iboxtocurbox(ibox)
+             itarg = itreeout(iptrout(6)+curbox-1)
+             ilev = itreeout(iptrout(2)+curbox-1)
+             do ii=1,norder
+                do jj=1,norder
+                   do kk=1,norder
+                       targetsout(1,itarg)=treecentersout(1,curbox)+&
+                                 xpts(kk)*boxsizeout(ilev)/2
+                       targetsout(2,itarg)=treecentersout(2,curbox)+&
+                                 xpts(jj)*boxsizeout(ilev)/2
+                       targetsout(3,itarg)=treecentersout(3,curbox)+&
+                                 xpts(ii)*boxsizeout(ilev)/2
+                       itcompflag(itarg) = 1
+                       itarg = itarg + 1
+                   enddo
+                enddo
+             enddo
+          endif
+       enddo
+
 
 end subroutine

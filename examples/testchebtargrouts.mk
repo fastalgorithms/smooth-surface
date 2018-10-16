@@ -1,9 +1,9 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
-#HOST = linux-gfortran
+HOST = linux-gfortran
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel
@@ -45,11 +45,11 @@ endif
 #   export OMP_STACKSIZE=2048M
 # endif
 
-# ifeq ($(HOST),linux-gfortran)
-#   FC = gfortran -c -w
-#   FFLAGS = -O2 -mcmodel=medium 
-#   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
-# endif
+ifeq ($(HOST),linux-gfortran)
+   FC = gfortran -c -w
+   FFLAGS = -O2 -mcmodel=medium 
+   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
+endif
 
 # ifeq ($(HOST),amd-gfortran)
 #   FC = gfortran -c -w
