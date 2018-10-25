@@ -404,7 +404,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       iflag = 1
 
-      maxit = 1
+      maxit = 2
 
       nlege = 100
       lw7 = 40000
@@ -505,30 +505,30 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!               find which box targets 
 !
 !
-                  call prinf('nboxesfmm=*',nboxesfmm,1)
-                  call prinf('nlevelsfmm=*',nlevelsfmm,1)
-                  call prin2('boxsizefmm=*',boxsizefmm,1)
+!                  call prinf('nboxesfmm=*',nboxesfmm,1)
+!                  call prinf('nlevelsfmm=*',nlevelsfmm,1)
+!                  call prin2('boxsizefmm=*',boxsizefmm,1)
                   do j=1,norder3
                      iii = ii+j-1
                      call sigma_eval(targets(1,iii),sigmatmp, &
                         sigma_gradtmp)
 
-                     call prin2('sigmatmp=*',sigmatmp,1)
+!                     call prin2('sigmatmp=*',sigmatmp,1)
                      tradtmp = 12*sigmatmp
                  
                      call findboxtarg_fulltree(targets(1,iii),tradtmp,&
                       iboxtarg,ilev,itreefmm,ipointer,boxsizefmm, &
                       treecentersfmm,nboxesfmm,nlevelsfmm)
 
-                      call prinf('iboxtarg=*',iboxtarg,1)
-                      call prinf('ilev=*',ilev,1)
-                      call prin2('targets=*',targets(1,iii),3)
-                      call prin2('tradtmp=*',tradtmp,1)
+!                      call prinf('iboxtarg=*',iboxtarg,1)
+!                      call prinf('ilev=*',ilev,1)
+!                      call prin2('targets=*',targets(1,iii),3)
+!                      call prin2('tradtmp=*',tradtmp,1)
 !                      call prin2('dipvecsort=*',dipvecsort,3*ns)
 
-                     call prinf('mnbors=*',mnbors,1)
-                     call prinf('mnlist1=*',mnlist1,1)
-                     call prinf('nlege=*',nlege,1)
+!                     call prinf('mnbors=*',mnbors,1)
+!                     call prinf('mnlist1=*',mnlist1,1)
+!                     call prinf('nlege=*',nlege,1)
 
 
                      call newtargeval(targets(1,iii),sigmatmp, &
@@ -546,11 +546,10 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
 
                   enddo
-                  call prin2('fvalstmp=*',fvalstmp,norder3)
-                  call prin2('fvalstmp=*',fvalsxtmp,norder3)
-                  call prin2('fvalstmp=*',fvalsytmp,norder3)
-                  call prin2('fvalstmp=*',fvalsztmp,norder3)
-                  stop
+!                  call prin2('fvalstmp=*',fvalstmp,norder3)
+!                  call prin2('fvalstmp=*',fvalsxtmp,norder3)
+!                  call prin2('fvalstmp=*',fvalsytmp,norder3)
+!                  call prin2('fvalstmp=*',fvalsztmp,norder3)
                   call matvec(norder3,norder3,xmatc,fvalstmp,& 
                      fcoeffs(ii))
                   call matvec(norder3,norder3,xmatc,fvalsxtmp,& 
@@ -1777,7 +1776,7 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
      ifgradtarg = 1
      npts = 1
 
-     call prinf('ilev=*',ilev,1)
+!     call prinf('ilev=*',ilev,1)
 
 
      call l3dtaevalall_trunc(boxsize(ilev),centers(1,ibox), &
@@ -1795,20 +1794,20 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
 
      nnbors = itree(ipointer(18)+ibox-1)
 
-     call prinf('nnbors=*',nnbors,1)
+!     call prinf('nnbors=*',nnbors,1)
      do i=1,nnbors
         jbox = itree(ipointer(19)+mnbors*(ibox-1)+i-1)
         jstart = itree(ipointer(10)+jbox-1)
         jend = itree(ipointer(11)+jbox-1)
 
-        call prinf('jstart=*',jstart,1)
-        call prinf('jend=*',jend,1)
-        call prinf('jbox=*',jbox,1)
-
-        call prinf('ifcharge=*',ifcharge,1)
-        call prinf('ifdipole=*',ifdipole,1)
-
-        call prin2('targets=*',targets,3)
+!        call prinf('jstart=*',jstart,1)
+!        call prinf('jend=*',jend,1)
+!        call prinf('jbox=*',jbox,1)
+!
+!        call prinf('ifcharge=*',ifcharge,1)
+!        call prinf('ifdipole=*',ifdipole,1)
+!
+!        call prin2('targets=*',targets,3)
 
 !        call prin2('sourcesort=*',sourcesort,3*ns)
 !        call prin2('dipstrsort=*',dipstrsort,2*ns)
@@ -1832,8 +1831,8 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
 
      nlist1 = itree(ipointer(20)+ibox-1)
 
-     call prinf('mnlist1=*',mnlist1,1)
-     call prinf('nlist1=*',nlist1,1)
+!     call prinf('mnlist1=*',mnlist1,1)
+!     call prinf('nlist1=*',nlist1,1)
 
 
      do i=1,nlist1

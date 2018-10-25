@@ -17,7 +17,7 @@ program main
 
     call prini(6,13)
     call prin2('Enter n*',n,0)
-    read *, n
+!    read *, n
 
 !    ns = 100
 !    nt = 100
