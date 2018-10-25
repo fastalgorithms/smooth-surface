@@ -1447,7 +1447,7 @@ c           Create the required boxes
                jj = 2
                if(i.eq.1.or.i.eq.2.or.i.eq.5.or.i.eq.6) ii = 1
                if(i.lt.5) jj = 1
-               if(nsc(i)+ntc(i)+nexpcc(i).gt.0) then
+               if(nsc(i)+ntc(i)+nexpcc(i).ge.0) then
 c                 Increment total number of boxes               
                   nboxes = nboxes + 1
 c                 Increment number of children for the current box

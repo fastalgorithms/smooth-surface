@@ -84,46 +84,23 @@ endif
 
 .PHONY: all clean list
 
-TFMM3D = ../lib/tfmm3dlr
+TFMM3D = ../lib/tfmm3d
 SRC = ../src
 
-MOD_SOURCES = $(SRC)/chebtarggridrouts.f90
+MOD_SOURCES = $(SRC)/chebtarggridrouts_withoutfmm.f90
 
 SOURCES =  testchebtargrouts.f90 \
  $(SRC)/lapack_wrap.f90 \
- $(TFMM3D)/tfmm3dlr_expout.f \
- $(TFMM3D)/l3dzero.f \
- $(TFMM3D)/treeplot.f \
  $(TFMM3D)/prini.f \
- $(TFMM3D)/l3dterms.f \
- $(TFMM3D)/laprouts3d.f \
- $(TFMM3D)/Near_Interaction_code.f90 \
- $(TFMM3D)/l3dmpmpfinal4.f \
- $(TFMM3D)/l3dloclocfinal4.f \
- $(TFMM3D)/l3dmplocfinal4.f \
- $(TFMM3D)/prinm.f \
- $(TFMM3D)/yrecursion.f \
- $(TFMM3D)/ftophys.f \
- $(TFMM3D)/phystof2.f \
- $(TFMM3D)/legeexps.f \
+ $(TFMM3D)/chebexps.f \
  $(TFMM3D)/d3hplratree.f \
- $(TFMM3D)/rotgen.f \
- $(TFMM3D)/numthetafour.f \
- $(TFMM3D)/numthetahalf2.f \
- $(TFMM3D)/lapweights.f \
- $(TFMM3D)/pwrouts2.f \
  $(TFMM3D)/hkrand.f \
  $(TFMM3D)/dlaran.f \
- $(TFMM3D)/rotviarecur3.f \
- $(TFMM3D)/rotgen2.f \
- $(TFMM3D)/l3dgqbxauxrouts2.f \
- $(TFMM3D)/lwtsexp_sep2.f \
- $(TFMM3D)/chebexps.f \
  $(SRC)/pplot2.f \
 
 
 
-TFMM3DLIB = ../lib/tfmm3dlr/tfmm3dlib.a
+TFMM3DLIB = ../lib/tfmm3d/tfmm3dlib.a
 
 MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
