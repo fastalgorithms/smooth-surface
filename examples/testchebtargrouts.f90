@@ -98,7 +98,7 @@ program main
 
 
       eps = 1.0d-6
-      norder = 4
+      norder = 6
 
       call precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
          itree,ltree, &
@@ -143,6 +143,8 @@ program main
       err = abs(f-fex)
 
       call prin2('err=*',err,1)
+      call prin2('f=*',f,1)
+      call prin2('fex=*',fex,1)
 
 end program main
 
