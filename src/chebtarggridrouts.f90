@@ -1775,11 +1775,12 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
 
      ifpottarg = 1
      ifgradtarg = 1
+     npts = 1
 
      call prinf('ilev=*',ilev,1)
 
 
-     call l3dtaeval_trunc(boxsize(ilev),centers(1,ibox), &
+     call l3dtaevalall_trunc(boxsize(ilev),centers(1,ibox), &
        rmlexp(iaddr(2,ibox)),nterms(ilev),nterms(ilev),targets, &
        npts,ifpottarg,pottmp,ifgradtarg,gradtmp,wlege,nlege,ier)
 
@@ -1788,8 +1789,6 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
      gradtmp(2) = -gradtmp(2)/(4*pi)
      gradtmp(3) = -gradtmp(3)/(4*pi)
 
-     call prin2('pottmp=*',pottmp,1)
-     call prin2('gradtmp=*',gradtmp,6)
 
      itstart = 1
      itend = 1
@@ -1827,13 +1826,8 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev,nboxes, &
            dipvecsort, targets, stdev, stdev_grad, ifpottarg, &
            pottmp, ifgradtarg, gradtmp)
 
-        call prin2('pottmp=*',pottmp,2)
-        call prin2('gradtmp=*',gradtmp,6)
 
      enddo
-
-     call prin2('pottmp=*',pottmp,1)
-     call prin2('gradtmp=*',gradtmp,3)
 
 
      nlist1 = itree(ipointer(20)+ibox-1)
