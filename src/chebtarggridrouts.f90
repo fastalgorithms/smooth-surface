@@ -203,7 +203,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
         call prinf('norder3=*',norder3,1)
         call prinf('nlbox=*',nlbox,1)
         nt2 = norder3*nlbox
-        call prinf('nt2=*',nt2,1)
+!        call prinf('nt2=*',nt2,1)
 
 
         allocate(targets(3,nt2),fvals(nt2),fcoeffs(nt2))
@@ -273,7 +273,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
              mnlist2,mnlist3,mnlist4,nlevelsfmm,nboxesfmm, &
              treecentersfmm,boxsizefmm,itreefmm,ltreefmm,ipointer)
 
-        call prinf('nboxes=*',nboxes,1)
+!        call prinf('nboxes=*',nboxes,1)
         call prinf('nlevels=*',nlevels,1)
         call prinf('ipointer=*',ipointer,32)
 !
@@ -301,6 +301,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       if( iprec .eq. 4 ) epsfmm=.5d-12
       if( iprec .eq. 5 ) epsfmm=.5d-15
       if( iprec .eq. 6 ) epsfmm=0
+
+      call prinf('nlevels=*',nlevels,1)
 
       do i=0,nlevels
          if(isep.eq.1) call l3dterms(epsfmm,nterms(i),ier)
@@ -345,6 +347,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       call prinf('iffldtarg=*',iffldtarg,1)
 
 
+
       call tfmm3dlr(ier,iprec,ns,sources,ifcharge,charges,ifdipole, &
             dipole,rn,nt2,targets,trads,sigma,sigma_grad,itreefmm, &
             ltreefmm,ipointer,isep,ndiv,nlevels,nboxes,boxsizefmm, &
@@ -356,7 +359,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!      store the sorted arrays
 !
       call l3dreorder_newtree(ns,sources,ifcharge,charges, &
-        itreefmm(ipointer(5)), ifdipole,dipole,rn,sourcesort, &
+        itreefmm(ipointer(5)),ifdipole,dipole,rn,sourcesort, &
         chargesort,dipstrsort,dipvecsort)
 
 
@@ -381,7 +384,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
          fvalsz(i) = real(fldtarg(3,i))
       enddo
 
-!      call prin2('fvals=*',fvals,512)
+      call prin2('fvals=*',fvals,512)
 
      
 !
@@ -400,7 +403,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
         endif
       enddo
 
-!      call prin2('fcoeffs=*',fcoeffs,512)
+      call prin2('fcoeffs=*',fcoeffs,512)
 
       iflag = 1
 
@@ -426,17 +429,10 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
            if(nchild.eq.0.and.ntargbox(i).gt.0) then
               ii = itree(iptr(6)+i-1)
 
-!              call prinf('ibox=*',i,1)
-!              read *, itmp
-
               call comptail(norder,norder3,fcoeffs(ii),tails(i))
               call comptail(norder,norder3,fcoeffsx(ii),tailsx(i))
               call comptail(norder,norder3,fcoeffsy(ii),tailsy(i))
               call comptail(norder,norder3,fcoeffsz(ii),tailsz(i))
-!              call prin2('fcoeffs=*',fcoeffs(ii),norder3)
-!              call prin2('fcoeffsx=*',fcoeffsx(ii),norder3)
-!              call prin2('fcoeffsy=*',fcoeffsy(ii),norder3)
-!              call prin2('fcoeffsz=*',fcoeffsz(ii),norder3)
 
               if(tails(i).gt.eps.or.tailsx(i).gt.eps.or. &
                    tailsy(i).gt.eps.or.tailsz(i).gt.eps) then
@@ -450,6 +446,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
            endif
          enddo
          call prin2('rmaxerr=*',rmaxerr,1)
+         call prinf('irefineflag=*',irefineflag,nboxes)
 
          if(iflag.eq.0) goto 2000
       
@@ -486,10 +483,10 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             nlevels = nlevelsout
             nt2 = nt2out
 
-            call prinf('ltree=*',ltree,1)
-            call prinf('nboxes=*',nboxes,1)
-            call prinf('nlevels=*',nlevels,1)
-            call prinf('nt2=*',nt2,1)
+!            call prinf('ltree=*',ltree,1)
+!            call prinf('nboxes=*',nboxes,1)
+!            call prinf('nlevels=*',nlevels,1)
+!            call prinf('nt2=*',nt2,1)
             
             allocate(itree(ltree),treecenters(3,nboxes), &
                boxsize(0:nlevels),targets(3,nt2),fcoeffs(nt2), &
@@ -517,8 +514,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             do i=1,nboxes
                if(ibcompflag(i).eq.1) then
                   ii = itree(iptr(6)+i-1)
-!                  call prinf('i=*',i,1)
-!                  call prinf('ii=*',ii,1)
+                  call prinf('i=*',i,1)
+                  call prinf('ii=*',ii,1)
                   do j=1,norder3
                      iii = ii+j-1
                      call sigma_eval(targets(1,iii),sigmatmp, &
@@ -531,24 +528,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
                       iboxtarg,ilev,itreefmm,ipointer,boxsizefmm, &
                       treecentersfmm,nboxesfmm,nlevelsfmm)
 
-!                      call prinf('iboxtarg=*',iboxtarg,1)
-!                      call prinf('ilev=*',ilev,1)
-!                      call prin2('targets=*',targets(1,iii),3)
-!                      call prin2('tradtmp=*',tradtmp,1)
-!                      call prin2('dipvecsort=*',dipvecsort,3*ns)
-
-!                     call prinf('mnbors=*',mnbors,1)
-!                     call prinf('mnlist1=*',mnlist1,1)
-!                     call prinf('nlege=*',nlege,1)
-
-                     if(i.eq.18) then
-!                        call prinf('iii=*',iii,1)
-!                        call prin2('targets=*',targets(1,iii),3)
-!                        call prin2('sigmatmp=*',sigmatmp,1)
-!                        call prin2('sigma_gradtmp=*',sigma_gradtmp,3)
-
-                     endif
-
                      call newtargeval(targets(1,iii),sigmatmp, &
                         sigma_gradtmp, iboxtarg,ilev,nboxesfmm, &
                         nlevelsfmm,boxsizefmm,treecentersfmm,iaddr, &
@@ -556,7 +535,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
                         rmlexp,ns,sourcesort,ifcharge,chargesort,&
                         ifdipole,dipstrsort,dipvecsort, &
                         nterms,nlege,wlege,pottmp,gradtmp)
-
 
                       fvalstmp(j) = pottmp
                       fvalsxtmp(j) = gradtmp(1)
@@ -1203,8 +1181,6 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev, &
            sourcesort,ifcharge,chargesort,ifdipole,dipstrsort, &
            dipvecsort, targets, stdev, stdev_grad, ifpottarg, &
            pottmp, ifgradtarg, gradtmp)
-
-
      enddo
 
 
