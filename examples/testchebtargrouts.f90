@@ -106,7 +106,7 @@ program main
 
       call precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
          itree,ltree, &
-         nlevels,nboxes,nlbox,iptr,treecenters,boxsize,nt2,fcoeffs, &
+         nlevels,nboxes,iptr,treecenters,boxsize,nt2,fcoeffs, &
          fcoeffsx, fcoeffsy, fcoeffsz, sigma_eval1)
        call prinf('nboxes=*',nboxes,1)
        call prinf('nt2=*',nt2,1)
@@ -120,8 +120,6 @@ program main
 !
       ibox = 2
 
-      call prinf('nboxes=*',nboxes,1)
-      call prinf('nlevels=*',nlevels,1)
       xtest =treecenters(1,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
       ytest =treecenters(2,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
       ztest =treecenters(3,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
@@ -130,31 +128,25 @@ program main
       targtest(2) = ytest
       targtest(3) = ztest
 
-      call prin2('targtest=*',targtest,3)
-
       call findboxtarg(targtest,iboxtarg,ilevel,itree,iptr, &
             treecenters,nboxes,nlevels)
-      call prinf('iboxtarg=*',iboxtarg,1)
-      call prinf('ilevel=*',ilevel,1)
 !
 !c      evaluate expansions to get
 !
 
       istart = itree(iptr(6)+iboxtarg-1)
-      call prinf('istart=*',istart,1)
       call cheb3deval(targtest,boxsize(ilevel),treecenters(1,iboxtarg), &
           norder,fcoeffs(istart),f)
 !
 !!       evaluate function manually
 !
-      call prin2('targtest=*',targtest,3)
       call dirfuneval(ns,sources,rn,targtest,fex,fexgrad) 
 
       err = abs(f-fex)
 
-      call prin2('err=*',err,1)
       call prin2('f=*',f,1)
       call prin2('fex=*',fex,1)
+      call prin2('err=*',err,1)
 
 end program main
 
@@ -173,10 +165,11 @@ subroutine sigma_eval1(xyz,sigma,sigma_grad)
    sigma_grad(2) = 16*rr2*xyz(2)
    sigma_grad(3) = 16*rr2*xyz(3)
 
-   sigma = 0.1 + xyz(1) + xyz(2) + xyz(3)
-   sigma_grad(1) = xyz(1)
-   sigma_grad(2) = xyz(2)
-   sigma_grad(3) = xyz(3)
+   rscale = 10
+   sigma = (0.1 + xyz(1) + xyz(2) + xyz(3))/rscale
+   sigma_grad(1) = xyz(1)/rscale
+   sigma_grad(2) = xyz(2)/rscale
+   sigma_grad(3) = xyz(3)/rscale
 
 
 end subroutine sigma_eval1
@@ -188,9 +181,7 @@ subroutine dirfuneval(ns,sources,rn,targ,fex,fexgrad)
     real *8 sources(3,*),targ(3),fex,fexgrad(3),rn(3,*)
     real *8 std,std_grad(3),gradtmp(3)
 
-    call prin2('targ=*',targ,3)
     call sigma_eval1(targ,std,std_grad)
-    call prin2('targ=*',targ,3)
 
     dipstr = 1
     ifgradtarg = 1
@@ -198,14 +189,6 @@ subroutine dirfuneval(ns,sources,rn,targ,fex,fexgrad)
     fexgrad(1) = 0
     fexgrad(2) = 0
     fexgrad(3) = 0
-
-    call prinf('ns=*',ns,1)
-    call prin2('sources=*',sources,3*ns)
-    call prin2('rn=*',rn,3*ns)
-    call prin2('targ=*',targ,3)
-    call prin2('std=*',std,1)
-    call prin2('std_grad=*',std_grad,1)
-    call prin2('dipstr=*',dipstr,1)
 
     do i=1,ns
        call tpotfld3d_dp(ifgradtarg,sources(1,i),dipstr,rn(1,i),&

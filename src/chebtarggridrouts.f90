@@ -5,7 +5,7 @@ module prefunrouts
 contains
 
 subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
-       itree,ltree,nlevels,nboxes,nlbox,iptr,treecenters,boxsize, &
+       itree,ltree,nlevels,nboxes,iptr,treecenters,boxsize, &
        nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,sigma_eval)
 
 !       this subroutine tree sorts a collection of sources
@@ -28,7 +28,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !        iptr(7) - pointer for tree array
 !        nlevels - number of levels
 !        nboxes - number of boxes
-!        nlbox - number of leaf boxes
 !        treecenters(3,nboxes) - locations of centers of trees
 !        boxsize(0:nlevels) - size of boxes at various levels
 !        nt2 - number of dummy targets
@@ -61,7 +60,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       integer, allocatable, intent(inout) :: itree(:)
       integer, allocatable, intent(inout) :: iptr(:)
-      integer, intent(inout) :: nboxes,nlevels,ltree,nlbox,nt2
+      integer, intent(inout) :: nboxes,nlevels,ltree,nt2
 
       real *8, allocatable, intent(inout) :: treecenters(:,:)
       real *8, allocatable, intent(inout) :: boxsize(:)
@@ -70,6 +69,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable, intent(inout) :: fcoeffsy(:)
       real *8, allocatable, intent(inout) :: fcoeffsz(:)
 
+!        temporary variables      
+
       real *8, allocatable :: radsrc(:)
       integer, allocatable :: ntargbox(:)
 
@@ -77,6 +78,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable :: fvals(:),fvalsx(:),fvalsy(:),fvalsz(:)
       real *8, allocatable :: fvalstmp(:)
       real *8, allocatable :: fvalsxtmp(:),fvalsytmp(:),fvalsztmp(:)
+
+      integer nlbox
       
 
       real *8, allocatable :: sigma(:),sigma_grad(:,:),trads(:)
@@ -109,7 +112,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             fcoeffsyout(:), fcoeffszout(:)
 
 !
-!c      temporary variables
+!c      more temporary variables
 !
       real *8 expc(3),radt,wlege(40000),pottmp,gradtmp(3)
       real *8, allocatable :: sourcesort(:,:),dipvecsort(:,:)
@@ -141,6 +144,10 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       nexpc = 0
       radexp = 0
 
+!
+!!         allocate initial tree with sources and dummy targets
+!
+
       call mklraptreemem(ier,sources,ns,radsrc,dumtarg,nt,expc, &
             nexpc,radexp,idivflag,ndiv,isep,nlmax,nbmax,nlevelsfmm, &
             nboxesfmm,mnbors,mnlist1,mnlist2,mnlist3,mnlist4,mhung , &
@@ -155,9 +162,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
              radexp,idivflag,ndiv,isep,mhung,mnbors,mnlist1, &
              mnlist2,mnlist3,mnlist4,nlevelsfmm,nboxesfmm, &
              treecentersfmm,boxsizefmm,itreefmm,ltreefmm,ipointer)
-!
-!c      extract relevant bits of the tree needed from this point on
-!
         nboxes = nboxesfmm
         nlevels = nlevelsfmm
 
@@ -170,15 +174,12 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
         ltree = 2*(nlevels+1)+12*nboxes
         allocate(iptr(7),itree(ltree),ntargbox(nboxesfmm))
 
+!
+!c      extract relevant bits of the tree needed from this point on
+!
 
         call extracttreesubinfo(itreefmm,ipointer,nboxes,nlevels, &
                 itree,iptr,ntargbox)
-!        call prinf('nboxes=*',nboxes,1)
-!        call prinf('nlevel=*',nlevels,1)
-!        call prinf('itree=*',itree,ltree)
-!        call prinf('ntargbox=*',ntargbox,nboxes)
-!        call prinf('iptr=*',iptr,7)
-
 
 
 !
@@ -186,9 +187,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !
         itype = 1
         call chebexps(itype,norder,xpts,utmp,vtmp,wts)
-
-!
-!c        count the number of leaf boxes
 
         nlbox = 0
         do i=1,nboxes
@@ -200,10 +198,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
         ictr = 1
         norder3 = norder*norder*norder
         
-        call prinf('norder3=*',norder3,1)
-        call prinf('nlbox=*',nlbox,1)
         nt2 = norder3*nlbox
-!        call prinf('nt2=*',nt2,1)
 
 
         allocate(targets(3,nt2),fvals(nt2),fcoeffs(nt2))
@@ -246,15 +241,9 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
               trads(i) = 12*sigma(i)
         enddo
 
-
-        call prinf('nboxes=*',nboxes,1)
-        call prinf('nlevels=*',nlevels,1)
-        call prinf('ltreefmm=*',ltreefmm,1)
-
-        call prinf('ipointer=*',ipointer,32)
-
 !
-!        recompute tree
+!        recompute tree with sources dummy targets and initial 
+!        set of targets
 !
 
       call mklraptreemem(ier,sources,ns,radsrc,dumtarg,nt,targets, &
@@ -262,31 +251,22 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             nboxesfmm,mnbors,mnlist1,mnlist2,mnlist3,mnlist4,mhung , &
             ltreefmm)
 
-      call prinf('ltreefmm=*',ltreefmm,1)
       deallocate(itreefmm)
       allocate(itreefmm(ltreefmm))
-
-
 
        call mklraptree(sources,ns,radsrc,dumtarg,nt,targets,nt2, &
              trads,idivflag,ndiv,isep,mhung,mnbors,mnlist1, &
              mnlist2,mnlist3,mnlist4,nlevelsfmm,nboxesfmm, &
              treecentersfmm,boxsizefmm,itreefmm,ltreefmm,ipointer)
 
-!        call prinf('nboxes=*',nboxes,1)
-        call prinf('nlevels=*',nlevels,1)
-        call prinf('ipointer=*',ipointer,32)
 !
-!!      call the fmm
+!!      set fmm flags
 !
         iprec = 1
         if(eps.le.0.5d-3.and.eps.gt.0.5d-6) iprec = 2
         if(eps.le.0.5d-6.and.eps.gt.0.5d-9) iprec = 3
         if(eps.le.0.5d-9) iprec = 4
         ier = 0
-
-!
-!!        set eps fmm
 
 
         allocate(iaddr(2,nboxes))
@@ -302,7 +282,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       if( iprec .eq. 5 ) epsfmm=.5d-15
       if( iprec .eq. 6 ) epsfmm=0
 
-      call prinf('nlevels=*',nlevels,1)
 
       do i=0,nlevels
          if(isep.eq.1) call l3dterms(epsfmm,nterms(i),ier)
@@ -336,17 +315,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
          charges(i) = 0 
       enddo
 
-      call prinf('ns=*',ns,1)
-      call prin2('dipole=*',dipole,2*ns)
-      call prin2('rn=*',rn,3*ns)
-      call prin2('sigma=*',sigma,12)
-      call prin2('sigma_grad=*',sigma_grad,36)
-
-      call prinf('iprec=*',iprec,1)
-      call prinf('ifpottarg=*',ifpottarg,1)
-      call prinf('iffldtarg=*',iffldtarg,1)
-
-
+!
+!!      call the fmm
 
       call tfmm3dlr(ier,iprec,ns,sources,ifcharge,charges,ifdipole, &
             dipole,rn,nt2,targets,trads,sigma,sigma_grad,itreefmm, &
@@ -366,7 +336,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !
 !!       extract the ilevel array
 !
-
       allocate(ilevel(nboxesfmm))
       do ilev=0,nlevelsfmm
           do ibox = itreefmm(2*ilev+1),itreefmm(2*ilev+2)
@@ -384,14 +353,16 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
          fvalsz(i) = real(fldtarg(3,i))
       enddo
 
-      call prin2('fvals=*',fvals,512)
-
      
 !
 !c        get the interpolation matrix
 !
       allocate(xmatc(norder3,norder3))
       call getxmatc(norder,norder3,xmatc)
+
+!
+!!      compute the chebyshev expansions of the function
+!       and the gradient values
       do i=1,nboxes
          nchild = itree(iptr(4)+i-1)
          if(nchild.eq.0.and.ntargbox(i).gt.0) then
@@ -403,22 +374,27 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
         endif
       enddo
 
-      call prin2('fcoeffs=*',fcoeffs,512)
-
       iflag = 1
 
       maxit = 100
-
+!
+!!      compute coefficients for fast pnm evaluations required
+!       for evaluating the potential at new targets
+!
       nlege = 100
       lw7 = 40000
       call ylgndrfwini(nlege,wlege,lw7,lused7)
 
       do iter = 1,maxit
-        call prinf('iter=*',iter,1)
         rmaxerr = 0
         iflag = 0 
         allocate(tails(nboxes),irefineflag(nboxes))
         allocate(tailsx(nboxes),tailsy(nboxes),tailsz(nboxes))
+
+!
+!!       compute the tail of all chebyshev expansions
+!        and decide which boxes need to be refined further
+!
         do i=1,nboxes
            nchild = itree(iptr(4)+i-1)
            tails(i) = 0
@@ -445,25 +421,11 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
               if(tailsz(i).gt.rmaxerr) rmaxerr = tailsz(i)
            endif
          enddo
-         call prin2('rmaxerr=*',rmaxerr,1)
-         call prinf('irefineflag=*',irefineflag,nboxes)
 
          if(iflag.eq.0) goto 2000
-      
-!         call prin2('tails=*',tails,nboxes)
-!         call prinf('iflag=*',iflag,1)
-
-
-!      do i=1,nboxes
-!         irefineflag(i) = 0
-!      enddo
-!  
-!      irefineflag(6) = 1
-!      call prinf('irefineflag=*',irefineflag,nboxes)
-!         read *, ii
-
-!         call prinf('nboxes=*',nboxes,1)
-!         call prinf('itree(iptr(6))=*',itree(iptr(6)),nboxes)
+!
+!!          refine the flagged boxes and output the new refined tree
+!           
          call reorganizechebtree_withgrad(itree,ltree,iptr, &
             treecenters, &
             boxsize,nboxes, &
@@ -474,7 +436,10 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             ntargboxout,nt2out,targetsout,fcoeffsout,fcoeffsxout, &
             fcoeffsyout,fcoeffszout)
 
-
+!
+!!           deallocate the old tree arrays and point them to the
+!            new ones
+!
             deallocate(itree,treecenters,boxsize,ntargbox,targets, &
                fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz)
 
@@ -483,11 +448,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             nlevels = nlevelsout
             nt2 = nt2out
 
-!            call prinf('ltree=*',ltree,1)
-!            call prinf('nboxes=*',nboxes,1)
-!            call prinf('nlevels=*',nlevels,1)
-!            call prinf('nt2=*',nt2,1)
-            
             allocate(itree(ltree),treecenters(3,nboxes), &
                boxsize(0:nlevels),targets(3,nt2),fcoeffs(nt2), &
                ntargbox(nboxes),fcoeffsx(nt2),fcoeffsy(nt2), &
@@ -503,25 +463,19 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             fcoeffsy = fcoeffsyout
             fcoeffsz = fcoeffszout
             ntargbox = ntargboxout
-!            call prinf('iptr=*',iptr,7)
-!            call prinf('itree(iptr(6))=*',itree(iptr(6)),nboxes)
 
-
-
-!            call prinf('ibcompflag=*',ibcompflag,nboxes)
-!            call prinf('ifcoeffs=*',itree(iptr(6)),nboxes)
-
+!
+!!            compute the function and the gradient at the new
+!             targets
+!
             do i=1,nboxes
                if(ibcompflag(i).eq.1) then
                   ii = itree(iptr(6)+i-1)
-                  call prinf('i=*',i,1)
-                  call prinf('ii=*',ii,1)
                   do j=1,norder3
                      iii = ii+j-1
                      call sigma_eval(targets(1,iii),sigmatmp, &
                         sigma_gradtmp)
 
-!                     call prin2('sigmatmp=*',sigmatmp,1)
                      tradtmp = 12*sigmatmp
                  
                      call findboxtarg_fulltree(targets(1,iii),tradtmp,&
@@ -541,14 +495,6 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
                       fvalsytmp(j) = gradtmp(2)
                       fvalsztmp(j) = gradtmp(3)
                   enddo
-                  if(i.eq.18) then
-!                     call prinf('ibox=*',i,1)
-!                     call prin2('fvalstmp=*',fvalstmp,norder3)
-                  endif
-!                  call prin2('fvalstmp=*',fvalstmp,norder3)
-!                  call prin2('fvalstmp=*',fvalsxtmp,norder3)
-!                  call prin2('fvalstmp=*',fvalsytmp,norder3)
-!                  call prin2('fvalstmp=*',fvalsztmp,norder3)
                   call matvec(norder3,norder3,xmatc,fvalstmp,& 
                      fcoeffs(ii))
                   call matvec(norder3,norder3,xmatc,fvalsxtmp,& 
@@ -557,11 +503,11 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
                      fcoeffsy(ii))
                   call matvec(norder3,norder3,xmatc,fvalsztmp,& 
                      fcoeffsz(ii))
-
-!                  call prin2('fcoeffs=*',fcoeffs(ii),norder3)
                endif
             enddo
-
+!
+!!            deallocate the new arrays for the next iteration
+!
 
             deallocate(tails,irefineflag,itreeout,treecentersout, &
              boxsizeout,ntargboxout,targetsout,fcoeffsout)
