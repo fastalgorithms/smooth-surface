@@ -1,5 +1,7 @@
 program main
     use prefunrouts
+    use Mod_TreeLRD
+
     implicit real *8 (a-h,o-z)
 
     real *8, allocatable :: sources(:,:),rn(:,:)
@@ -13,7 +15,10 @@ program main
     real *8 targtest(3),fexgrad(3)
     integer ltree
 
-    external sigma_eval1
+    type (TreeLRD) Tree_LRD1
+
+
+    external function_eval_sigma
 
     call prini(6,13)
     call prin2('Enter n*',n,0)
@@ -104,22 +109,17 @@ program main
       eps = 1.0d-6
       norder = 6
 
-      call precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
+      call initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
          itree,ltree, &
          nlevels,nboxes,iptr,treecenters,boxsize,nt2,fcoeffs, &
-         fcoeffsx, fcoeffsy, fcoeffsz, sigma_eval1)
-       call prinf('nboxes=*',nboxes,1)
-       call prinf('nt2=*',nt2,1)
+         fcoeffsx, fcoeffsy, fcoeffsz, Tree_LRD1,function_eval_sigma)
 
-       targtest(1) = hkrand(0)
-       targtest(2) = hkrand(0)
-       targtest(3) = hkrand(0)
-       
+
 !
 !c       generate random targets in a particular leaf ndoes
 !
 
-      call prinf('iptr(6) arr=*',itree(iptr(6)),nboxes)
+!      call prinf('iptr(6) arr=*',itree(iptr(6)),nboxes)
 !      in testing code make sure itree(iptr(6)+ibox-1) .ne. -1     
 !        i.e. make sure there is a dummy target in the box you
 !        are testing and that it is the leaf box containing the
@@ -138,21 +138,10 @@ program main
       targtest(2) = ytest
       targtest(3) = ztest
 
-      call findboxtarg(targtest,iboxtarg,ilevel,itree,iptr, &
-            treecenters,nboxes,nlevels)
-!
-!c      evaluate expansions to get
-!
+      call f_eval(targtest,norder,itree,ltree,nlevels, nboxes, &
+            iptr,treecenters,boxsize,nt2,fcoeffs,fcoeffsx,fcoeffsy, &
+            fcoeffsz,f, fx, fy, fz)
 
-      istart = itree(iptr(6)+iboxtarg-1)
-      call prinf('istart=*',istart,1)
-!      call prinf('itree(iptr(6)=*',itree(iptr(6)),nboxes)
-!      call prinf('nlevels=*',nlevels,1)
-      call cheb3deval(targtest,boxsize(ilevel),treecenters(1,iboxtarg), &
-          norder,fcoeffs(istart),f)
-!
-!!       evaluate function manually
-!
       call dirfuneval(ns,sources,rn,targtest,fex,fexgrad) 
 
       err = abs(f-fex)
@@ -160,6 +149,13 @@ program main
       call prin2('f=*',f,1)
       call prin2('fex=*',fex,1)
       call prin2('err=*',err,1)
+
+
+      errg = 0
+      errg =abs(fx-fexgrad(1))+abs(fy-fexgrad(2))+abs(fz-fexgrad(3))
+
+      call prin2('errg=*',errg,1)
+      call prin2('fexgrad=*',fexgrad,3)
 
 end program main
 

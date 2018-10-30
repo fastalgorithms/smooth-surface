@@ -4,9 +4,11 @@ module prefunrouts
 
 contains
 
-subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
+subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
        itree,ltree,nlevels,nboxes,iptr,treecenters,boxsize, &
-       nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,sigma_eval)
+       nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,Tree_LRD1,sigma_eval)
+
+
 
 !       this subroutine tree sorts a collection of sources
 !        and targets, and returns the tree  
@@ -50,7 +52,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !                                   the function to be evaluated
 !                                   for the revelant leaf boxes
 !
-      
+      use Mod_TreeLRD 
       implicit real *8 (a-h,o-z)
 
 !      calling sequence variables
@@ -121,6 +123,12 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable :: sourcesort(:,:),dipvecsort(:,:)
       complex *16, allocatable :: dipstrsort(:),chargesort(:)
       integer, allocatable :: ilevel(:)
+
+!
+!!      sigma tree variables
+!
+      type (TreeLRD) :: TreeLRD_1
+      integer adapt_flag, speed_flag
 
       external sigma_eval
 
@@ -249,8 +257,12 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !
         allocate(sigma(nt2),sigma_grad(3,nt2),trads(nt2))
 
+        npts = 1
         do i=1,nt2
-           call sigma_eval(targets(1,i),sigma(i),sigma_grad(1,i))
+           call sigma_eval(TreeLRD_1, &
+               targets(1,i),npts,sigma(i),sigma_grad(1,i), &
+               sigma_grad(2,i), sigma_grad(3,i), adapt_flag, &
+               speed_flag)
               trads(i) = 12*sigma(i)
         enddo
 
@@ -486,13 +498,16 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!            compute the function and the gradient at the new
 !             targets
 !
+            npts = 1 
             do i=1,nboxes
                if(ibcompflag(i).eq.1) then
                   ii = itree(iptr(6)+i-1)
                   do j=1,norder3
                      iii = ii+j-1
-                     call sigma_eval(targets(1,iii),sigmatmp, &
-                        sigma_gradtmp)
+                     call sigma_eval(TreeLRD_1,targets(1,iii), &
+                        npts, sigmatmp, sigma_gradtmp(1), &
+                        sigma_gradtmp(2), sigma_gradtmp(3), &
+                        adapt_flag, speed_flag)
 
                      tradtmp = 12*sigmatmp
                  
@@ -538,8 +553,40 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
  2000 continue      
 
 
-end subroutine precompphi 
+end subroutine initialize_feval 
 !-------------------------------------------     
+
+subroutine f_eval(targets,norder,itree,ltree,nlevels,nboxes,iptr, &
+             treecenters,boxsize,nt2,fcoeffs,fcoeffsx,fcoeffsy, &
+             fcoeffsz, f, fx, fy, fz)
+
+      implicit real *8 (a-h,o-z)
+      real *8 targets(3)
+      integer norder,ltree,nlevels,nboxes,iptr(7),nt2
+      integer itree(ltree)
+      real *8 treecenters(3,nboxes),boxsize(0:nlevels)
+      real *8 fcoeffs(nt2),fcoeffsx(nt2),fcoeffsy(nt2),fcoeffsz(nt2)
+
+      real *8 f,fx,fy,fz
+
+!
+!!       find which box the target lives in
+!
+      call findboxtarg(targets,iboxtarg,ilevel,itree,iptr,treecenters,&
+             nboxes,nlevels)
+
+      istart = itree(iptr(6)+iboxtarg-1)
+
+!
+!!      now evaluate the chebyshev expansion and the gradient
+!       at the new target
+      call cheb3deval_withgrad(targets,boxsize(ilevel), &
+            treecenters(1,iboxtarg),norder,fcoeffs(istart),&
+            fcoeffsx(istart),fcoeffsy(istart),fcoeffsz(istart),&
+            f,fx,fy,fz)
+
+end subroutine f_eval           
+
 
        subroutine getxmatc(k,k3,xmatc)
        implicit real *8 (a-h,o-z)
@@ -684,6 +731,43 @@ end subroutine findboxtarg_fulltree
 
       return
 end subroutine cheb3deval      
+!--------------------------------------------      
+
+      subroutine cheb3deval_withgrad(targtest,rscale,center,k, &
+         fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,f,fx,fy,fz)
+      implicit real *8 (a-h,o-z)
+      real *8 xpols(k+10),ypols(k+10),zpols(k+10)
+      real *8 fcoeffs(*),fcoeffsx(*),fcoeffsy(*),fcoeffsz(*)
+      real *8 targtest(3),center(3)
+      real *8 f,fx,fy,fz
+
+      x = (targtest(1) - center(1))/rscale*2
+      y = (targtest(2) - center(2))/rscale*2
+      z = (targtest(3) - center(3))/rscale*2
+
+      f = 0
+      fx = 0
+      fy = 0
+      fz = 0
+      call chebpols(x,k-1,xpols)
+      call chebpols(y,k-1,ypols)
+      call chebpols(z,k-1,zpols)
+
+      do iz = 1,k
+         do iy = 1,k
+            do ix = 1,k
+               i = (iz-1)*k*k  + (iy-1)*k + ix
+               f = f + fcoeffs(i)*xpols(ix)*ypols(iy)*zpols(iz)
+               fx = fx + fcoeffsx(i)*xpols(ix)*ypols(iy)*zpols(iz)
+               fy = fy + fcoeffsy(i)*xpols(ix)*ypols(iy)*zpols(iz)
+               fz = fz + fcoeffsz(i)*xpols(ix)*ypols(iy)*zpols(iz)
+            enddo
+         enddo
+      enddo
+
+
+      return
+end subroutine cheb3deval_withgrad      
 !--------------------------------------------      
 subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
      itree,iptr,itstartbox,ntargbox)
