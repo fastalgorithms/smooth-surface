@@ -56,7 +56,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !      calling sequence variables
       real *8, intent(in) :: sources(3,ns)
       real *8, intent(in) :: rn(3,ns)
-      real *8, intent(in) :: dumtarg(3,nt)
+      real *8, intent(inout) :: dumtarg(3,nt)
 
       integer, allocatable, intent(inout) :: itree(:)
       integer, allocatable, intent(inout) :: iptr(:)
@@ -73,6 +73,8 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       real *8, allocatable :: radsrc(:)
       integer, allocatable :: ntargbox(:)
+      integer, allocatable :: itstartbox(:)
+      real *8, allocatable :: dumtargsort(:,:)
 
       real *8, allocatable :: targets(:,:)
       real *8, allocatable :: fvals(:),fvalsx(:),fvalsy(:),fvalsz(:)
@@ -106,6 +108,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       integer, allocatable :: itreeout(:)
       integer, allocatable :: ntargboxout(:)
+      integer, allocatable :: itstartboxout(:)
       integer iptrout(7)
       real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
             boxsizeout(:),treecentersout(:,:),fcoeffsxout(:), &
@@ -173,14 +176,24 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
         ltree = 2*(nlevels+1)+12*nboxes
         allocate(iptr(7),itree(ltree),ntargbox(nboxesfmm))
+        allocate(itstartbox(nboxesfmm),dumtargsort(3,nt))
 
 !
 !c      extract relevant bits of the tree needed from this point on
 !
 
         call extracttreesubinfo(itreefmm,ipointer,nboxes,nlevels, &
-                itree,iptr,ntargbox)
+                itree,iptr,itstartbox,ntargbox)
+!
+!!        treesort dumtarg
+!
 
+        do i=1,nt
+           ii = itreefmm(ipointer(6)+i-1)
+           dumtargsort(1,i) = dumtarg(1,ii)
+           dumtargsort(2,i) = dumtarg(2,ii)
+           dumtargsort(3,i) = dumtarg(3,ii)
+        enddo
 
 !
 !c        generate initial set of targets
@@ -427,21 +440,21 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!          refine the flagged boxes and output the new refined tree
 !           
          call reorganizechebtree_withgrad(itree,ltree,iptr, &
-            treecenters, &
-            boxsize,nboxes, &
-            nlevels,ntargbox,norder,nt2, targets, fcoeffs, fcoeffsx, &
+            treecenters,boxsize,nboxes,&
+            nlevels,nt,dumtargsort,itstartbox,ntargbox,norder,nt2,&
+            targets, fcoeffs,fcoeffsx, &
             fcoeffsy,fcoeffsz, &
             irefineflag,ibcompflag,itcompflag,itreeout,ltreeout, &
             iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
-            ntargboxout,nt2out,targetsout,fcoeffsout,fcoeffsxout, &
-            fcoeffsyout,fcoeffszout)
+            itstartboxout,ntargboxout,nt2out,targetsout, &
+            fcoeffsout,fcoeffsxout,fcoeffsyout,fcoeffszout)
 
 !
 !!           deallocate the old tree arrays and point them to the
 !            new ones
 !
             deallocate(itree,treecenters,boxsize,ntargbox,targets, &
-               fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz)
+               fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,itstartbox)
 
             ltree = ltreeout
             nboxes = nboxesout
@@ -451,7 +464,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             allocate(itree(ltree),treecenters(3,nboxes), &
                boxsize(0:nlevels),targets(3,nt2),fcoeffs(nt2), &
                ntargbox(nboxes),fcoeffsx(nt2),fcoeffsy(nt2), &
-               fcoeffsz(nt2))
+               fcoeffsz(nt2),itstartbox(nboxes))
 
             iptr = iptrout
             itree = itreeout
@@ -463,6 +476,11 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
             fcoeffsy = fcoeffsyout
             fcoeffsz = fcoeffszout
             ntargbox = ntargboxout
+            itstartbox = itstartboxout
+
+!            call prinf('after reorg ntargbox=*',ntargbox,nboxes)
+!            call prinf('after reorg itstartbox=*',itstartbox,nboxes)
+!            call prinf('after reorg ilev=*',itree(iptr(2)),nboxes)
 
 !
 !!            compute the function and the gradient at the new
@@ -511,6 +529,7 @@ subroutine precompphi(eps,ns,sources,rn,nt,dumtarg,norder, &
 
             deallocate(tails,irefineflag,itreeout,treecentersout, &
              boxsizeout,ntargboxout,targetsout,fcoeffsout)
+            deallocate(itstartboxout)
             deallocate(fcoeffsxout,fcoeffsyout,fcoeffszout)
             deallocate(tailsx,tailsy,tailsz)
             deallocate(itcompflag,ibcompflag)
@@ -667,7 +686,7 @@ end subroutine findboxtarg_fulltree
 end subroutine cheb3deval      
 !--------------------------------------------      
 subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
-     itree,iptr,ntargbox)
+     itree,iptr,itstartbox,ntargbox)
 
 !
 !c      itree(iptr(1)) - laddr
@@ -679,6 +698,7 @@ subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
 
      implicit real *8 (a-h,o-z)
      integer itree(*),itreetmp(*),iptr(*),ipointer(*),ntargbox(*)
+     integer itstartbox(*)
 
      
         iptr(1) = 1
@@ -712,6 +732,7 @@ subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
            istart = itreetmp(ipointer(12)+ibox-1)
            iend = itreetmp(ipointer(13)+ibox-1)
 
+           itstartbox(ibox) = istart
            ntargbox(ibox) = iend-istart+1
         enddo
 end subroutine extracttreesubinfo
@@ -757,23 +778,25 @@ implicit real *8 (a-h,o-z)
 end subroutine
 !-----------------------------------
       subroutine reorganizechebtree_withgrad(itree,ltree,iptr, &
-         treecenters, &
-         boxsize,nboxes, &
-         nlevels,ntargbox,norder,nt2, targets,fcoeffs, fcoeffsx, &
+         treecenters,boxsize,nboxes, &
+         nlevels,nt,dumtarg,itstartbox,ntargbox,norder,nt2,&
+         targets,fcoeffs, fcoeffsx, &
          fcoeffsy,fcoeffsz, &
          irefineflag,ibcompflag,itcompflag,itreeout,ltreeout, &
          iptrout,treecentersout,boxsizeout,nboxesout,nlevelsout, &
-         ntargboxout,nt2out,targetsout,fcoeffsout,fcoeffsxout, &
-         fcoeffsyout,fcoeffszout)
+         itstartboxout,ntargboxout,nt2out,targetsout,fcoeffsout, &
+         fcoeffsxout,fcoeffsyout,fcoeffszout)
 
        implicit real *8 (a-h,o-z)
        integer, intent(inout) :: nboxes,nlevels,nt2
        integer, dimension(:), intent(in) ::  itree
        integer iptr(7)
+       integer, dimension(:), intent(in) :: itstartbox
        integer, dimension(:), intent(in) :: ntargbox
        real *8, dimension(:,:), intent(in) :: treecenters
        real *8, intent(in) :: boxsize(0:nlevels)
        real *8, dimension(:,:), intent(in) :: targets
+       real *8, dimension(:,:), intent(inout) :: dumtarg
        real *8, dimension(:), intent(in) :: fcoeffs
        real *8, dimension(:), intent(in) :: fcoeffsx
        real *8, dimension(:), intent(in) :: fcoeffsy
@@ -787,6 +810,7 @@ end subroutine
        integer, intent(out), allocatable :: itreeout(:)
        integer, intent(out) :: ltreeout,iptrout(7),nboxesout, &
               nlevelsout,nt2out
+       integer, intent(out), allocatable :: itstartboxout(:)       
        integer, intent(out), allocatable :: ntargboxout(:)
        real *8, intent(out), allocatable :: targetsout(:,:), &
               fcoeffsout(:), boxsizeout(:),treecentersout(:,:)
@@ -794,15 +818,19 @@ end subroutine
                   fcoeffsyout(:),fcoeffszout(:)
 
 
+       integer, allocatable :: titstartbox(:)
        integer, allocatable :: tntargbox(:),tibcompflag(:)
        integer, allocatable :: laddrtail(:,:),tilev(:),tladdr(:,:)
        integer, allocatable :: tiparent(:),tnchild(:),tichild(:,:)
        integer tiptr(7)
        real *8, allocatable :: ttargets(:,:),tboxsize(:)
        real *8, allocatable :: tcenters(:,:)
+       real *8, allocatable :: dumtargsort(:,:)
        integer curbox
        integer, allocatable :: iboxtocurbox(:)
        real *8 xpts(norder),wts(norder),utmp,vtmp
+       integer ntc(8)
+
 
 !
 !!       count number of additional boxes to be formed
@@ -810,6 +838,8 @@ end subroutine
       
       nextra = 0
       nlevelsout = nlevels
+
+!      call prinf('irefineflag=*',irefineflag,nboxes)
       do i=1,nboxes
          if(irefineflag(i).eq.1) nextra = nextra + 8
          nchild = itree(iptr(4)+i-1)
@@ -820,23 +850,25 @@ end subroutine
 
 
       nboxesout = nboxes + nextra
-
-      ltreeout = 2*(nlevelsout+1)+12*(nboxesout)
+!      call prinf('nboxesout max=*',nboxesout,1)
 
 
 
       norder3 = norder*norder*norder
 
+      allocate(dumtargsort(3,nt))
+      allocate(titstartbox(nboxesout))
       allocate(tntargbox(nboxesout),tibcompflag(nboxesout))
       allocate(laddrtail(2,0:nlevels+1),tladdr(2,0:nlevels+1))
       allocate(tilev(nboxesout),tnchild(nboxesout),tichild(8,nboxesout))
       allocate(tiparent(nboxesout))
       allocate(tcenters(3,nboxesout))
 
+      dumtargsort = dumtarg
+
 !
 !!      copy everything into temporary arrays
 !
-
       do i=0,nlevels+1
          laddrtail(1,i) = 0
          laddrtail(2,i) = -1
@@ -857,6 +889,7 @@ end subroutine
          tilev(i) = itree(iptr(2)+i-1)
          tiparent(i) = itree(iptr(3)+i-1)
          tnchild(i) = itree(iptr(4)+i-1)
+         titstartbox(i) = itstartbox(i)
          do j=1,8
             tichild(j,i) = itree(iptr(5)+8*(i-1)+j-1)
          enddo
@@ -868,48 +901,72 @@ end subroutine
          enddo
       enddo
 
+
       nboxesout = nboxes
+
+!      call prinf('tntargbox=*',tntargbox,nboxesout)
+!      call prinf('titstartbox=*',titstartbox,nboxesout)
+!      call prin2('dumtarg=*',dumtarg,3*nt)
+
+
       do ilev = 0,nlevels
          laddrtail(1,ilev+1) = nboxesout+1
          do ibox = itree(2*ilev+1),itree(2*ilev+2)
             if(irefineflag(ibox).eq.1) then
-               tnchild(ibox) = 8
+
+               call targsorttochildren(ibox,nt,dumtargsort, &
+                 tcenters(1,ibox),titstartbox,tntargbox,ntc)
+               tnchild(ibox) = 0
                tibcompflag(ibox) = -1
-               do i=1,8
+               kstart = titstartbox(ibox)
+!               call prinf('ibox=*',ibox,1)
+!               call prin2('tcenters=*',tcenters(1,ibox),3)
+!               call prinf('ntc=*',ntc,8)
+               do i=1,8 
                   ii = 2
                   jj = 2
                   if(i.eq.1.or.i.eq.2.or.i.eq.5.or.i.eq.6) ii = 1
                   if(i.lt.5) jj = 1
-                  nboxesout = nboxesout + 1
-                  tichild(i,ibox) = nboxesout
-                  tibcompflag(nboxesout) = 1
-                  tcenters(1,nboxesout)=treecenters(1,ibox)+(-1)**i*&
-                                        boxsize(ilev)/8.0d0
-                  tcenters(2,nboxesout)=treecenters(2,ibox)+(-1)**ii*&
-                                        boxsize(ilev)/8.0d0
-                  tcenters(3,nboxesout)=treecenters(3,ibox)+(-1)**jj*&
-                                        boxsize(ilev)/8.0d0
-                  tnchild(nboxesout) = 0
-                  do j=1,8
+                  if(ntc(i).gt.0) then
+                    nboxesout = nboxesout + 1
+                    tnchild(ibox) = tnchild(ibox)+1
+                    tichild(i,ibox) = nboxesout
+                    tibcompflag(nboxesout) = 1
+                    tcenters(1,nboxesout)=treecenters(1,ibox)+(-1)**i*&
+                                        boxsize(ilev)/4.0d0
+                    tcenters(2,nboxesout)=treecenters(2,ibox)+(-1)**ii*&
+                                        boxsize(ilev)/4.0d0
+                    tcenters(3,nboxesout)=treecenters(3,ibox)+(-1)**jj*&
+                                        boxsize(ilev)/4.0d0
+                    tnchild(nboxesout) = 0
+                    do j=1,8
                      tichild(j,nboxesout) = -1
-                  enddo
-                  tiparent(nboxesout) = ibox
-                  tntargbox(nboxesout) = 1
-                  tilev(nboxesout) = ilev+1
-                  tibcompflag(nboxesout) = 1
+                    enddo
+                    tiparent(nboxesout) = ibox
+                    titstartbox(nboxesout) = kstart 
+                    tntargbox(nboxesout) = ntc(i)
+                    tilev(nboxesout) = ilev+1
+                    tibcompflag(nboxesout) = 1
+                    kstart = kstart + ntc(i)
+                 endif
                enddo
             endif
          enddo
          laddrtail(2,ilev+1) = nboxesout
       enddo
+      ltreeout = 2*(nlevelsout+1)+12*(nboxesout)
 
 !      call prinf('nboxesout=*',nboxesout,1)
+!      call prinf('tntargbox=*',tntargbox,nboxesout)
+!      call prinf('titstartbox=*',titstartbox,nboxesout)
+
 !      call prinf('ltreeout=*',ltreeout,1)
 
 
       allocate(itreeout(ltreeout),treecentersout(3,nboxesout))
       allocate(ntargboxout(nboxesout),iboxtocurbox(nboxesout))
       allocate(boxsizeout(0:nlevelsout),ibcompflag(nboxesout))
+      allocate(itstartboxout(nboxesout))
 
 !
 !!      reset the iptr array
@@ -947,6 +1004,7 @@ end subroutine
             treecentersout(2,curbox) = tcenters(2,ibox)
             treecentersout(3,curbox) = tcenters(3,ibox)
             ntargboxout(curbox) = tntargbox(ibox)
+            itstartboxout(curbox) = titstartbox(ibox)
             iboxtocurbox(ibox) = curbox
             curbox = curbox + 1
          enddo
@@ -962,6 +1020,7 @@ end subroutine
             treecentersout(2,curbox) = tcenters(2,ibox)
             treecentersout(3,curbox) = tcenters(3,ibox)
             ntargboxout(curbox) = tntargbox(ibox)
+            itstartboxout(curbox) = titstartbox(ibox)
             iboxtocurbox(ibox) = curbox
             curbox = curbox + 1
          enddo
@@ -1153,5 +1212,191 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev, &
 
    
 end subroutine newtargeval
+
+subroutine targsorttochildren(ibox,nt,trg,centers, &
+    itstart,ntarg,ntc)
+   implicit real *8 (a-h,o-z)
+   real *8 trg(3,*), centers(3)
+   integer itstart(*),ntarg(*),ntc(8)
+   integer, allocatable :: itarget(:),itargtmp(:)
+   real *8, allocatable :: trgtmp(:,:)
+
+
+   allocate(itarget(nt),itargtmp(nt))
+   allocate(trgtmp(3,nt))
+
+   do i=1,nt
+      itarget(i) = i
+   enddo
+
+   itlast = itstart(ibox) + ntarg(ibox)-1
+!
+!           which child?  1,2,3,4,5,6,7,8? counter nt1,nt2,nt3,nt4,
+!           nt5,nt6,nt7,nt8
+!           The box nomenclature is as follows
+!           3   4       7  8       <--- Looking down in z direction
+!           1   2       5  6
+!
+!           If the parent box center is at the origin then the centers
+!           of box i have co-ordinates
+!           1     x<0,y<0,z<0
+!           2     x>0,y<0,z<0
+!           3     x<0,y>0,z<0
+!           4     x>0,y>0,z<0
+!           5     x<0,y<0,z>0
+!           6     x>0,y<0,z>0
+!           7     x<0,y>0,z>0
+!           8     x>0,y>0,z>0
+!
+            i1234 = itstart(ibox)-1
+            i5678 = 0
+            do ii = 1,ntarg(ibox)
+               it = ii+itstart(ibox)-1
+               if(trg(3,itarget(it)) - centers(3).lt.0) then
+                 i1234 = i1234+1
+                 itarget(i1234) = itarget(it)
+               else
+                  i5678 = i5678 + 1
+                  itargtmp(i5678) = itarget(it)
+               endif
+            enddo
+!           Reorder targets to include targets in 5678 in the array
+            do i=1,i5678
+               itarget(i1234+i) = itargtmp(i)
+            enddo
+
+!           Sort i1234 into i12 and i34         
+            i12 = itstart(ibox)-1
+            i34 = 0
+            do it = itstart(ibox),i1234
+               if(trg(2,itarget(it))-centers(2).lt.0) then
+                  i12 = i12 + 1
+                  itarget(i12) = itarget(it)
+               else
+                  i34 = i34 + 1
+                  itargtmp(i34) = itarget(it)
+               endif
+            enddo
+!           Note at the end of the loop, i12 is where the particles
+!           in part 12 of the box end
+!
+!           Reorder targets to include 34 in the array
+            do i=1,i34
+               itarget(i12+i) = itargtmp(i)
+            enddo
+
+!           sort i5678 into i56 and i78
+            i56 = i1234
+            i78 = 0
+            do it=i1234+1,itlast
+               if(trg(2,itarget(it))-centers(2).lt.0) then
+                  i56 = i56 + 1
+                  itarget(i56) = itarget(it)
+               else
+                  i78 = i78 + 1
+                  itargtmp(i78) = itarget(it)
+               endif
+            enddo
+
+!           Reorder sources to include 78 in the array
+            do i=1,i78
+               itarget(i56+i) = itargtmp(i)
+            enddo
+!           End of reordering i5678         
+
+            ntc(1) = 0
+            ntc(2) = 0
+            ntc(3) = 0
+            ntc(4) = 0
+            ntc(5) = 0
+            ntc(6) = 0
+            ntc(7) = 0
+            ntc(8) = 0
+
+!           Sort into boxes 1 and 2
+            do it = itstart(ibox),i12
+               if(trg(1,itarget(it))-centers(1).lt.0) then
+                  itarget(itstart(ibox)+ntc(1)) = itarget(it)
+                  ntc(1) = ntc(1) + 1
+               else
+                  ntc(2) = ntc(2) + 1
+                  itargtmp(ntc(2)) = itarget(it)
+               endif
+            enddo
+!           Reorder targets so that sources in 2 are at the
+!           end of this part of the array
+            do i=1,ntc(2)
+               itarget(itstart(ibox)+ntc(1)+i-1) = itargtmp(i)
+            enddo
+!           Sort into boxes 3 and 4
+            do it = i12+1, i1234
+               if(trg(1,itarget(it))-centers(1).lt.0) then
+                  itarget(i12+1+ntc(3)) = itarget(it)
+                  ntc(3) = ntc(3) + 1
+                else
+                   ntc(4) = ntc(4)+1
+                   itargtmp(ntc(4)) = itarget(it)
+                endif
+            enddo
+!           Reorder targets so that sources in 4 are at the
+!           end of this part of the array
+            do i=1,ntc(4)
+               itarget(i12+ntc(3)+i) = itargtmp(i)
+            enddo
+
+!           Sort into boxes 5 and 6
+            do it = i1234+1,i56
+               if(trg(1,itarget(it))-centers(1).lt.0) then
+                  itarget(i1234+1+ntc(5)) = itarget(it)
+                  ntc(5) = ntc(5) + 1
+               else
+                  ntc(6) = ntc(6) + 1
+                  itargtmp(ntc(6)) = itarget(it)
+               endif
+            enddo
+!           Reorder targets so that sources in 6 are at the
+!           end of this part of the array
+            do i=1,ntc(6)
+               itarget(i1234+ntc(5)+i) = itargtmp(i)
+            enddo
+!           End of sorting sources into boxes 5 and 6
+
+!           Sort into boxes 7 and 8
+            do it=i56+1,itlast
+               if(trg(1,itarget(it))-centers(1).lt.0) then
+                  itarget(i56+1+ntc(7)) = itarget(it)
+                  ntc(7) = ntc(7) + 1
+               else
+                  ntc(8) = ntc(8) + 1
+                  itargtmp(ntc(8)) = itarget(it)
+               endif
+            enddo
+!           Reorder targets so that sources in 8 are at the
+!           end of the array
+            do i=1,ntc(8)
+               itarget(i56+ntc(7)+i) = itargtmp(i)
+            enddo
+!           End of sorting targets
+
+!
+!!       reorder the relevant set of targets
+
+     do it=itstart(ibox),itlast
+        trgtmp(1,it) = trg(1,itarget(it))
+        trgtmp(2,it) = trg(2,itarget(it))
+        trgtmp(3,it) = trg(3,itarget(it))
+     enddo
+
+     do it=itstart(ibox),itlast
+         trg(1,it) = trgtmp(1,it)
+         trg(2,it) = trgtmp(2,it)
+         trg(3,it) = trgtmp(3,it)
+     enddo
+
+     deallocate(itarget,itargtmp,trgtmp)
+
+end subroutine      
+
+
 
 end module

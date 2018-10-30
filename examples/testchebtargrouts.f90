@@ -118,11 +118,21 @@ program main
 !
 !c       generate random targets in a particular leaf ndoes
 !
-      ibox = 2
 
-      xtest =treecenters(1,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
-      ytest =treecenters(2,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
-      ztest =treecenters(3,ibox) + (hkrand(0)-0.5d0)*boxsize(1)
+      call prinf('iptr(6) arr=*',itree(iptr(6)),nboxes)
+!      in testing code make sure itree(iptr(6)+ibox-1) .ne. -1     
+!        i.e. make sure there is a dummy target in the box you
+!        are testing and that it is the leaf box containing the
+!        dummy target
+!
+      ibox = 56
+      ilev = itree(iptr(2) + ibox-1)
+      call prin2('treecenters=*',treecenters(1,ibox),3)
+      call prinf('ilev=*',ilev,1)
+
+      xtest =treecenters(1,ibox) + (hkrand(0)-0.5d0)*boxsize(ilev)
+      ytest =treecenters(2,ibox) + (hkrand(0)-0.5d0)*boxsize(ilev)
+      ztest =treecenters(3,ibox) + (hkrand(0)-0.5d0)*boxsize(ilev)
 
       targtest(1) = xtest
       targtest(2) = ytest
@@ -135,6 +145,9 @@ program main
 !
 
       istart = itree(iptr(6)+iboxtarg-1)
+      call prinf('istart=*',istart,1)
+!      call prinf('itree(iptr(6)=*',itree(iptr(6)),nboxes)
+!      call prinf('nlevels=*',nlevels,1)
       call cheb3deval(targtest,boxsize(ilevel),treecenters(1,iboxtarg), &
           norder,fcoeffs(istart),f)
 !
