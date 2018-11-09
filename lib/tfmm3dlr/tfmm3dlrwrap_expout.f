@@ -42,6 +42,7 @@ c
       real *8 targets(3,nt)
       real *8 trads(nt)
       complex *16 sigma(ns),mu(ns)
+      complex *16, allocatable :: sigw(:),muw(:)
       complex *16 pottarg(nt),fldtarg(3,nt)
 
 c     Tree variables
@@ -147,14 +148,15 @@ c       Find nudnsew
       endif
      
 c
+      allocate(sigw(ns),muw(ns))
       if (ifdipole.eq.1) then
          do i = 1,ns
-            mu(i) = mu(i)*wts(i)
+            muw(i) = mu(i)*wts(i)
          enddo
       endif
       if (ifcharge.eq.1) then
          do i = 1,ns
-            sigma(i) = sigma(i)*wts(i)
+            sigw(i) = sigma(i)*wts(i)
          enddo
       endif
 c
@@ -163,7 +165,7 @@ C$        t1=omp_get_wtime()
 c
         call tfmm3dlr(ier,iprec,
      $     ns,source,
-     $     ifcharge,sigma,ifdipole,mu,dipvec,
+     $     ifcharge,sigw,ifdipole,muw,dipvec,
      $     nt,targets,trads,stdev,stdev_grad,
      $     itree,ltree,ipointer,isep,ndiv,nlevels,nboxes,boxsize,
      $     mnbors,mnlist1,mnlist2,mnlist3,mnlist4,
