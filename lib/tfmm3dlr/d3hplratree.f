@@ -554,7 +554,8 @@ c     Set up computation of list1 and list2
       call computecoll(nlevels,nboxes,laddr,boxsize,centers,
      1     iparenttemp,nchild,ichildtemp,mnbors,nnbors,nbors)
 
-      call d3hpfixtree(src,ns,radsrc,trg,nt,expc,nexpc,radexp,
+      if(nlevels.ge.2) 
+     $  call d3hpfixtree(src,ns,radsrc,trg,nt,expc,nexpc,radexp,
      1     nlevels,nboxes,centers,boxsize,nbmax,laddr,ilevel,
      2     iparenttemp,nchild,ichildtemp,mnbors,nnbors,nbors,
      3     isourcetemp,itargettemp,iexpctemp,ihsfirsttemp,ihslasttemp,
@@ -1998,6 +1999,16 @@ c     initialize itargettemp
       itfirsttemp(1) = 1
       itlasttemp(1) = nt
 
+      nchild(1) = 0
+      ichildtemp(1,1) = -1
+      ichildtemp(2,1) = -1
+      ichildtemp(3,1) = -1
+      ichildtemp(4,1) = -1
+      ichildtemp(5,1) = -1
+      ichildtemp(6,1) = -1
+      ichildtemp(7,1) = -1
+      ichildtemp(8,1) = -1
+
       nlevels = 0
       nboxes = 1
 c
@@ -2043,7 +2054,8 @@ c     Set up computation of list1 and list2
       call computecoll(nlevels,nboxes,laddr,boxsize,centers,
      1     iparenttemp,nchild,ichildtemp,mnbors,nnbors,nbors)
 
-      call d3hpfixtree(src,ns,radsrc,trg,nt,expc,nexpc,radexp,
+       if(nlevels.ge.2) 
+     $ call d3hpfixtree(src,ns,radsrc,trg,nt,expc,nexpc,radexp,
      1     nlevels,nboxes,centers,boxsize,nbmax,laddr,ilevel,
      2     iparenttemp,nchild,ichildtemp,mnbors,nnbors,nbors,
      3     isourcetemp,itargettemp,iexpctemp,ihsfirsttemp,ihslasttemp,

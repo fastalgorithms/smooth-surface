@@ -1,12 +1,12 @@
 !-----------------------------------
 
 module prefunrouts
-
+use Mod_Fast_Sigma
 contains
 
-subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
+subroutine initialize_feval(eps,ns,sources,skeleton_w,rn,nt,dumtarg,norder, &
        itree,ltree,nlevels,nboxes,iptr,treecenters,boxsize, &
-       nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,Tree_LRD1,sigma_eval)
+       nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,FSS_1,adapt_flag)
 
 
 
@@ -52,17 +52,21 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 !                                   the function to be evaluated
 !                                   for the revelant leaf boxes
 !
-      use Mod_TreeLRD 
+!      use Mod_TreeLRD
       implicit real *8 (a-h,o-z)
 
 !      calling sequence variables
+      integer, intent(in) :: ns,nt
+      real *8, intent(in) :: eps
       real *8, intent(in) :: sources(3,ns)
       real *8, intent(in) :: rn(3,ns)
+      real *8, intent(in) :: skeleton_w(ns)
       real *8, intent(inout) :: dumtarg(3,nt)
 
       integer, allocatable, intent(inout) :: itree(:)
       integer, allocatable, intent(inout) :: iptr(:)
       integer, intent(inout) :: nboxes,nlevels,ltree,nt2
+      integer, intent(in) :: norder
 
       real *8, allocatable, intent(inout) :: treecenters(:,:)
       real *8, allocatable, intent(inout) :: boxsize(:)
@@ -70,7 +74,8 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable, intent(inout) :: fcoeffsx(:)
       real *8, allocatable, intent(inout) :: fcoeffsy(:)
       real *8, allocatable, intent(inout) :: fcoeffsz(:)
-
+      type ( Fast_Sigma_stuff ), pointer :: FSS_1
+      integer, intent(in) :: adapt_flag
 !        temporary variables      
 
       real *8, allocatable :: radsrc(:)
@@ -80,11 +85,14 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       real *8, allocatable :: targets(:,:)
       real *8, allocatable :: fvals(:),fvalsx(:),fvalsy(:),fvalsz(:)
-      real *8, allocatable :: fvalstmp(:)
-      real *8, allocatable :: fvalsxtmp(:),fvalsytmp(:),fvalsztmp(:)
+      real *8 fvalstmp(norder*norder*norder)
+      real *8 fvalsxtmp(norder*norder*norder)
+      real *8 fvalsytmp(norder*norder*norder)
+      real *8 fvalsztmp(norder*norder*norder)
+!      real *8, allocatable :: fvalstmp(:)
+!      real *8, allocatable :: fvalsxtmp(:),fvalsytmp(:),fvalsztmp(:)
 
-      integer nlbox
-      
+      integer nlbox      
 
       real *8, allocatable :: sigma(:),sigma_grad(:,:),trads(:)
       real *8 sigmatmp,sigma_gradtmp(3)
@@ -115,7 +123,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
             boxsizeout(:),treecentersout(:,:),fcoeffsxout(:), &
             fcoeffsyout(:), fcoeffszout(:)
-
+      integer *8 nnnn, nadapt_flag
 !
 !c      more temporary variables
 !
@@ -123,14 +131,17 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       real *8, allocatable :: sourcesort(:,:),dipvecsort(:,:)
       complex *16, allocatable :: dipstrsort(:),chargesort(:)
       integer, allocatable :: ilevel(:)
+      real ( kind = 8 ) sigmatmp_v(1), sigma_gradtmp_v_x(1)
+      real ( kind = 8 ) sigma_gradtmp_v_y(1),sigma_gradtmp_v_z(1)
+      real *8 tradtmp
+
 
 !
 !!      sigma tree variables
 !
-      type (TreeLRD) :: TreeLRD_1
-      integer adapt_flag, speed_flag
+!      type (TreeLRD) :: TreeLRD_1
 
-      external sigma_eval
+!      external sigma_eval
 
       nbmax = 0
       nlmax = 200
@@ -142,7 +153,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       ltree = 0
 
       idivflag = 0
-      ndiv = 1
+      ndiv = 45
 
       isep = 1
 
@@ -159,11 +170,14 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!         allocate initial tree with sources and dummy targets
 !
 
+
+    write (*,*) 'Im inside'
+
       call mklraptreemem(ier,sources,ns,radsrc,dumtarg,nt,expc, &
             nexpc,radexp,idivflag,ndiv,isep,nlmax,nbmax,nlevelsfmm, &
             nboxesfmm,mnbors,mnlist1,mnlist2,mnlist3,mnlist4,mhung , &
             ltreefmm)
-
+    write (*,*) 'Im inside 2',ltreefmm,nlevelsfmm,nboxesfmm
 
        allocate(itreefmm(ltreefmm))
        allocate(boxsizefmm(0:nlevelsfmm))
@@ -173,8 +187,12 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
              radexp,idivflag,ndiv,isep,mhung,mnbors,mnlist1, &
              mnlist2,mnlist3,mnlist4,nlevelsfmm,nboxesfmm, &
              treecentersfmm,boxsizefmm,itreefmm,ltreefmm,ipointer)
+
+
         nboxes = nboxesfmm
         nlevels = nlevelsfmm
+
+    write (*,*) 'Im inside 3',nboxes,nlevels
 
         allocate(boxsize(0:levels),treecenters(3,nboxes))
 
@@ -183,6 +201,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
         boxsize = boxsizefmm
 
         ltree = 2*(nlevels+1)+12*nboxes
+
         allocate(iptr(7),itree(ltree),ntargbox(nboxesfmm))
         allocate(itstartbox(nboxesfmm),dumtargsort(3,nt))
 
@@ -213,6 +232,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
         do i=1,nboxes
            nchild = itree(iptr(4)+i-1)
            if(nchild.eq.0.and.ntargbox(i).gt.0) nlbox = nlbox+1
+  !          write (*,*) nchild,nlbox,iptr(4)+i-1
         enddo
         
         itarg = 0
@@ -225,8 +245,8 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
         allocate(targets(3,nt2),fvals(nt2),fcoeffs(nt2))
         allocate(fvalsx(nt2),fvalsy(nt2),fvalsz(nt2))
         allocate(fcoeffsx(nt2),fcoeffsy(nt2),fcoeffsz(nt2))
-        allocate(fvalstmp(norder3),fvalsxtmp(norder3))
-        allocate(fvalsytmp(norder3),fvalsztmp(norder3))
+!        allocate(fvalstmp(norder3),fvalsxtmp(norder3))
+!        allocate(fvalsytmp(norder3),fvalsztmp(norder3))
 
         do ibox = 1,nboxes 
            nchild = itree(iptr(4)+ibox-1)
@@ -257,19 +277,27 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 !
         allocate(sigma(nt2),sigma_grad(3,nt2),trads(nt2))
 
-        npts = 1
-        do i=1,nt2
-           call sigma_eval(TreeLRD_1, &
-               targets(1,i),npts,sigma(i),sigma_grad(1,i), &
-               sigma_grad(2,i), sigma_grad(3,i), adapt_flag, &
-               speed_flag)
-              trads(i) = 12*sigma(i)
-        enddo
+!!! ESTO LO HE CAMBIADO YO...
+!        npts = 1
+!        do i=1,nt2
+!            call sigma_eval1(targets(1,i),sigma(i),sigma_grad(:,i))
+!
+!              trads(i) = 12*sigma(i)
+!        enddo
+
+!write (*,*) 'nt2', nt2
+
+call function_eval_sigma(FSS_1,targets,int(nt2,8),sigma,sigma_grad(1,:),&
+    &sigma_grad(2,:),sigma_grad(3,:),int(adapt_flag,8))
+trads(1:nt2) = 12*sigma(1:nt2)
+
 
 !
 !        recompute tree with sources dummy targets and initial 
 !        set of targets
 !
+
+
 
       call mklraptreemem(ier,sources,ns,radsrc,dumtarg,nt,targets, &
             nt2,trads,idivflag,ndiv,isep,nlmax,nbmax,nlevelsfmm, &
@@ -278,6 +306,8 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 
       deallocate(itreefmm)
       allocate(itreefmm(ltreefmm))
+
+
 
        call mklraptree(sources,ns,radsrc,dumtarg,nt,targets,nt2, &
              trads,idivflag,ndiv,isep,mhung,mnbors,mnlist1, &
@@ -336,7 +366,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       allocate(chargesort(ns),dipstrsort(ns),dipvecsort(3,ns))
 
       do i=1,ns
-         dipole(i) = 1
+         dipole(i) = skeleton_w(i)
          charges(i) = 0 
       enddo
 
@@ -410,7 +440,10 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
       lw7 = 40000
       call ylgndrfwini(nlege,wlege,lw7,lused7)
 
+!$      time1 = omp_get_wtime()
+
       do iter = 1,maxit
+write (*,*) 'Levels refinement: ', iter
         rmaxerr = 0
         iflag = 0 
         allocate(tails(nboxes),irefineflag(nboxes))
@@ -420,6 +453,9 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!       compute the tail of all chebyshev expansions
 !        and decide which boxes need to be refined further
 !
+
+!$OMP PARALLEL DO DEFAULT(SHARED), &
+!$OMP& PRIVATE(i,nchild,ii)
         do i=1,nboxes
            nchild = itree(iptr(4)+i-1)
            tails(i) = 0
@@ -440,12 +476,14 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
                  irefineflag(i) = 1
                  iflag = 1
               endif
-              if(tails(i).gt.rmaxerr) rmaxerr = tails(i)
-              if(tailsx(i).gt.rmaxerr) rmaxerr = tailsx(i)
-              if(tailsy(i).gt.rmaxerr) rmaxerr = tailsy(i)
-              if(tailsz(i).gt.rmaxerr) rmaxerr = tailsz(i)
+!              if(tails(i).gt.rmaxerr) rmaxerr = tails(i)
+!              if(tailsx(i).gt.rmaxerr) rmaxerr = tailsx(i)
+!              if(tailsy(i).gt.rmaxerr) rmaxerr = tailsy(i)
+!              if(tailsz(i).gt.rmaxerr) rmaxerr = tailsz(i)
            endif
          enddo
+!$OMP END PARALLEL DO         
+
 
          if(iflag.eq.0) goto 2000
 !
@@ -479,16 +517,36 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
                fcoeffsz(nt2),itstartbox(nboxes))
 
             iptr = iptrout
-            itree = itreeout
-            treecenters = treecentersout
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
+            do i=1,ltree
+               itree(i) = itreeout(i)
+            enddo
+!$OMP END PARALLEL DO            
+
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
+            do i=1,nboxes
+               treecenters(1,i) = treecentersout(1,i)
+               treecenters(2,i) = treecentersout(2,i)
+               treecenters(3,i) = treecentersout(3,i)
+               itstartbox(i) = itstartboxout(i)
+               ntargbox(i) = ntargboxout(i)
+            enddo
+!$OMP END PARALLEL DO            
             boxsize(0:nlevels) = boxsizeout(0:nlevels)
-            targets = targetsout
-            fcoeffs = fcoeffsout
-            fcoeffsx = fcoeffsxout
-            fcoeffsy = fcoeffsyout
-            fcoeffsz = fcoeffszout
-            ntargbox = ntargboxout
-            itstartbox = itstartboxout
+
+            
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
+          do i=1,nt2
+              targets(1,i) = targetsout(1,i)
+              targets(2,i) = targetsout(2,i)
+              targets(3,i) = targetsout(3,i)
+
+              fcoeffs(i) = fcoeffsout(i)
+              fcoeffsx(i) = fcoeffsxout(i)
+              fcoeffsy(i) = fcoeffsyout(i)
+              fcoeffsz(i) = fcoeffszout(i)
+          enddo
+!$OMP END PARALLEL DO            
 
 !            call prinf('after reorg ntargbox=*',ntargbox,nboxes)
 !            call prinf('after reorg itstartbox=*',itstartbox,nboxes)
@@ -498,35 +556,54 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
 !!            compute the function and the gradient at the new
 !             targets
 !
-            npts = 1 
+            npts = 1
+
+            nnnn = int(npts,8)
+            nadapt_flag = int(adapt_flag,8)
+!$OMP PARALLEL DO DEFAULT(SHARED), &
+!$OMP& PRIVATE(i,ii,j,iii,sigmatmp), &
+!$OMP& PRIVATE(sigma_gradtmp,tradtmp,iboxtarg,ilev,pottmp), &
+!$OMP& PRIVATE(gradtmp,fvalstmp,fvalsxtmp,fvalsytmp,fvalsztmp), &
+!$OMP& PRIVATE(sigmatmp_v,sigma_gradtmp_v_x,sigma_gradtmp_v_y), &
+!$OMP& PRIVATE(sigma_gradtmp_v_z)
             do i=1,nboxes
                if(ibcompflag(i).eq.1) then
                   ii = itree(iptr(6)+i-1)
                   do j=1,norder3
                      iii = ii+j-1
-                     call sigma_eval(TreeLRD_1,targets(1,iii), &
-                        npts, sigmatmp, sigma_gradtmp(1), &
-                        sigma_gradtmp(2), sigma_gradtmp(3), &
-                        adapt_flag, speed_flag)
+                     
+   call function_eval_sigma(FSS_1,targets(1,iii),nnnn,&
+    &sigmatmp_v,sigma_gradtmp_v_x,&
+    &sigma_gradtmp_v_y,sigma_gradtmp_v_z,nadapt_flag)
+
+   sigmatmp=sigmatmp_v(1)
+   sigma_gradtmp(1)=sigma_gradtmp_v_x(1)
+   sigma_gradtmp(2)=sigma_gradtmp_v_y(1)
+   sigma_gradtmp(3)=sigma_gradtmp_v_z(1)
+
 
                      tradtmp = 12*sigmatmp
+                     iboxtarg = 1
+                     ilev = 0
                  
                      call findboxtarg_fulltree(targets(1,iii),tradtmp,&
                       iboxtarg,ilev,itreefmm,ipointer,boxsizefmm, &
                       treecentersfmm,nboxesfmm,nlevelsfmm)
-
+                     
                      call newtargeval(targets(1,iii),sigmatmp, &
-                        sigma_gradtmp, iboxtarg,ilev,nboxesfmm, &
+                        sigma_gradtmp,iboxtarg,ilev,nboxesfmm, &
                         nlevelsfmm,boxsizefmm,treecentersfmm,iaddr, &
                         itreefmm,ipointer,mnbors,mnlist1,ilevel, &
                         rmlexp,ns,sourcesort,ifcharge,chargesort,&
                         ifdipole,dipstrsort,dipvecsort, &
                         nterms,nlege,wlege,pottmp,gradtmp)
 
+
                       fvalstmp(j) = pottmp
                       fvalsxtmp(j) = gradtmp(1)
                       fvalsytmp(j) = gradtmp(2)
                       fvalsztmp(j) = gradtmp(3)
+
                   enddo
                   call matvec(norder3,norder3,xmatc,fvalstmp,& 
                      fcoeffs(ii))
@@ -538,6 +615,7 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
                      fcoeffsz(ii))
                endif
             enddo
+!$OMP END PARALLEL DO            
 !
 !!            deallocate the new arrays for the next iteration
 !
@@ -549,44 +627,142 @@ subroutine initialize_feval(eps,ns,sources,rn,nt,dumtarg,norder, &
             deallocate(tailsx,tailsy,tailsz)
             deallocate(itcompflag,ibcompflag)
 
+
       enddo
- 2000 continue      
+ 2000 continue   
+
+!$      time2 = omp_get_wtime()
+
+       call prin2('time in iterating=*',time2-time1,1)
+       open(unit=23,file='boxsizes.txt')
+       write(23,*) "ilevel, boxsize"       
+ 2100 format(2x,i4,2x,e11.5)       
+       do i=0,nlevels
+           write(23,2100) i,boxsize(i)
+       enddo
+       close(23)
+
 
 
 end subroutine initialize_feval 
 !-------------------------------------------     
 
-subroutine f_eval(targets,norder,itree,ltree,nlevels,nboxes,iptr, &
+subroutine f_eval(nt,targets,norder,itree,ltree,nlevels,nboxes,iptr, &
              treecenters,boxsize,nt2,fcoeffs,fcoeffsx,fcoeffsy, &
-             fcoeffsz, f, fx, fy, fz)
+             fcoeffsz, f, fx, fy, fz, flags)
 
       implicit real *8 (a-h,o-z)
-      real *8 targets(3)
+      real *8 targets(3,nt)
       integer norder,ltree,nlevels,nboxes,iptr(7),nt2
+      integer flags(nt)
       integer itree(ltree)
       real *8 treecenters(3,nboxes),boxsize(0:nlevels)
       real *8 fcoeffs(nt2),fcoeffsx(nt2),fcoeffsy(nt2),fcoeffsz(nt2)
 
-      real *8 f,fx,fy,fz
+      real *8 f(nt),fx(nt),fy(nt),fz(nt)
 
 !
 !!       find which box the target lives in
 !
-      call findboxtarg(targets,iboxtarg,ilevel,itree,iptr,treecenters,&
-             nboxes,nlevels)
+!
+      do i=1,nt
+        !write (*,*) 'inside loop: ',i
+        call findboxtarg(targets(:,i),iboxtarg,ilevel,itree,iptr,&
+               treecenters,nboxes,nlevels)
 
-      istart = itree(iptr(6)+iboxtarg-1)
+          if(iboxtarg.eq.-1) istart = -1
+          if(iboxtarg.ge.0) istart = itree(iptr(6)+iboxtarg-1)
 
+          if(istart.le.0) then
+              flags(i) = 1    
+          endif
+
+          if(istart.gt.0) then
+              flags(i) = 0
 !
 !!      now evaluate the chebyshev expansion and the gradient
 !       at the new target
-      call cheb3deval_withgrad(targets,boxsize(ilevel), &
+        !write (*,*) 'about to start cheb: ',i
+
+        call cheb3deval_withgrad(targets(:,i),boxsize(ilevel), &
             treecenters(1,iboxtarg),norder,fcoeffs(istart),&
             fcoeffsx(istart),fcoeffsy(istart),fcoeffsz(istart),&
-            f,fx,fy,fz)
+            f(i),fx(i),fy(i),fz(i))
+!            write (*,*) i, targets(:,i)
+!            write (*,*) f(i),fx(i),fy(i),fz(i)
+          endif
+    enddo
 
+! 9100 format(3(2x,e11.5))
+!          if(istart.le.0) then
+!             write(*,*) "target in region where no box exists"
+!          write(*,*) "Crashing now"
+!         write(*,*) "error report in targcrashreport.txt"
+!         open(unit=23,file="targcrashreport.txt")
+!         write(23,*) "Target location"
+!         write(23,9100) targets(1),targets(2),targets(3)
+!         write(23,*) "iboxtarg = ",iboxtarg
+!         write(23,*) "ilevel =",ilevel
+!         close(23)
+!         stop
+!      endif
+!    write (*,*) 'detectada box', istart
 end subroutine f_eval           
 
+!--------------------------------
+subroutine f_eval_slow(n,targets,iflag,ns,sources,wts,dipvec,stdev, &
+          stdev_grad,pot,grad)
+!
+!!     slow function evaluator
+!
+!      n - number of targets
+!      targets(3,nt) - target location
+!      iflag - targets for which potential needs to be computed
+!      ns - number of sources
+!      sources(3,ns) - source locations
+!      wts(ns) - quadrature weights at the source locations
+!      dipvec(3,ns) - dipole orientation vectors
+!      stdev - sigma value at target location
+!      stdev_grad - gradient of sigma at target location
+!
+!      output
+!      pot(n) - value of the function
+!      grad(3,n) - gradient of the function
+
+
+   implicit real *8 (a-h,o-z)
+   integer *8 n
+   real *8 targets(3,n), sources(3,ns),wts(ns),dipvec(3,ns),stdev(n)
+   real *8 stdev_grad(3,n),pot(n),grad(3,n),ptmp,ftmp(3)
+   integer iflag(n)
+
+
+   iffld = 1
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,i,ptmp,ftmp)   
+   do j=1,n
+
+     if(iflag(j).eq.1) then
+        pot(j) = 0
+        grad(1,j) = 0
+        grad(2,j) = 0
+        grad(3,j) = 0
+
+         do i=1,ns
+            call tpotfld3d_dp(iffld,sources(1,i),wts(i),dipvec(1,i),&
+            targets(1,j),stdev(j),stdev_grad(1,j),ptmp,ftmp)
+            pot(j) = pot(j) + ptmp
+            grad(1,j) = grad(1,j) - ftmp(1)
+            grad(2,j) = grad(2,j) - ftmp(2)
+            grad(3,j) = grad(3,j) - ftmp(3)
+         enddo
+
+         pot(j) = pot(j) - 0.5d0
+      endif
+   enddo
+!$OMP END PARALLEL DO   
+
+end subroutine f_eval_slow
+!-------------------------------------------
 
        subroutine getxmatc(k,k3,xmatc)
        implicit real *8 (a-h,o-z)
@@ -627,14 +803,19 @@ end subroutine getxmatc
       integer iptr(*),itree(*)
       real *8 treecenters(3,*),targtest(3)
 
+     
       iboxtarg = 1
       ilevel = 0
+
+ 9100 format(3(2x,e11.5))
+
       do ilev=0,nlevels-1
 !
 !c       compute relartive corordinates for teh target with
 !        respect to the box
 !
          nchild = itree(iptr(4)+iboxtarg-1)
+
 
          if(nchild.eq.0) goto 3000
          xtmp = targtest(1) - treecenters(1,iboxtarg)
@@ -649,7 +830,28 @@ end subroutine getxmatc
          if(xtmp.le.0.and.ytmp.gt.0.and.ztmp.gt.0) ichild=7
          if(xtmp.gt.0.and.ytmp.gt.0.and.ztmp.gt.0) ichild=8
 
-         iboxtarg = itree(iptr(5)+(iboxtarg-1)*8+ichild-1)
+         iboxtargc = itree(iptr(5)+(iboxtarg-1)*8+ichild-1)
+
+         if(iboxtargc.eq.-1) then
+             iboxtarg = -1
+             return
+!            write(*,*) "target in region where no box exists"
+!            write(*,*) "Crashing now"
+!            write(*,*) "error report in targcrashreport.txt"
+!            open(unit=23,file='targcrashreport.txt')
+!            write(23,*) "Target location"
+!            write(23,9100) targtest(1),targtest(2),targtest(3)
+!            write(23,*) "last known box where targ found = ",iboxtarg
+!            write(23,*) "Tree centers = "
+!            write(23,9100) treecenters(1,iboxtarg), &
+!                   treecenters(2,iboxtarg),treecenters(3,iboxtarg)
+!            write(23,*) "ilevel =",ilevel
+!            close(23)
+!            stop
+         endif
+
+         iboxtarg = iboxtargc
+
          ilevel = ilev + 1
 
       enddo
@@ -667,11 +869,12 @@ end subroutine findboxtarg
           
       implicit real *8 (a-h,o-z)
       integer iptr(*),itree(*)
-      real *8 treecenters(3,*),targtest(3),boxsize(0:nlevels)
+      real *8 treecenters(3,nboxes),targtest(3),boxsize(0:nlevels)
 
 !
 !c       compute relartive corordinates for teh target with
 !        respect to the box
+!
 !
       iboxtarg = 1
       ilevel = 0
@@ -1006,6 +1209,7 @@ end subroutine
 !               call prinf('ibox=*',ibox,1)
 !               call prin2('tcenters=*',tcenters(1,ibox),3)
 !               call prinf('ntc=*',ntc,8)
+!
                do i=1,8 
                   ii = 2
                   jj = 2
@@ -1480,6 +1684,33 @@ subroutine targsorttochildren(ibox,nt,trg,centers, &
      deallocate(itarget,itargtmp,trgtmp)
 
 end subroutine      
+
+
+
+subroutine sigma_eval1(xyz,sigma,sigma_grad)
+   implicit real *8 (a-h,o-z)
+   real *8 sigma_grad(3),xyz(3)
+
+   rr2 = xyz(1)**2 + xyz(2)**2 + xyz(3)**2
+
+   sigma = 1+(2*rr2)**2
+
+   sigma_grad(1) = 16*rr2*xyz(1)
+   sigma_grad(2) = 16*rr2*xyz(2)
+   sigma_grad(3) = 16*rr2*xyz(3)
+
+   rscale = 10
+   sigma = (0.1 + xyz(1) + xyz(2) + xyz(3))/rscale
+   sigma_grad(1) = xyz(1)/rscale
+   sigma_grad(2) = xyz(2)/rscale
+   sigma_grad(3) = xyz(3)/rscale
+
+ !   sigma=0.40820712299565159d0
+ !   sigma_grad(1)=0.0d0
+ !   sigma_grad(2)=0.0d0
+ !   sigma_grad(3)=0.0d0
+end subroutine sigma_eval1
+
 
 
 

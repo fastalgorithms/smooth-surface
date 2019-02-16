@@ -1041,7 +1041,7 @@ C$OMP$PRIVATE(nw2,w2,nw4,w4,nw6,w6,nw8,w8)
             
             istart = itree(ipointer(14)+ibox-1)
             iend = itree(ipointer(17)+ibox-1)
-            npts = npts + iend-istart+1
+            npts = iend-istart+1
 
             nchild = itree(ipointer(3)+ibox-1)
 
@@ -1152,9 +1152,10 @@ c     ... step 6, evaluate all local expansions
       time1 = second()
 C$        time1=omp_get_wtime()
 
+            npts = 1
       do ilev=0,nlevels
 C$OMP PARALLEL DO DEFAULT(SHARED)
-C$OMP$PRIVATE(ibox,nchild,i,istart,iend,mptemp,npts,pottmp,gradtmp)
+C$OMP$PRIVATE(ibox,nchild,i,istart,iend,pottmp,gradtmp)
 C$OMP$SCHEDULE(DYNAMIC)
          do ibox = laddr(1,ilev),laddr(2,ilev)
             istart = itree(ipointer(14)+ibox-1)
@@ -1162,7 +1163,6 @@ C$OMP$SCHEDULE(DYNAMIC)
             nchild = itree(ipointer(3)+ibox-1)
             if(nchild.eq.0) iend = itree(ipointer(17)+ibox-1)
 
-            npts = 1
             do i=istart,iend
                pottmp = 0.0d0
                gradtmp(1) = 0.0d0
@@ -1210,8 +1210,8 @@ C$        time1=omp_get_wtime()
 
       do ilev=0,nlevels
 C$OMP PARALLEL DO DEFAULT(SHARED)     
-C$OMP$PRIVATE(ibox,istartt,iendt,istarte,iende,nlist1,i,jbox)
-C$OMP$PRIVATE(jstart,jend)
+C$OMP$PRIVATE(ibox,istartt,iendt,nlist1,i,jbox)
+C$OMP$PRIVATE(jstart,jend,nnbors,nchild)
          do ibox = laddr(1,ilev),laddr(2,ilev)
             istartt = itree(ipointer(14)+ibox-1)
             iendt = itree(ipointer(15)+ibox-1)
@@ -1352,11 +1352,11 @@ c
         complex *16 pottarg(*)
         complex *16 gradtarg(3,*)
 
-ccc        complex *16 pottmp,gradtmp(3)
         real *8 pottmp,gradtmp(3)
 
 c
         ns = iend - istart + 1
+
         do j=jstart,jend
               do i=istart,iend
                  if((targ(1,j)-source(1,i))**2 +
@@ -1375,9 +1375,6 @@ c
                        endif
                     endif
                     if(ifdipole.eq.1) then
-ccc                       call lpotfld3d_dp(ifgradtarg,
-ccc     1                  source(1,i),dipstr(i),dipvec(1,i),targ(1,j),
-ccc     2                  pottmp,gradtmp)
                        qwt =  dreal(dipstr(i))
                        call tpotfld3d_dp(ifgradtarg,
      1                  source(1,i),qwt,dipvec(1,i),targ(1,j),
