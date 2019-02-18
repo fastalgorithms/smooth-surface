@@ -388,6 +388,13 @@ endif
 
     call record_results(n_refinement,time_report,error_report,nombre1)
 
+
+
+  filename='smoothed.vtk'
+  call plotSmoothGeometryVTK(Geometry1, filename)
+
+
+    
 stop
 end program
 
@@ -411,3 +418,377 @@ real *8 error_report(n_refinement+1)
 
 return
 end
+
+
+
+
+
+
+
+subroutine plotSmoothGeometryVTK(Geometry1, filename)
+  use Mod_Smooth_Surface
+  implicit none
+
+  type (Geometry) :: Geometry1
+  character (len=*) filename
+
+  integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
+  integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
+  integer :: ntot, ltot, npols7, npols, info, iii, n, l, nnn, iw
+  real (kind = 8) :: us(1000), vs(1000), ws(1000), dcond
+  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(10000)
+  real (kind = 8) :: xcoefs(10000), xrhs(10000)
+  real (kind = 8) :: ycoefs(10000), yrhs(10000)
+  real (kind = 8) :: zcoefs(10000), zrhs(10000)
+  real (kind = 8) :: xval, yval, zval, pinv(100000)
+
+  real (kind = 8), allocatable :: xyzs(:,:,:), uvs(:,:,:)
+  real (kind = 8), allocatable :: pmat(:,:), triout(:,:,:)
+  
+  !
+  ! This routien dumps out smoothed geometry into a vtk file,
+  ! oversampling the triangles as necessary to show the smoothness
+  !
+  ! Input:
+  !   Geometry1 - the structure containing all info
+  !   filename - VTK ASCII filename, should end in .vtk
+  !
+  ! Output:
+  !   the file 'filename' is created and contains vtk info
+  !
+
+  !id = 888
+  !open(id, FILE=trim(filename),STATUS='REPLACE')
+
+  n_order_sf = (Geometry1%n_Sf_points)/(Geometry1%ntri)
+
+  if (n_order_sf .eq. 45) then
+    norder=8
+    nover = 2
+    nover = 4
+    nsub = 4**nover
+    k = 45
+    call GaussTri45(us, vs, ws)
+  end if
+  
+  if (n_order_sf .eq. 78) then
+    norder=11
+    nover = 3
+    nover = 5
+    nsub = 4**nover
+    k = 78
+    call GaussTri78(us, vs, ws)
+  end if
+
+  !
+  ! now dump out all the info needed for the triangles, compute xtri
+  ! coefficients, and resample and plot
+  !
+  ntri = Geometry1%ntri
+  call prinf('in vtk plotter, ntri = *', ntri, 1)
+  allocate(xyzs(3,k,ntri))
+
+  ictr = 0
+  do i = 1,ntri
+    do j = 1,k
+      ictr = ictr + 1
+      xyzs(1,j,i) = Geometry1%S_smooth(1,ictr)
+      xyzs(2,j,i) = Geometry1%S_smooth(2,ictr)
+      xyzs(3,j,i) = Geometry1%S_smooth(3,ictr)
+    end do
+  end do
+
+  
+  allocate(uvs(2,3,nsub))
+  uvs(1,1,1) = 0
+  uvs(2,1,1) = 0
+  uvs(1,2,1) = 1
+  uvs(2,2,1) = 0
+  uvs(1,3,1) = 0
+  uvs(2,3,1) = 1
+
+
+  !
+  ! if necessary, recursively subdivide the triangle - first construct
+  ! all the uv points
+  !
+  if (nover .gt. 0) then
+
+    ntot = 1
+    do i = 1,nover
+
+      ltot = ntot
+
+      do j = 1,ltot
+        uv1(1) = uvs(1,1,j)
+        uv1(2) = uvs(2,1,j)
+        uv2(1) = uvs(1,2,j)
+        uv2(2) = uvs(2,2,j)
+        uv3(1) = uvs(1,3,j)
+        uv3(2) = uvs(2,3,j)
+
+        uvs(1,1,j) = uv1(1)
+        uvs(2,1,j) = uv1(2)
+        uvs(1,2,j) = (uv1(1) + uv2(1))/2
+        uvs(2,2,j) = (uv1(2) + uv2(2))/2
+        uvs(1,3,j) = (uv1(1) + uv3(1))/2
+        uvs(2,3,j) = (uv1(2) + uv3(2))/2
+
+        ntot = ntot + 1
+        uvs(1,1,ntot) = (uv1(1) + uv2(1))/2
+        uvs(2,1,ntot) = (uv1(2) + uv2(2))/2
+        uvs(1,2,ntot) = uv2(1)
+        uvs(2,2,ntot) = uv2(2)
+        uvs(1,3,ntot) = (uv2(1) + uv3(1))/2
+        uvs(2,3,ntot) = (uv2(2) + uv3(2))/2
+
+        ntot = ntot + 1
+        uvs(1,1,ntot) = (uv1(1) + uv3(1))/2
+        uvs(2,1,ntot) = (uv1(2) + uv3(2))/2
+        uvs(1,2,ntot) = (uv2(1) + uv3(1))/2
+        uvs(2,2,ntot) = (uv2(2) + uv3(2))/2
+        uvs(1,3,ntot) = uv3(1)
+        uvs(2,3,ntot) = uv3(2)
+
+        ntot = ntot + 1
+        uvs(1,1,ntot) = (uv2(1) + uv3(1))/2
+        uvs(2,1,ntot) = (uv2(2) + uv3(2))/2
+        uvs(1,2,ntot) = (uv1(1) + uv3(1))/2
+        uvs(2,2,ntot) = (uv1(2) + uv3(2))/2
+        uvs(1,3,ntot) = (uv1(1) + uv2(1))/2
+        uvs(2,3,ntot) = (uv1(2) + uv2(2))/2
+
+      end do
+    end do
+
+  end if
+
+  call prinf('total triangles, ntot = *', ntot, 1)
+  call prin2('uvs = *', uvs, 6*ntot)
+
+  !
+  ! now compute the koornwinder expansion of the triangle
+  !
+  allocate(pmat(k,k))
+
+  call prin2('us = *', us, k)
+  call prin2('vs = *', vs, k)
+  print *
+  print *
+
+  do i = 1,k
+    uv(1) = us(i)
+    uv(2) = vs(i)
+    call koorn_pols(uv, norder, npols, pols)
+    !call prin2('uv = *', uv, 2)
+    !call prinf('npols = *', npols, 1)
+    if (npols .ne. n_order_sf) then
+      call prinf('npols = *', npols, 1)
+      call prinf('n_order_sf = *', n_order_sf, 1)
+      stop
+    end if
+    
+    !call prin2('pols = *', pols, k)
+    !stop
+    do j = 1,npols
+      pmat(i,j) = pols(j)
+    end do
+  end do
+
+
+  call dinverse(npols, pmat, info, pinv)
+  call prinf('after inverse, info = *', info, 1)
+  
+  !
+  ! loop over each triangle, solve for each of the sets of
+  ! coefficients, and then evaluate the subsampled triangles
+  !
+
+  allocate(triout(3,3,nsub*ntri))
+  nnn = 0
+
+  do i = 1,ntri
+
+    do j = 1,k
+      xrhs(j) = xyzs(1,j,i)
+      yrhs(j) = xyzs(2,j,i)
+      zrhs(j) = xyzs(3,j,i)
+    end do
+
+    
+    !call dgausselim(k, pmat, xrhs, info, xcoefs, dcond)
+    !call dgausselim(k, pmat, yrhs, info, ycoefs, dcond)
+    !call dgausselim(k, pmat, zrhs, info, zcoefs, dcond)
+
+    call dmatvec(k, k, pinv, xrhs, xcoefs)
+    call dmatvec(k, k, pinv, yrhs, ycoefs)
+    call dmatvec(k, k, pinv, zrhs, zcoefs)
+    
+    !call prin2('xcoefs = *', xcoefs, k)
+    !call prin2('ycoefs = *', ycoefs, k)
+    !call prin2('zcoefs = *', zcoefs, k)
+    !stop
+
+    !
+    ! now evaluate the new triangle nodes
+    !
+    do j = 1,nsub
+      
+      nnn = nnn + 1
+      
+      do iii = 1,3
+        uv(1) = uvs(1,iii,j)
+        uv(2) = uvs(2,iii,j)
+        call koorn_pols(uv, norder, npols, pols)
+        xval = 0
+        yval = 0
+        zval = 0
+        do l = 1,k
+          xval = xval + xcoefs(l)*pols(l)
+          yval = yval + ycoefs(l)*pols(l)
+          zval = zval + zcoefs(l)*pols(l)
+        end do
+
+        !call prin2('xcoefs = *', xcoefs, k)
+        !call prin2('ycoefs = *', ycoefs, k)
+        !call prin2('zcoefs = *', zcoefs, k)
+        
+        triout(1,iii,nnn) = xval
+        triout(2,iii,nnn) = yval
+        triout(3,iii,nnn) = zval
+        
+      end do
+
+      !call prin2('tri = *', triout(1,1,nnn), 9)
+      
+    end do
+    
+    
+  end do
+
+  call prinf('total number of triangles = *', nnn, 1)
+  call prinf('ntri times nsub = *', ntri*nsub, 1)
+  
+  
+  iw = 33
+  call xtri_vtk_flat(iw, nnn, triout, 'smoothed geometry')
+
+
+
+  !close (id)
+  return
+end subroutine plotSmoothGeometryVTK
+
+
+
+subroutine xtri_vtk_flat(iw, ntri, xtri1s, title)
+  implicit real *8 (a-h,o-z)
+  real *8 :: xtri1s(3,3,ntri)
+  character(len=*) :: title
+
+  character(len=1024) :: filename, dataname, valsname, imgname
+  character(len=1024) :: trisname, vecsname, centname
+  character(len=12) :: fmt, fmt3, fmt4
+  character(len=25) :: fmt2
+
+  !
+  ! This routine plots a sequence of FLAT TRIANGLES with surface
+  ! color vals.
+  !
+  ! Input:
+  !   iw - plot number, controls the filenames
+  !   ntri - number of flat triangles
+  !   xtri1s - full triangle information
+  !
+  ! Output:
+  !   files which can be executed in matlab to plot the surface
+  !
+  !
+
+  if (iw .lt. 10) then
+    fmt = "(A4,I1,A4)"
+    fmt3 = "(A8,I1,A4)"
+    fmt4 = "(A5,I1,A4)"
+  elseif (iw .lt. 100) then
+    fmt = "(A4,I2,A4)"
+    fmt3 = "(A8,I2,A4)"
+    fmt4 = "(A5,I2,A4)"
+  elseif (iw .lt. 1000) then
+    fmt = "(A4,I3,A4)"
+    fmt3 = "(A8,I3,A4)"
+    fmt4 = "(A5,I3,A4)"
+  elseif (iw .lt. 10000) then
+    fmt = "(A4,I4,A4)"
+    fmt3 = "(A8,I4,A4)"
+    fmt4 = "(A5,I4,A4)"
+  end if
+
+  write(filename, fmt) 'plot', iw, '.vtk'
+
+  !
+  ! write the vtk plotting script
+  !
+  iunit1 = 877
+  open(unit = iunit1, file=trim(filename), status='replace')
+
+  write(iunit1,'(a)') "# vtk DataFile Version 3.0"
+  write(iunit1,'(a)') "vtk output"
+  write(iunit1,'(a)') "ASCII"
+  !write(iunit1,'(a)') "DATASET POLYDATA"
+  write(iunit1,'(a)') "DATASET UNSTRUCTURED_GRID"
+  write(iunit1,'(a,i8,a)') "POINTS ", ntri*3, " float"
+
+  fmt2 = "(E11.5,2X,E11.5,2X,E11.5)"
+  do i = 1,ntri
+    write(iunit1,fmt2) xtri1s(1,1,i), xtri1s(2,1,i), xtri1s(3,1,i)
+    write(iunit1,fmt2) xtri1s(1,2,i), xtri1s(2,2,i), xtri1s(3,2,i)
+    write(iunit1,fmt2) xtri1s(1,3,i), xtri1s(2,3,i), xtri1s(3,3,i)
+  end do
+
+
+  write(iunit1,'(a,i8,i8)') "CELLS ", ntri, ntri*4
+
+  do i = 1,ntri
+    i1 = 3*(i-1) + 1
+    write(iunit1,'(a,i8,i8,i8)') "3 ", i1-1, i1, i1+1
+  end do
+
+  write(iunit1,'(a,i8)') "CELL_TYPES ", ntri
+  do i = 1,ntri
+    write(iunit1,'(a)') "5"
+  end do
+
+  write(iunit1,'(a,i8)') "POINT_DATA ", ntri*3
+  write(iunit1,'(a)') "SCALARS scalars float 1"
+  write(iunit1,'(a)') "LOOKUP_TABLE default"
+  do i = 1,ntri
+    do j = 1,3
+      write(iunit1,'(E11.5)') xtri1s(3,j,i)
+    end do
+  end do
+
+
+
+  write(iunit1,'(a)') ""
+  write(iunit1,'(a)') ""
+  write(iunit1,'(a,i8)') "CELL_DATA ", ntri
+  write(iunit1,'(a)') "SCALARS scalars float 1"
+  write(iunit1,'(a)') "LOOKUP_TABLE default"
+  do i = 1,ntri
+    write(iunit1,'(E13.5)') (xtri1s(3,1,i) + &
+        xtri1s(3,2,i) + xtri1s(3,3,i))/3
+  end do
+
+
+
+
+
+
+
+  close(iunit1)
+
+
+
+
+  return
+end subroutine xtri_vtk_flat

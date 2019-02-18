@@ -108,6 +108,11 @@ MOD_SOURCES = $(SRC)/Mod_Plot_Tools.f90 \
  $(SRC)/Mod_Smooth_Surface.f90 \
 
 SOURCES =  $(EXM)/test_surfsmooth.f90 \
+ src/koornexps.f90 \
+ src/ortho2eva.f \
+ src/ortho2eva_new.f90 \
+ src/ortho2exps.f \
+ src/orthom.f \
  $(SRC)/lapack_wrap.f90 \
  $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/tfmm3dlrwrap_expout.f \
