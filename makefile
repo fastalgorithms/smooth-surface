@@ -1,6 +1,6 @@
 
-HOST = osx-gcc
-#HOST = osx-gcc-openmp
+#HOST = osx-gcc
+HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
@@ -37,14 +37,14 @@ endif
 #   FLINK = ifort -mkl -o $(PROJECT)
 # endif
 
-# ifeq ($(HOST),osx-intel-openmp)
-#   FC = ifort -c -w -qopenmp
-#   FFLAGS = -O2
-#   FLINK = ifort -w -mkl=parallel -qopenmp \
-#     -Wl,-stack_size,0x40000000 -o $(PROJECT)
-#   export OMP_NUM_THREADS=4
-#   export OMP_STACKSIZE=2048M
-# endif
+ifeq ($(HOST),osx-intel-openmp)
+  FC = ifort -c -w -qopenmp
+  FFLAGS = -O2
+  FLINK = ifort -w -mkl=parallel -qopenmp \
+       -Wl,-stack_size,0x40000000 -o $(PROJECT)
+  export OMP_NUM_THREADS=4
+  export OMP_STACKSIZE=2048M
+endif
 
 ifeq ($(HOST),linux-gfortran)
    FC = gfortran -c -w

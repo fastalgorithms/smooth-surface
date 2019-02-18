@@ -214,7 +214,8 @@ end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-subroutine eval_density_grad_FMM(Geometry1,targets,v_norm,n_targets,F,grad_F,Fev_stf_1,adapt_flag)
+subroutine eval_density_grad_FMM(Geometry1, targets, v_norm, &
+    n_targets, F,grad_F,Fev_stf_1,adapt_flag)
 implicit none
 ! This function evaluates the F function (and gradient) using the FMM and the sgma evaluator
 
@@ -224,7 +225,11 @@ implicit none
     real ( kind = 8 ) , intent(in) :: v_norm(3,n_targets)       !! Targets where F is evaluated
     real ( kind = 8 ), intent(out) ::  F(n_targets), grad_F(3,n_targets)    !! result of F and gradient
     type ( Feval_stuff ), pointer :: Fev_stf_1                          !! all the information required to evaluate F (trees..)
-    integer ( kind = 8 ), intent(in) :: adapt_flag,n_targets     !! Flags to select the different versions of F
+
+    !! Flags to select the different versions of F
+    !integer ( kind = 8 ), intent(in) :: adapt_flag,n_targets
+    integer (kind = 8) :: adapt_flag
+    integer (kind = 8) :: n_targets
 
     !List of local variables
     integer ( kind = 8 ) ier, iprec,ifcharge,ifdipole,ifpottarg,iffldtarg   !! Different flags to run appropriately the FMM
