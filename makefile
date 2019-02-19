@@ -1,6 +1,6 @@
 
 #HOST = osx-gcc
-HOST = osx-gcc-openmp
+#HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
