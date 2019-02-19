@@ -184,12 +184,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    y0=0.1d0
 !    z0=.2d0
 
-!    nombre='../geometries/sci_fi/sci_fi_3.msh'
-!    filename='../geometries/sci_fi/sci_fi_3.gov'
+    nombre='../geometries/sci_fi/sci_fi_3.msh'
+    filename='../geometries/sci_fi/sci_fi_3.gov'
 !!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.01d0
-!    z0=.02d0
+    x0=0.0d0
+    y0=0.01d0
+    z0=.02d0
 
 !    nombre='../geometries/big_genus/high_genus_3.msh'
 !    filename='../geometries/big_genus/high_genus_3.gov'
@@ -209,12 +209,12 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 !    z0=.00d0
 
 
-    nombre='../geometries/jet/jet_fighter.msh'
-    filename='../geometries/jet/jet_fighter.gov'
+!    nombre='../geometries/jet/jet_fighter.msh'
+!    filename='../geometries/jet/jet_fighter.gov'
     ! point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=-4000
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=-4000
 
     !nombre='../geometries/war_ship/mi_barco_simple_13.msh'
     !filename='../geometries/war_ship/mi_barco_simple_13.gov'
@@ -256,11 +256,11 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
 
 
 
-    nombre='../geometries/jet/jet_fighter.msh'
-    filename = '../geometries/jet/jet_fighter.gov'
-    x0 = 0
-    y0 = 0
-    z0 = -4000
+!    nombre='../geometries/jet/jet_fighter.msh'
+!    filename = '../geometries/jet/jet_fighter.gov'
+!    x0 = 0
+!    y0 = 0
+!    z0 = -4000
 
 !    nombre='simplest_cube_quadratic.msh'
 !    filename='simplest_cube_quadratic.gov'
@@ -326,7 +326,8 @@ real ( kind = 8 ) alpha,sgma,Gx,Gy,Gz,X,Y,Z,F,grad_F(3),x0,y0,z0,a_nada,b_nada,c
     ! now plot the smoothed geometry by oversampling and plotting
     ! flat triangles in VTK ASCII format
     
-    filename='../geometries/cunya/cunya1-smooth.vtk'
+    !filename='../geometries/gcunya/cunya1-smooth.vtk'
+    filename='../geometries/sci_fi/sci_fi_3_smooth.vtk'
     call plotSmoothGeometryVTK(Geometry1, filename)
 
     stop

@@ -4,8 +4,6 @@ HOST = osx-gcc-7
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
-#HOST = amd-gfortran
-#HOST = amd-gfortran-openmp
 HOST = linux-intel
 #HOST = linux-intel-openmp
 PROJECT = int2
@@ -46,21 +44,6 @@ ifeq ($(HOST),linux-gfortran)
   FC = gfortran -c -w
   FFLAGS = -O2 -mcmodel=medium 
   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
-endif
-
-ifeq ($(HOST),amd-gfortran)
-  FC = gfortran -c -w
-  FFLAGS = -O2 -mcmodel=medium 
-  #FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) /usr/lib/liblapack.so.3 /usr/lib/libblas.so.3
-  FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
-endif
-
-ifeq ($(HOST),amd-gfortran-openmp)
-  FC = gfortran -c -w
-  FFLAGS = -O2 -mcmodel=medium -fopenmp
-  FLINK = gfortran -w -mcmodel=medium -fopenmp -o $(PROJECT) -llapack -lblas
-  export OMP_NUM_THREADS=8
-  export OMP_STACKSIZE=1024M
 endif
 
 ifeq ($(HOST),linux-intel)
