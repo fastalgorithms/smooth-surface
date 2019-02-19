@@ -3,8 +3,7 @@
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
-#HOST = linux-gfortran
-#HOST = linux-intel
+HOST = linux-gfortran
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel
@@ -29,6 +28,8 @@ ifeq ($(HOST),osx-gcc-openmp)
   export OMP_STACKSIZE = 2048M
 endif
 
+
+
 # ifeq ($(HOST),osx-intel)
 #   FC = ifort -c -w 
 #   FFLAGS = -O2
@@ -45,9 +46,9 @@ endif
 # endif
 
 ifeq ($(HOST),linux-gfortran)
-  FC = gfortran -c -w
-  FFLAGS = -O2 -mcmodel=medium 
-  FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
+   FC = gfortran -c -w
+   FFLAGS = -O2 -mcmodel=medium 
+   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
 endif
 
 # ifeq ($(HOST),amd-gfortran)
@@ -83,49 +84,46 @@ endif
 
 .PHONY: all clean list
 
-TFMM3D = ../lib/tfmm3d
+TFMM3D = ../lib/tfmm3dlr
+SRC = ../src
 
-MOD_SOURCES = nadadena.f90
+MOD_SOURCES = $(SRC)/chebtarggridrouts.f90
 
-SOURCES =  smooth_surface_quadratic_fmm.f90 \
- ../src/koornexps.f90 \
- ../src/lapack_wrap.f90 \
- ../src/ortho2eva.f \
- ../src/ortho2eva_new.f90 \
- ../src/ortho2exps.f \
- ../src/orthom.f \
- $(TFMM3D)/Near_Interaction_code.f90 \
- $(TFMM3D)/tfmm3dwrap.f \
- $(TFMM3D)/tfmm3d.f \
+SOURCES =  testchebtargrouts.f90 \
+ $(SRC)/lapack_wrap.f90 \
+ $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/l3dzero.f \
  $(TFMM3D)/treeplot.f \
  $(TFMM3D)/prini.f \
  $(TFMM3D)/l3dterms.f \
  $(TFMM3D)/laprouts3d.f \
+ $(TFMM3D)/Near_Interaction_code.f90 \
  $(TFMM3D)/l3dmpmpfinal4.f \
  $(TFMM3D)/l3dloclocfinal4.f \
  $(TFMM3D)/l3dmplocfinal4.f \
  $(TFMM3D)/prinm.f \
  $(TFMM3D)/yrecursion.f \
  $(TFMM3D)/ftophys.f \
- $(TFMM3D)/phystof.f \
+ $(TFMM3D)/phystof2.f \
  $(TFMM3D)/legeexps.f \
- $(TFMM3D)/d3hptree.f \
+ $(TFMM3D)/d3hplratree.f \
  $(TFMM3D)/rotgen.f \
  $(TFMM3D)/numthetafour.f \
  $(TFMM3D)/numthetahalf2.f \
  $(TFMM3D)/lapweights.f \
- $(TFMM3D)/pwrouts.f \
+ $(TFMM3D)/pwrouts2.f \
  $(TFMM3D)/hkrand.f \
  $(TFMM3D)/dlaran.f \
  $(TFMM3D)/rotviarecur3.f \
  $(TFMM3D)/rotgen2.f \
- $(TFMM3D)/l3dgqbxauxrouts.f \
- $(TFMM3D)/lwtsexp_sep2.f 
+ $(TFMM3D)/l3dgqbxauxrouts2.f \
+ $(TFMM3D)/lwtsexp_sep2.f \
+ $(TFMM3D)/chebexps.f \
+ $(SRC)/pplot2.f \
 
 
 
-TFMM3DLIB = ../lib/tfmm3d/tfmm3dlib.a
+TFMM3DLIB = ../lib/tfmm3dlr/tfmm3dlib.a
 
 MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
@@ -151,7 +149,7 @@ objects: $(OBJECTS)
 
 clean:
 	rm -f $(MOD_OBJECTS)
-	rm -f some_types.mod
+	rm -f prefunrouts_withoutfmm.mod
 	rm -f $(OBJECTS)
 	rm -f $(PROJECT)
 
