@@ -222,12 +222,22 @@ real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
 !    z0=1.5d0
 
 
-    nombre='./msh_files/pico_2.msh'
-    filename='./plot_files/pico_2'
+!    nombre='./msh_files/pico_2.msh'
+!    filename='./plot_files/pico_2'
 !    point inside to check Gauss integral
+!    x0=0d0
+!    y0=0d0
+!    z0=2.0d0
+
+    nombre='./msh_files/A380_with_4_engines_ASCII.msh'
+    filename='./plot_files/A380_with_4_engines'
+
+    nombre='./msh_files/A380_antennas_v9_ASCII.msh'
+    filename='./plot_files/A380_antennas_v9_ASCII'
+    ! point inside to check Gauss integral
     x0=0d0
     y0=0d0
-    z0=2.0d0
+    z0=0d0
 
 !    nombre='two_cavity_filter.msh'
 !    filename='two_cavity_filter'
@@ -334,17 +344,17 @@ real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
 
     call funcion_Base_Points(Geometry1)
 
-!! Esto es para el modo sin FMM
-if (fmm_flag.eq.0) then
-    call start_Feval_local(Feval_stuff_1,Geometry1)
-endif
-!! Esto es para el modo sin FMM
+    !! Esto es para el modo sin FMM
+    if (fmm_flag.eq.0) then
+      call start_Feval_local(Feval_stuff_1,Geometry1)
+    endif
+    !! Esto es para el modo sin FMM
 
     !call plot_sigma(Feval_stuff_1%FSS_1, Geometry1,adapt_flag)
-!    call plot_tree_tool(Feval_stuff_1%Tree_local)
-!    stop
+    !    call plot_tree_tool(Feval_stuff_1%Tree_local)
+    !    stop
     call system_clock ( t1, clock_rate, clock_max )
-        call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+    call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
     call system_clock ( t2, clock_rate, clock_max )
     time_report(1)=real ( t2 - t1 ) / real ( clock_rate )
 
@@ -353,6 +363,15 @@ endif
     call record_Geometry(Geometry1,name_aux)
     call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
+    !
+    ! plot the smoothed surface
+    !
+    filename='smoothed.vtk'
+    print *, 'plotting vtk smoothed geometry...'
+    call plotSmoothGeometryVTK(Geometry1, filename)
+    print *, 'finished plotting vtk smoothed geometry...'
+    
+    stop
 !!!THIS COMMAND TRIGGERS THE NEW INTERPOLATION METHOD
     if (interp_flag==1) then
         call system_clock ( t1, clock_rate, clock_max )
@@ -390,8 +409,6 @@ endif
 
 
 
-  filename='smoothed.vtk'
-  call plotSmoothGeometryVTK(Geometry1, filename)
 
 
     
@@ -436,11 +453,11 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
   integer :: ntot, ltot, npols7, npols, info, iii, n, l, nnn, iw
   real (kind = 8) :: us(1000), vs(1000), ws(1000), dcond
-  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(10000)
+  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
   real (kind = 8) :: xcoefs(10000), xrhs(10000)
   real (kind = 8) :: ycoefs(10000), yrhs(10000)
   real (kind = 8) :: zcoefs(10000), zrhs(10000)
-  real (kind = 8) :: xval, yval, zval, pinv(100000)
+  real (kind = 8) :: xval, yval, zval, pinv(1000000)
 
   real (kind = 8), allocatable :: xyzs(:,:,:), uvs(:,:,:)
   real (kind = 8), allocatable :: pmat(:,:), triout(:,:,:)
@@ -465,7 +482,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   if (n_order_sf .eq. 45) then
     norder=8
     nover = 2
-    nover = 4
+    nover = 0
     nsub = 4**nover
     k = 45
     call GaussTri45(us, vs, ws)

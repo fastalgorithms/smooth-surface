@@ -15,16 +15,16 @@ PROJECT = int2
 
 
 ifeq ($(HOST),osx-gcc)
-  FC = gfortran-8 -c -w
-  FFLAGS = -O2
+  FC = gfortran-8
+  FFLAGS = -O2 -w
   FLINK = gfortran-8 -w -o $(PROJECT) -framework accelerate
 endif
 
 ifeq ($(HOST),osx-gcc-openmp)
-  FC = gfortran -c -fopenmp -w
-  FFLAGS = -O2
+  FC = gfortran 
+  FFLAGS = -O2 -fopenmp -w 
   FLINK = gfortran -fopenmp -w \
-    -Wl,-stack_size,0x40000000 -o $(PROJECT) -framework accelerate
+    -Wl,-stack_size,0x80000000 -o $(PROJECT) -framework accelerate
   export OMP_NUM_THREADS = 4
   export OMP_STACKSIZE = 2048M
 endif
@@ -32,14 +32,14 @@ endif
 
 
 # ifeq ($(HOST),osx-intel)
-#   FC = ifort -c -w 
-#   FFLAGS = -O2
+#   FC = ifort  
+#   FFLAGS = -O2 -w
 #   FLINK = ifort -mkl -o $(PROJECT)
 # endif
 
 ifeq ($(HOST),osx-intel-openmp)
-  FC = ifort -c -w -qopenmp
-  FFLAGS = -O2
+  FC = ifort
+  FFLAGS = -O2 -w -qopenmp
   FLINK = ifort -w -mkl=parallel -qopenmp \
        -Wl,-stack_size,0x40000000 -o $(PROJECT)
   export OMP_NUM_THREADS=4
@@ -47,45 +47,17 @@ ifeq ($(HOST),osx-intel-openmp)
 endif
 
 ifeq ($(HOST),linux-gfortran)
-   FC = gfortran -c -w
-   FFLAGS = -O2 -mcmodel=medium 
+   FC = gfortran
+   FFLAGS = -O2 -mcmodel=medium  -w
    FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
 endif
 
 ifeq ($(HOST),linux-gfortran-openmp)
-   FC = gfortran -c -w --openmp
-   FFLAGS = -O3  
+   FC = gfortran 
+   FFLAGS = -O3  -w --openmp
    FLINK = gfortran --openmp -w -o $(PROJECT) -llapack -lblas
 endif
 
-# ifeq ($(HOST),amd-gfortran)
-#   FC = gfortran -c -w
-#   FFLAGS = -O2 -mcmodel=medium 
-#   #FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) /usr/lib/liblapack.so.3 /usr/lib/libblas.so.3
-#   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
-# endif
-
-# ifeq ($(HOST),amd-gfortran-openmp)
-#   FC = gfortran -c -w
-#   FFLAGS = -O2 -mcmodel=medium -fopenmp
-#   FLINK = gfortran -w -mcmodel=medium -fopenmp -o $(PROJECT) -llapack -lblas
-#   export OMP_NUM_THREADS=8
-#   export OMP_STACKSIZE=1024M
-# endif
-
-# ifeq ($(HOST),linux-intel)
-#   FC = ifort -c -w
-#   FFLAGS = -O2 -mcmodel=medium
-#   FLINK = ifort -w -mcmodel=medium -o $(PROJECT) -mkl
-# endif
-
-# ifeq ($(HOST),linux-intel-openmp)
-#   FC = ifort -c -w -qopenmp
-#   FFLAGS = -O2 -mcmodel=medium
-#   FLINK = ifort -w -mcmodel=medium -mkl=parallel -qopenmp -o $(PROJECT)
-#   export OMP_NUM_THREADS=4
-#   export OMP_STACKSIZE=1024M
-# endif
 
 
 
@@ -158,10 +130,10 @@ OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
 #
 
 %.o : %.f
-	$(FC) $(FFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 %.o : %.f90
-	$(FC) $(FFLAGS) $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 
 all: mods objects
