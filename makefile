@@ -78,12 +78,11 @@ MOD_SOURCES = $(SRC)/Mod_Plot_Tools.f90 \
  $(SRC)/Mod_GaussTri.f90 \
  $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/ModType_Smooth_Surface.f90 \
- $(SRC)/Mod_InOut.f90 \
  $(SRC)/Mod_Fast_Sigma.f90 \
  $(SRC)/Mod_Plot_Tools_sigma.f90 \
  $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/Mod_Feval.f90 \
- $(SRC)/Mod_Smooth_Surface.f90 \
+ $(SRC)/Mod_Smooth_Surface.f90
 
 SOURCES =  $(EXM)/test_surfsmooth.f90 \
  src/koornexps.f90 \
@@ -91,6 +90,8 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  src/ortho2eva_new.f90 \
  src/ortho2exps.f \
  src/orthom.f \
+ src/feval.f90 \
+ $(SRC)/cisurf_loadmsh.f90 \
  $(SRC)/lapack_wrap.f90 \
  $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/tfmm3dlrwrap_expout.f \
@@ -99,7 +100,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/prini.f \
  $(TFMM3D)/l3dterms.f \
  $(TFMM3D)/laprouts3d.f \
- $(TFMM3D)/Near_Interaction_code.f90 \
+ $(TFMM3D)/nearfield.f90 \
  $(TFMM3D)/l3dmpmpfinal4.f \
  $(TFMM3D)/l3dloclocfinal4.f \
  $(TFMM3D)/l3dmplocfinal4.f \

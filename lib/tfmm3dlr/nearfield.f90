@@ -39,11 +39,11 @@ subroutine tpotfld3d_dp(iffld,source,qwt,dipvec,targ,sigma,grad_sigma,pot,fld)
 implicit none
 !List of calling arguments
 integer ( kind = 8 ), intent(in) :: iffld
-real ( kind = 8 ) , intent(in) :: source(3),qwt,dipvec(3),targ(3),sigma,grad_sigma(3)
-real ( kind = 8 ), intent(out) ::  pot,fld(3)
+double precision , intent(in) :: source(3),qwt,dipvec(3),targ(3),sigma,grad_sigma(3)
+double precision, intent(out) ::  pot,fld(3)
 
 !List of local variables
-real ( kind = 8 ) R, H, HH, HHH, prod
+double precision R, H, HH, HHH, prod
 
     R=sqrt((source(1)-targ(1))**2+(source(2)-targ(2))**2+(source(3)-targ(3))**2)
     call my_erf_like_v4(R,sigma,H,HH,HHH)
@@ -63,11 +63,11 @@ subroutine my_erf_like_v4(r,sgma,H,HH,HHH)
 implicit none
 
 !List of calling arguments
-real ( kind = 8 ) , intent(in) :: r,sgma
-real ( kind = 8 ), intent(out) ::  H, HH, HHH
+double precision , intent(in) :: r,sgma
+double precision, intent(out) ::  H, HH, HHH
 
 !List of local variables
-real ( kind = 8 ) pi, my_exp, denom,x(15),w(15)
+double precision pi, my_exp, denom,x(15),w(15)
 integer ( kind = 8) count
 
     pi=3.141592653589793238462643383d0

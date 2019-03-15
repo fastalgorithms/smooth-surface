@@ -1,6 +1,5 @@
 program Test_6
 
-  use Mod_InOut
   use ModType_Smooth_Surface
   use Mod_Tri_Tools
   use Mod_TreeLRD
@@ -11,12 +10,13 @@ program Test_6
 
   implicit none
 
-  integer,parameter :: seed = 86456 
+  integer, parameter :: seed = 86456 
   type ( Geometry ), pointer :: Geometry1
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
   integer ( kind = 8 ) :: N,n_order_sk,n_order_sf, count,n_refinement
-  integer ( kind = 8 ) N_plot,M_plot,count1,count2,icount,adapt_flag,n_targ,n_targets,interp_flag,fmm_flag
+  integer ( kind = 8 ) N_plot,M_plot,count1,count2,icount,adapt_flag
+  integer (kind=8) :: n_targ,n_targets,interp_flag,fmm_flag
   INTEGER :: t1, t2,clock_rate, clock_max
 
   character ( len=100 ) :: nombre,filename,plot_name,name_aux
@@ -27,7 +27,7 @@ program Test_6
 
   real ( kind = 8 ), allocatable :: Pts(:,:), sgmas(:)
   real ( kind = 8 ), allocatable :: F_plot(:,:),targ_vect(:,:),sgma(:)
-  real (kind=0), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
+  real (kind=8), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
   real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
 
   ! number of points to discretize layer potentials, set to 78
@@ -43,7 +43,7 @@ program Test_6
 
   ! this is to enable the interpolation machinery (otherwise iterates
   ! with FMM every time or with stokes identity)
-  interp_flag=1
+  interp_flag=0
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -67,13 +67,18 @@ program Test_6
 
 
   ! load in the msh file
-  call readgeometry(Geometry1,nombre,n_order_sk,n_order_sf)
+  call readgeometry(Geometry1, nombre, n_order_sk, n_order_sf)
+
+  !
   call funcion_skeleton(Geometry1,n_order_sk)
+
+
   call funcion_normal_vert(Geometry1)
 
   
-  call start_Feval_tree(Feval_stuff_1,Geometry1)
-
+  call start_Feval_tree(Feval_stuff_1, Geometry1)
+  
+  
   call funcion_Base_Points(Geometry1)
 
   !! Esto es para el modo sin FMM
@@ -87,11 +92,11 @@ program Test_6
   !call plot_sigma(Feval_stuff_1%FSS_1, Geometry1,adapt_flag)
   !    call plot_tree_tool(Feval_stuff_1%Tree_local)
   !    stop
-  
+
   call system_clock ( t1, clock_rate, clock_max )
-  call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+  call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   call system_clock ( t2, clock_rate, clock_max )
-  time_report(1)=real ( t2 - t1 ) / real ( clock_rate )
+  time_report(1) = real( t2 - t1 ) / real( clock_rate )
 
   write (*,*) 'SAVING .GOV FILE'
   name_aux=trim(filename)// '_r00.gov'
@@ -223,8 +228,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
 
   if (n_order_sf .eq. 45) then
     norder=8
-    nover = 2
-    nover = 0
+    nover = 4
     nsub = 4**nover
     k = 45
     call GaussTri45(us, vs, ws)
