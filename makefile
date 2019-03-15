@@ -92,6 +92,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  src/orthom.f \
  src/feval.f90 \
  $(SRC)/cisurf_loadmsh.f90 \
+ $(SRC)/cisurf_skeleton.f90 \
  $(SRC)/lapack_wrap.f90 \
  $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/tfmm3dlrwrap_expout.f \
