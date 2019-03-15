@@ -46,6 +46,12 @@ ifeq ($(HOST),osx-intel-openmp)
   export OMP_STACKSIZE=2048M
 endif
 
+ifeq ($(HOST),osx-intel)
+  FC = ifort
+  FFLAGS = -O2 -w
+  FLINK = ifort -w -mkl -o $(PROJECT)
+endif
+
 ifeq ($(HOST),linux-gfortran)
    FC = gfortran
    FFLAGS = -O2 -mcmodel=medium  -w
