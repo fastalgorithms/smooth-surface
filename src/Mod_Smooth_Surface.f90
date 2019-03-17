@@ -512,7 +512,9 @@ end subroutine My_Newton
       F=F+(Ex*nx+Ey*ny+Ez*nz)*w
     enddo
     err_rel=abs(F-1)
-    write (*,*) 'Relative Error: ',err_rel,'Value: ', F
+    call prin2('value of integral = *', F, 1)
+    call prin2('relative error = *', err_rel, 1)
+    
     return
   end subroutine check_Gauss
 

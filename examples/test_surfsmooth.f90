@@ -116,7 +116,7 @@ program Test_6
 
   print *
   name_aux=trim(filename)// '_r00.gov'
-  write (*,*) 'SAVING .GOV FILE: ', name_aux
+  print *, '. . . saving *.gov file: ', trim(name_aux)
   call record_Geometry(Geometry1,name_aux)
 
   print *
@@ -129,9 +129,9 @@ program Test_6
   filename='smoothed.vtk'
   print *
   print *
-  print *, 'plotting vtk smoothed geometry...'
+  print *, '. . . plotting vtk smoothed geometry'
   call plotSmoothGeometryVTK(Geometry1, filename)
-  print *, 'finished plotting vtk smoothed geometry...'
+  print *, '. . . finished plotting vtk smoothed geometry'
 
   stop
 
@@ -270,7 +270,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   ! coefficients, and resample and plot
   !
   ntri = Geometry1%ntri
-  call prinf('in vtk plotter, ntri = *', ntri, 1)
+  call prinf('in vtk plotter, original ntri = *', ntri, 1)
   allocate(xyzs(3,k,ntri))
 
   ictr = 0
@@ -348,7 +348,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
 
   end if
 
-  call prinf('total triangles, ntot = *', ntot, 1)
+  !call prinf('total triangles, ntot = *', ntot, 1)
   !call prin2('uvs = *', uvs, 6*ntot)
 
   !
@@ -451,8 +451,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
     
   end do
 
-  call prinf('total number of triangles = *', nnn, 1)
-  call prinf('ntri times nsub = *', ntri*nsub, 1)
+  call prinf('num triangles plotted = *', nnn, 1)
   
   
   iw = 33
