@@ -31,15 +31,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-Module Mod_Tri_Tools
-implicit none
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!    DEFINITION OF SUBROUTINES     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-contains
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -529,13 +520,17 @@ implicit none
     integer (kind = 8 ), intent(in) :: n            !! Number of points in the array
     real (kind = 8 ), intent(in) :: x(n)            !! Points where the polynomials are computed
     real ( kind = 8 ), intent(in) :: alpha,beta     !! Parameters of Jacobi
-    real (kind = 8 ), intent(out) :: P(n,M+1)       !! Output (n points and M+1 polynomials)
+    real (kind = 8 ), intent(out) :: P(n,M+1)       !! Output (n
+    !! points and M+1 polynomials)
+
+    double precision :: factorial
 
     !List of local variables
     integer (kind = 8 ) count1,count2
-    real (kind = 8 ) gamma0,gamma1,aux1,aux2,aux3,aold,h1,anew,bnew,c1,c2
+    double precision ::  gamma0,gamma1,aux1,aux2,aux3,aold,h1,anew,bnew,c1,c2
 
-        gamma0=2.0d0**(alpha+beta+1.0d0)/(alpha+beta+1)*factorial(alpha)*factorial(beta)/factorial(alpha+beta)
+    gamma0 = 2.0d0**(alpha+beta+1.0d0)/(alpha+beta+1) &
+        *factorial(alpha)*factorial(beta)/factorial(alpha+beta)
         aux1=1.0d0/sqrt(gamma0)
         gamma1=(alpha+1)*(beta+1)/(alpha+beta+3)*gamma0;
         aux2=(alpha+beta+2.0d0)/(2.0d0*sqrt(gamma1))
@@ -9142,8 +9137,6 @@ implicit none
 
 return
 end
-
-end module Mod_Tri_Tools
 
 
 

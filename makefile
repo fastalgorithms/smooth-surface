@@ -73,27 +73,26 @@ TFMM3D = lib/tfmm3dlr
 SRC = src
 EXM = examples
 
-MOD_SOURCES = $(SRC)/Mod_Plot_Tools.f90 \
- $(SRC)/Mod_Tri_Tools.f90 \
- $(SRC)/Mod_GaussTri.f90 \
- $(SRC)/Mod_TreeLRD.f90 \
+MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/ModType_Smooth_Surface.f90 \
  $(SRC)/Mod_Fast_Sigma.f90 \
  $(SRC)/Mod_Plot_Tools_sigma.f90 \
- $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
 
 SOURCES =  $(EXM)/test_surfsmooth.f90 \
- src/koornexps.f90 \
- src/ortho2eva.f \
- src/ortho2eva_new.f90 \
- src/ortho2exps.f \
- src/orthom.f \
- src/feval.f90 \
+ $(SRC)/koornexps.f90 \
+ $(SRC)/ortho2eva.f \
+ $(SRC)/ortho2eva_new.f90 \
+ $(SRC)/ortho2exps.f \
+ $(SRC)/orthom.f \
  $(SRC)/cisurf_loadmsh.f90 \
  $(SRC)/cisurf_skeleton.f90 \
+ $(SRC)/cisurf_plottools.f90 \
+ $(SRC)/cisurf_tritools.f90 \
+ $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/lapack_wrap.f90 \
+ $(SRC)/pplot2.f
  $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/tfmm3dlrwrap_expout.f \
  $(TFMM3D)/l3dzero.f \
@@ -123,7 +122,6 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/l3dgqbxauxrouts2.f \
  $(TFMM3D)/lwtsexp_sep2.f \
  $(TFMM3D)/chebexps.f \
- $(SRC)/pplot2.f \
 
 
 
@@ -153,7 +151,7 @@ objects: $(OBJECTS)
 
 clean:
 	rm -f $(MOD_OBJECTS)
-	rm -f prefunrouts_withoutfmm.mod
+	rm -f *.mod
 	rm -f $(OBJECTS)
 	rm -f $(PROJECT)
 

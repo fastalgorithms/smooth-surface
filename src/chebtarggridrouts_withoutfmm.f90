@@ -1,9 +1,5 @@
 !-----------------------------------
 
-module prefunrouts_withoutfmm
-
-contains
-
 subroutine precompphi_fun1(eps,ns,sources,nt,dumtarg,norder, &
        itree,ltree,nlevels,nboxes,nlbox,iptr,treecenters,boxsize, &
        nt2,fcoeffs,fun1)
@@ -1192,5 +1188,3 @@ end subroutine sigma_eval
           endif
        enddo
 end subroutine
-
-end module

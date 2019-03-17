@@ -1,7 +1,6 @@
 program Test_6
 
   use ModType_Smooth_Surface
-  use Mod_Tri_Tools
   use Mod_TreeLRD
   use Mod_Plot_Tools_sigma
   use Mod_Fast_Sigma
@@ -17,11 +16,11 @@ program Test_6
   integer ( kind = 8 ) :: N,n_order_sk,n_order_sf, count,n_refinement
   integer ( kind = 8 ) N_plot,M_plot,count1,count2,icount,adapt_flag
   integer (kind=8) :: n_targ,n_targets,interp_flag,fmm_flag
-  INTEGER :: t1, t2,clock_rate, clock_max
+  integer :: t1, t2,clock_rate, clock_max
 
-  character ( len=100 ) :: nombre,filename,plot_name,name_aux
-  character(len=100) :: nombre1,nombre2
-  CHARACTER(LEN=8) :: istr1
+  character (len=100 ) :: nombre,filename,plot_name,name_aux
+  character (len=100) :: nombre1,nombre2
+  character (len=8) :: istr1
   real ( kind = 8 ) :: U(78),V(78),w(78),x0,y0,z0
   real ( kind = 8 ) x_min,x_max,y_min,y_max,z_min,z_max
 
@@ -69,7 +68,7 @@ program Test_6
   ! load in the msh file
   call readgeometry(Geometry1, nombre, n_order_sk, n_order_sf)
 
-  !
+  ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1,n_order_sk)
 
 

@@ -1,9 +1,8 @@
 Module Mod_Plot_Tools_sigma
-use Mod_Plot_Tools
-use Mod_TreeLRD
-use ModType_Smooth_Surface
-use Mod_Fast_Sigma
-implicit none
+  use Mod_TreeLRD
+  use ModType_Smooth_Surface
+  use Mod_Fast_Sigma
+  implicit none
 
 public :: plot_sigma
 

@@ -1,13 +1,14 @@
 !-----------------------------------
 
-module prefunrouts
-use Mod_Fast_Sigma
-contains
+!module prefunrouts
+!use Mod_Fast_Sigma
+!contains
 
 subroutine initialize_feval(eps,ns,sources,skeleton_w,rn,nt,dumtarg,norder, &
        itree,ltree,nlevels,nboxes,iptr,treecenters,boxsize, &
        nt2,fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,FSS_1,adapt_flag)
 
+  use Mod_Fast_Sigma
 
 
 !       this subroutine tree sorts a collection of sources
@@ -53,65 +54,65 @@ subroutine initialize_feval(eps,ns,sources,skeleton_w,rn,nt,dumtarg,norder, &
 !                                   for the revelant leaf boxes
 !
 !      use Mod_TreeLRD
-      implicit real *8 (a-h,o-z)
+      implicit double precision (a-h,o-z)
 
 !      calling sequence variables
       integer, intent(in) :: ns,nt
-      real *8, intent(in) :: eps
-      real *8, intent(in) :: sources(3,ns)
-      real *8, intent(in) :: rn(3,ns)
-      real *8, intent(in) :: skeleton_w(ns)
-      real *8, intent(inout) :: dumtarg(3,nt)
+      double precision, intent(in) :: eps
+      double precision, intent(in) :: sources(3,ns)
+      double precision, intent(in) :: rn(3,ns)
+      double precision, intent(in) :: skeleton_w(ns)
+      double precision, intent(inout) :: dumtarg(3,nt)
 
       integer, allocatable, intent(inout) :: itree(:)
       integer, allocatable, intent(inout) :: iptr(:)
       integer, intent(inout) :: nboxes,nlevels,ltree,nt2
       integer, intent(in) :: norder
 
-      real *8, allocatable, intent(inout) :: treecenters(:,:)
-      real *8, allocatable, intent(inout) :: boxsize(:)
-      real *8, allocatable, intent(inout) :: fcoeffs(:)
-      real *8, allocatable, intent(inout) :: fcoeffsx(:)
-      real *8, allocatable, intent(inout) :: fcoeffsy(:)
-      real *8, allocatable, intent(inout) :: fcoeffsz(:)
+      double precision, allocatable, intent(inout) :: treecenters(:,:)
+      double precision, allocatable, intent(inout) :: boxsize(:)
+      double precision, allocatable, intent(inout) :: fcoeffs(:)
+      double precision, allocatable, intent(inout) :: fcoeffsx(:)
+      double precision, allocatable, intent(inout) :: fcoeffsy(:)
+      double precision, allocatable, intent(inout) :: fcoeffsz(:)
       type ( Fast_Sigma_stuff ), pointer :: FSS_1
       integer, intent(in) :: adapt_flag
 !        temporary variables      
 
-      real *8, allocatable :: radsrc(:)
+      double precision, allocatable :: radsrc(:)
       integer, allocatable :: ntargbox(:)
       integer, allocatable :: itstartbox(:)
-      real *8, allocatable :: dumtargsort(:,:)
+      double precision, allocatable :: dumtargsort(:,:)
 
-      real *8, allocatable :: targets(:,:)
-      real *8, allocatable :: fvals(:),fvalsx(:),fvalsy(:),fvalsz(:)
-      real *8 fvalstmp(norder*norder*norder)
-      real *8 fvalsxtmp(norder*norder*norder)
-      real *8 fvalsytmp(norder*norder*norder)
-      real *8 fvalsztmp(norder*norder*norder)
-!      real *8, allocatable :: fvalstmp(:)
-!      real *8, allocatable :: fvalsxtmp(:),fvalsytmp(:),fvalsztmp(:)
+      double precision, allocatable :: targets(:,:)
+      double precision, allocatable :: fvals(:),fvalsx(:),fvalsy(:),fvalsz(:)
+      double precision fvalstmp(norder*norder*norder)
+      double precision fvalsxtmp(norder*norder*norder)
+      double precision fvalsytmp(norder*norder*norder)
+      double precision fvalsztmp(norder*norder*norder)
+!      double precision, allocatable :: fvalstmp(:)
+!      double precision, allocatable :: fvalsxtmp(:),fvalsytmp(:),fvalsztmp(:)
 
       integer nlbox      
 
-      real *8, allocatable :: sigma(:),sigma_grad(:,:),trads(:)
-      real *8 sigmatmp,sigma_gradtmp(3)
+      double precision, allocatable :: sigma(:),sigma_grad(:,:),trads(:)
+      double precision sigmatmp,sigma_gradtmp(3)
 
 !      fmm variables
       integer, allocatable :: itreefmm(:)
-      real *8, allocatable :: treecentersfmm(:,:),boxsizefmm(:)
+      double precision, allocatable :: treecentersfmm(:,:),boxsizefmm(:)
       integer ipointer(32)
       integer, allocatable :: iaddr(:,:),nterms(:)
-      real *8, allocatable :: rmlexp(:)
+      double precision, allocatable :: rmlexp(:)
       complex *16, allocatable :: charges(:),dipole(:)
       complex *16, allocatable :: pottarg(:),fldtarg(:,:)
 
-      real *8 xpts(norder),wts(norder)
-      real *8, allocatable :: xmatc(:,:)
-      real *8, allocatable :: tails(:)
-      real *8, allocatable :: tailsx(:)
-      real *8, allocatable :: tailsy(:)
-      real *8, allocatable :: tailsz(:)
+      double precision xpts(norder),wts(norder)
+      double precision, allocatable :: xmatc(:,:)
+      double precision, allocatable :: tails(:)
+      double precision, allocatable :: tailsx(:)
+      double precision, allocatable :: tailsy(:)
+      double precision, allocatable :: tailsz(:)
       integer, allocatable :: irefineflag(:)
       integer, allocatable :: ibcompflag(:)
       integer, allocatable :: itcompflag(:)
@@ -120,20 +121,20 @@ subroutine initialize_feval(eps,ns,sources,skeleton_w,rn,nt,dumtarg,norder, &
       integer, allocatable :: ntargboxout(:)
       integer, allocatable :: itstartboxout(:)
       integer iptrout(7)
-      real *8, allocatable :: targetsout(:,:),fcoeffsout(:), &
+      double precision, allocatable :: targetsout(:,:),fcoeffsout(:), &
             boxsizeout(:),treecentersout(:,:),fcoeffsxout(:), &
             fcoeffsyout(:), fcoeffszout(:)
       integer *8 nnnn, nadapt_flag
 !
 !c      more temporary variables
 !
-      real *8 expc(3),radt,wlege(40000),pottmp,gradtmp(3)
-      real *8, allocatable :: sourcesort(:,:),dipvecsort(:,:)
+      double precision expc(3),radt,wlege(40000),pottmp,gradtmp(3)
+      double precision, allocatable :: sourcesort(:,:),dipvecsort(:,:)
       complex *16, allocatable :: dipstrsort(:),chargesort(:)
       integer, allocatable :: ilevel(:)
       real ( kind = 8 ) sigmatmp_v(1), sigma_gradtmp_v_x(1)
       real ( kind = 8 ) sigma_gradtmp_v_y(1),sigma_gradtmp_v_z(1)
-      real *8 tradtmp
+      double precision tradtmp
 
 
 !
@@ -651,15 +652,15 @@ subroutine f_eval(nt,targets,norder,itree,ltree,nlevels,nboxes,iptr, &
              treecenters,boxsize,nt2,fcoeffs,fcoeffsx,fcoeffsy, &
              fcoeffsz, f, fx, fy, fz, flags)
 
-      implicit real *8 (a-h,o-z)
-      real *8 targets(3,nt)
+      implicit double precision (a-h,o-z)
+      double precision targets(3,nt)
       integer norder,ltree,nlevels,nboxes,iptr(7),nt2
       integer flags(nt)
       integer itree(ltree)
-      real *8 treecenters(3,nboxes),boxsize(0:nlevels)
-      real *8 fcoeffs(nt2),fcoeffsx(nt2),fcoeffsy(nt2),fcoeffsz(nt2)
+      double precision treecenters(3,nboxes),boxsize(0:nlevels)
+      double precision fcoeffs(nt2),fcoeffsx(nt2),fcoeffsy(nt2),fcoeffsz(nt2)
 
-      real *8 f(nt),fx(nt),fy(nt),fz(nt)
+      double precision f(nt),fx(nt),fy(nt),fz(nt)
 
 !
 !!       find which box the target lives in
@@ -730,10 +731,10 @@ subroutine f_eval_slow(n,targets,iflag,ns,sources,wts,dipvec,stdev, &
 !      grad(3,n) - gradient of the function
 
 
-   implicit real *8 (a-h,o-z)
+   implicit double precision (a-h,o-z)
    integer *8 n
-   real *8 targets(3,n), sources(3,ns),wts(ns),dipvec(3,ns),stdev(n)
-   real *8 stdev_grad(3,n),pot(n),grad(3,n),ptmp,ftmp(3)
+   double precision targets(3,n), sources(3,ns),wts(ns),dipvec(3,ns),stdev(n)
+   double precision stdev_grad(3,n),pot(n),grad(3,n),ptmp,ftmp(3)
    integer iflag(n)
 
 
@@ -765,9 +766,9 @@ end subroutine f_eval_slow
 !-------------------------------------------
 
        subroutine getxmatc(k,k3,xmatc)
-       implicit real *8 (a-h,o-z)
-       real *8 xmatc(k3,*)
-       real *8 uk(k,k),ts(k),wts(k),vk(k,k)
+       implicit double precision (a-h,o-z)
+       double precision xmatc(k3,*)
+       double precision uk(k,k),ts(k),wts(k),vk(k,k)
 
        itype = 2
        call chebexps(itype,k,ts,uk,vk,wts)
@@ -799,9 +800,9 @@ end subroutine getxmatc
 !       and findboxtarg is the pointer array and where the children
 !      information is stored in the tree
 !
-      implicit real *8 (a-h,o-z)
+      implicit double precision (a-h,o-z)
       integer iptr(*),itree(*)
-      real *8 treecenters(3,*),targtest(3)
+      double precision treecenters(3,*),targtest(3)
 
      
       iboxtarg = 1
@@ -867,9 +868,9 @@ end subroutine findboxtarg
 !       and findboxtarg is the pointer array and where the children
 !      information is stored in the tree
           
-      implicit real *8 (a-h,o-z)
+      implicit double precision (a-h,o-z)
       integer iptr(*),itree(*)
-      real *8 treecenters(3,nboxes),targtest(3),boxsize(0:nlevels)
+      double precision treecenters(3,nboxes),targtest(3),boxsize(0:nlevels)
 
 !
 !c       compute relartive corordinates for teh target with
@@ -909,9 +910,9 @@ end subroutine findboxtarg_fulltree
 !-----------------------------------------------------
 
       subroutine cheb3deval(targtest,rscale,center,k,fcoeffs,f)
-      implicit real *8 (a-h,o-z)
-      real *8 xpols(k+10),ypols(k+10),zpols(k+10)
-      real *8 fcoeffs(*),targtest(3),center(3)
+      implicit double precision (a-h,o-z)
+      double precision xpols(k+10),ypols(k+10),zpols(k+10)
+      double precision fcoeffs(*),targtest(3),center(3)
 
       x = (targtest(1) - center(1))/rscale*2
       y = (targtest(2) - center(2))/rscale*2
@@ -938,11 +939,11 @@ end subroutine cheb3deval
 
       subroutine cheb3deval_withgrad(targtest,rscale,center,k, &
          fcoeffs,fcoeffsx,fcoeffsy,fcoeffsz,f,fx,fy,fz)
-      implicit real *8 (a-h,o-z)
-      real *8 xpols(k+10),ypols(k+10),zpols(k+10)
-      real *8 fcoeffs(*),fcoeffsx(*),fcoeffsy(*),fcoeffsz(*)
-      real *8 targtest(3),center(3)
-      real *8 f,fx,fy,fz
+      implicit double precision (a-h,o-z)
+      double precision xpols(k+10),ypols(k+10),zpols(k+10)
+      double precision fcoeffs(*),fcoeffsx(*),fcoeffsy(*),fcoeffsz(*)
+      double precision targtest(3),center(3)
+      double precision f,fx,fy,fz
 
       x = (targtest(1) - center(1))/rscale*2
       y = (targtest(2) - center(2))/rscale*2
@@ -983,7 +984,7 @@ subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
 !       itree(iptr(5)) - ichild
 !       itree(iptr(6)) - pointer to fcoeffs array
 
-     implicit real *8 (a-h,o-z)
+     implicit double precision (a-h,o-z)
      integer itree(*),itreetmp(*),iptr(*),ipointer(*),ntargbox(*)
      integer itstartbox(*)
 
@@ -1025,8 +1026,8 @@ subroutine extracttreesubinfo(itreetmp,ipointer,nboxes,nlevels, &
 end subroutine extracttreesubinfo
 !-----------------------------------------------
 subroutine comptail(norder,norder3,fcoeffs,tail)
-    implicit real *8 (a-h,o-z)
-    real *8 fcoeffs(*),tail
+    implicit double precision (a-h,o-z)
+    double precision fcoeffs(*),tail
 
     tail = 0
     rnorder = norder + 0.0d0
@@ -1051,8 +1052,8 @@ subroutine comptail(norder,norder3,fcoeffs,tail)
 end subroutine
 
 subroutine matvec(m,n,a,x,y)
-implicit real *8 (a-h,o-z)
-   real *8 a(m,n),x(n),y(m)
+implicit double precision (a-h,o-z)
+   double precision a(m,n),x(n),y(m)
    
    do i=1,m
      y(i) = 0
@@ -1074,20 +1075,20 @@ end subroutine
          itstartboxout,ntargboxout,nt2out,targetsout,fcoeffsout, &
          fcoeffsxout,fcoeffsyout,fcoeffszout)
 
-       implicit real *8 (a-h,o-z)
+       implicit double precision (a-h,o-z)
        integer, intent(inout) :: nboxes,nlevels,nt2
        integer, dimension(:), intent(in) ::  itree
        integer iptr(7)
        integer, dimension(:), intent(in) :: itstartbox
        integer, dimension(:), intent(in) :: ntargbox
-       real *8, dimension(:,:), intent(in) :: treecenters
-       real *8, intent(in) :: boxsize(0:nlevels)
-       real *8, dimension(:,:), intent(in) :: targets
-       real *8, dimension(:,:), intent(inout) :: dumtarg
-       real *8, dimension(:), intent(in) :: fcoeffs
-       real *8, dimension(:), intent(in) :: fcoeffsx
-       real *8, dimension(:), intent(in) :: fcoeffsy
-       real *8, dimension(:), intent(in) :: fcoeffsz
+       double precision, dimension(:,:), intent(in) :: treecenters
+       double precision, intent(in) :: boxsize(0:nlevels)
+       double precision, dimension(:,:), intent(in) :: targets
+       double precision, dimension(:,:), intent(inout) :: dumtarg
+       double precision, dimension(:), intent(in) :: fcoeffs
+       double precision, dimension(:), intent(in) :: fcoeffsx
+       double precision, dimension(:), intent(in) :: fcoeffsy
+       double precision, dimension(:), intent(in) :: fcoeffsz
        integer norder
        integer, intent(out), allocatable :: ibcompflag(:)
        integer, intent(out), allocatable :: itcompflag(:)
@@ -1099,9 +1100,9 @@ end subroutine
               nlevelsout,nt2out
        integer, intent(out), allocatable :: itstartboxout(:)       
        integer, intent(out), allocatable :: ntargboxout(:)
-       real *8, intent(out), allocatable :: targetsout(:,:), &
+       double precision, intent(out), allocatable :: targetsout(:,:), &
               fcoeffsout(:), boxsizeout(:),treecentersout(:,:)
-       real *8, intent(out), allocatable :: fcoeffsxout(:), &
+       double precision, intent(out), allocatable :: fcoeffsxout(:), &
                   fcoeffsyout(:),fcoeffszout(:)
 
 
@@ -1110,12 +1111,12 @@ end subroutine
        integer, allocatable :: laddrtail(:,:),tilev(:),tladdr(:,:)
        integer, allocatable :: tiparent(:),tnchild(:),tichild(:,:)
        integer tiptr(7)
-       real *8, allocatable :: ttargets(:,:),tboxsize(:)
-       real *8, allocatable :: tcenters(:,:)
-       real *8, allocatable :: dumtargsort(:,:)
+       double precision, allocatable :: ttargets(:,:),tboxsize(:)
+       double precision, allocatable :: tcenters(:,:)
+       double precision, allocatable :: dumtargsort(:,:)
        integer curbox
        integer, allocatable :: iboxtocurbox(:)
-       real *8 xpts(norder),wts(norder),utmp,vtmp
+       double precision xpts(norder),wts(norder),utmp,vtmp
        integer ntc(8)
 
 
@@ -1421,13 +1422,13 @@ subroutine newtargeval(targets,stdev,stdev_grad,ibox,ilev, &
              ipointer,mnbors,mnlist1,ilevel,rmlexp,ns,sourcesort, &
              ifcharge,chargesort,ifdipole,dipstrsort,dipvecsort, &
              nterms,nlege,wlege,pot,grad)
-     implicit real *8 (a-h,o-z)
-     real *8 targets(*),boxsize(0:nlevels),rmlexp(*),wlege(*)
-     real *8 sourcesort(3,*),dipvecsort(3,*),centers(3,*)
+     implicit double precision (a-h,o-z)
+     double precision targets(*),boxsize(0:nlevels),rmlexp(*),wlege(*)
+     double precision sourcesort(3,*),dipvecsort(3,*),centers(3,*)
      complex *16 chargesort(*), dipstrsort(*)
      integer iaddr(2,*),itree(*),ipointer(32),nterms(0:nlevels)
      integer ilevel(*)
-     real *8 pot,grad(3),stdev_grad(3)
+     double precision pot,grad(3),stdev_grad(3)
      complex *16 pottmp,gradtmp(3)
 
 !
@@ -1503,11 +1504,11 @@ end subroutine newtargeval
 
 subroutine targsorttochildren(ibox,nt,trg,centers, &
     itstart,ntarg,ntc)
-   implicit real *8 (a-h,o-z)
-   real *8 trg(3,*), centers(3)
+   implicit double precision (a-h,o-z)
+   double precision trg(3,*), centers(3)
    integer itstart(*),ntarg(*),ntc(8)
    integer, allocatable :: itarget(:),itargtmp(:)
-   real *8, allocatable :: trgtmp(:,:)
+   double precision, allocatable :: trgtmp(:,:)
 
 
    allocate(itarget(nt),itargtmp(nt))
@@ -1688,8 +1689,8 @@ end subroutine
 
 
 subroutine sigma_eval1(xyz,sigma,sigma_grad)
-   implicit real *8 (a-h,o-z)
-   real *8 sigma_grad(3),xyz(3)
+   implicit double precision (a-h,o-z)
+   double precision sigma_grad(3),xyz(3)
 
    rr2 = xyz(1)**2 + xyz(2)**2 + xyz(3)**2
 
@@ -1714,4 +1715,4 @@ end subroutine sigma_eval1
 
 
 
-end module
+!end module

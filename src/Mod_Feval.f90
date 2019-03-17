@@ -47,9 +47,7 @@ Module Mod_Feval
   use Mod_TreeLRD
   use Mod_Fast_Sigma
   use ModType_Smooth_Surface
-  use Mod_Plot_Tools
-  use prefunrouts
-  use Mod_Tri_Tools
+  !use prefunrouts
 
   implicit none
   
