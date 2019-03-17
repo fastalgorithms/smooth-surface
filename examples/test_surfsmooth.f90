@@ -56,6 +56,7 @@ program Test_6
   ! identity (local surface integral + contour integral)
   fmm_flag=1      
 
+  call prinf('- - - alpha release - - - *', norder_skel, 0))
   call prinf('. . . printing flags and options*', norder_skel, 0)
   call prinf('norder_skel = *', norder_skel, 1)
   !call prinf('norder_smooth = *', norder_smooth, 1)
