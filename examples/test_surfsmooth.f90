@@ -17,6 +17,7 @@ program Test_6
   integer ( kind = 8 ) N_plot,M_plot,count1,count2,icount,adapt_flag
   integer (kind=8) :: n_targ,n_targets,interp_flag,fmm_flag
   integer :: t1, t2,clock_rate, clock_max
+  integer :: norder_skel, norder_smooth
 
   character (len=100 ) :: nombre,filename,plot_name,name_aux
   character (len=100) :: nombre1,nombre2
@@ -29,9 +30,16 @@ program Test_6
   real (kind=8), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
   real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
 
-  ! number of points to discretize layer potentials, set to 78
-  n_order_sk=78
 
+  call prini(6,13)
+  
+  ! order with which to discretize the skeleton patches (pick
+  ! something high-order)
+  n_order_sk=78
+  norder_skel = 11
+  
+
+  
   ! number of points per triangle on smooth surface, set to 45 or 78
   n_order_sf=45
   ! n_order_sf=78
@@ -48,6 +56,14 @@ program Test_6
   ! identity (local surface integral + contour integral)
   fmm_flag=1      
 
+  call prinf('. . . printing flags and options*', norder_skel, 0)
+  call prinf('norder_skel = *', norder_skel, 1)
+  !call prinf('norder_smooth = *', norder_smooth, 1)
+  call prinf('n_refinement = *', n_refinement, 1)
+  call prinf('adapt_flag = *', adapt_flag, 1)
+  call prinf('interp_flag = *', interp_flag, 1)
+
+  
 
   allocate(Geometry1)
   allocate(time_report(n_refinement+1))

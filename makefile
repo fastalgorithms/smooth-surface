@@ -92,7 +92,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(SRC)/cisurf_tritools.f90 \
  $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/lapack_wrap.f90 \
- $(SRC)/pplot2.f
+ $(SRC)/pplot2.f \
  $(TFMM3D)/tfmm3dlr_expout.f \
  $(TFMM3D)/tfmm3dlrwrap_expout.f \
  $(TFMM3D)/l3dzero.f \
@@ -121,7 +121,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/rotgen2.f \
  $(TFMM3D)/l3dgqbxauxrouts2.f \
  $(TFMM3D)/lwtsexp_sep2.f \
- $(TFMM3D)/chebexps.f \
+ $(TFMM3D)/chebexps.f
 
 
 
