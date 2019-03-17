@@ -23,9 +23,9 @@
 
 subroutine ortho2eva6(mmax, z, pols, dersx, dersy, dersxx, &
     dersxy, dersyy, w)
-  implicit real *8 (a-h,o-z)
-  real *8 :: z(2), pols(*), dersx(*), dersy(*), w(*)
-  real *8 :: dersxx(*), dersxy(*), dersyy(*)
+  implicit double precision (a-h,o-z)
+  double precision :: z(2), pols(*), dersx(*), dersy(*), w(*)
+  double precision :: dersxx(*), dersxy(*), dersyy(*)
   data c0/.7598356856515925473311877506545453353968d0/
   data c1/1.861209718204199197882437493966468175502d0/
   data c2/1.861209718204199197882437493966468175502d0/
@@ -164,26 +164,26 @@ end subroutine ortho2eva6
 
 subroutine ortho2eva60(mmax, z, pols, dersx, dersy, dersxx, &
     dersxy, dersyy, pvals, jvals, pdersx, pdersy, jders, f6)
-  implicit real *8 (a-h,o-z)
-  real *8 :: z(2), pols(*), dersx(*), dersy(*)
-  real *8 :: dersxx(*), dersxy(*), dersyy(*)
-  real *8 :: pvals(*), jvals(*), pdersx(*), pdersy(*), jders(*), f6(*)
-  real *8 :: pdersxx(10000), pdersxy(10000), pdersyy(10000)
-  real *8 :: jders2(10000)
+  implicit double precision (a-h,o-z)
+  double precision :: z(2), pols(*), dersx(*), dersy(*)
+  double precision :: dersxx(*), dersxy(*), dersyy(*)
+  double precision :: pvals(*), jvals(*), pdersx(*), pdersy(*), jders(*), f6(*)
+  double precision :: pdersxx(10000), pdersxy(10000), pdersyy(10000)
+  double precision :: jders2(10000)
   
-  real *8, parameter :: zero = 0
+  double precision, parameter :: zero = 0
 
-  real *8, &
+  double precision, &
       parameter :: sqrt2 = 1.414213562373095048801688724209698078570d0
-  real *8, &
+  double precision, &
       parameter :: sqrt3 = 1.732050807568877293527446341505872366943d0
-  real *8, &
+  double precision, &
       parameter :: r11 = -.3333333333333333333333333333333333333333d0
-  real *8, &
+  double precision, &
       parameter :: r12 = -.5773502691896257645091487805019574556476d0
-  real *8, &
+  double precision, &
       parameter :: r21 = -.3333333333333333333333333333333333333333d0
-  real *8, &
+  double precision, &
       parameter :: r22 = 1.154700538379251529018297561003914911295d0
 
   !
@@ -269,9 +269,9 @@ end subroutine ortho2eva60
       
 subroutine klegeypols6(x, y, n, pols, dersx, dersy, dersxx, &
     dersxy, dersyy)
-  implicit real *8 (a-h,o-z)
-  real *8 :: pols(*), dersx(*), dersy(*), dersxx(*)
-  real *8 :: dersxy(*), dersyy(*)
+  implicit double precision (a-h,o-z)
+  double precision :: pols(*), dersx(*), dersy(*), dersxx(*)
+  double precision :: dersxy(*), dersyy(*)
 
   !
   ! Evaluate a sequence of scaled Legendre polynomials P_n(x/y) y^n,
@@ -387,7 +387,7 @@ end subroutine klegeypols6
 
 
 subroutine kjacopols3(x,a,b,n,pols,ders,ders2)
-  implicit real *8 (a-h,o-z)
+  implicit double precision (a-h,o-z)
   dimension pols(*), ders(*), ders2(*)
   !c
   !c       evaluates a bunch of Jacobi polynomials (together

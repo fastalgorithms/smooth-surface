@@ -7,7 +7,8 @@ C***********************************************************************
       COMPLEX *16 MEXPPHYS(1),IMA
       COMPLEX *16 FEXPBACK(1)
       REAL *8     ALPHAS(0:100)
-      INTEGER *4  NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
+cccc      INTEGER *4  NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
+      INTEGER   NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
       DATA IMA/(0.0D0,1.0D0)/
 C***********************************************************************
 C

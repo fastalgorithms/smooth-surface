@@ -36,7 +36,7 @@ c***********************************************************************
       complex *16 ys(-5:5,nexptotp)
       real *8 zs(5,nexptotp)
       real *8     rlams(nlambs),u
-      integer *4  nlambs,numphys(nlambs),nexptotp
+      integer  nlambs,numphys(nlambs),nexptotp
       data ima/(0.0d0,1.0d0)/
 c
 c     this subroutine computes the tables of exponentials needed
@@ -134,7 +134,7 @@ c***********************************************************************
       complex *16 fexpe(1)
       complex *16 fexpo(1)
       complex *16 fexpback(1)
-      integer *4  nlambs,numphys(nlambs),numfour(nlambs)
+      integer  nlambs,numphys(nlambs),numfour(nlambs)
       data ima/(0.0d0,1.0d0)/
 c
 c     this subroutine computes the tables of exponentials needed

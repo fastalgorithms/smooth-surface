@@ -30,13 +30,6 @@ ifeq ($(HOST),osx-gcc-openmp)
 endif
 
 
-
-# ifeq ($(HOST),osx-intel)
-#   FC = ifort  
-#   FFLAGS = -O2 -w
-#   FLINK = ifort -mkl -o $(PROJECT)
-# endif
-
 ifeq ($(HOST),osx-intel-openmp)
   FC = ifort
   FFLAGS = -O2 -w -qopenmp
@@ -48,8 +41,8 @@ endif
 
 ifeq ($(HOST),osx-intel)
   FC = ifort
-  FFLAGS = -O2 -w
-  FLINK = ifort -w -mkl -o $(PROJECT)
+  FFLAGS = -i8 -O2 -w
+  FLINK = ifort -i8 -w -mkl -o $(PROJECT)
 endif
 
 ifeq ($(HOST),linux-gfortran)

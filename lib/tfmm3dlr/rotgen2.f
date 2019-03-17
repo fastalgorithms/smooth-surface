@@ -9,7 +9,8 @@ C***********************************************************************
       REAL *8 RDMPI2(0:NTERMS,0:NTERMS,-NTERMS:NTERMS) 
       REAL *8 RDSQ3(0:NTERMS,0:NTERMS,-NTERMS:NTERMS) 
       REAL *8 RDMSQ3(0:NTERMS,0:NTERMS,-NTERMS:NTERMS) 
-      INTEGER *4 NTERMS
+cccc      INTEGER *4 NTERMS
+      INTEGER NTERMS
 c
 c----- call initialization routines
 c
@@ -60,7 +61,8 @@ c     at a time , from m = 0 to m = l  .
 c
 C***********************************************************************
       COMPLEX *16 MPOLE(0:NTERMS,0:NTERMS)
-      INTEGER*4 NTERMS
+cccc      INTEGER *4 NTERMS
+      INTEGER NTERMS
 C
       DO 100 L = 0,LL
 	 WRITE(6,1000)(MPOLE(L,M),M=0,LL)

@@ -106,10 +106,10 @@ contains
     !List of calling arguments
     type ( Feval_stuff ), pointer :: Fev_stf_1      !! data type that contains all the information to evaluate F
     type ( Geometry ), intent(inout)  :: Geometry1      !! data type that contains all the information about the geometry
-    integer ( kind = 8 ), intent(in) :: adapt_flag
+    integer, intent(in) :: adapt_flag
 
     !List of local variables
-    integer ( kind = 8 ) count1,count,n_targets
+    integer count1,count,n_targets
 
     call generate_dummy_targets(Geometry1,Fev_stf_1,adapt_flag)
 
@@ -155,7 +155,7 @@ contains
     type ( Geometry ), intent(inout)  :: Geometry1      !! data type that contains all the information about the geometry
 
     !List of local variables
-    integer ( kind = 8 ) count1,count,n_targets
+    integer count1,count,n_targets
 
     ! Allocate all arrays required
     allocate(Feval_stuff_1)
@@ -179,12 +179,12 @@ contains
     type ( Geometry ), intent(inout)  :: Geometry1      !! data type that contains all the information about the geometry
 
     !List of local variables
-    integer ( kind = 8 ) n_max_leaf
+    integer n_max_leaf
     real ( kind = 8 ) tri_belong(Geometry1%n_Sk_points)
-    integer ( kind = 8 ) n_leaf_boxes,count1,count2,icount,n_order,borrame(10),n_contour
+    integer n_leaf_boxes,count1,count2,icount,n_order,borrame(10),n_contour
     type (Box), pointer :: pointer_out
-    integer ( kind = 8 ), pointer :: borrame2(:)
-    integer ( kind = 8 ), allocatable :: contour(:)
+    integer, pointer :: borrame2(:)
+    integer, allocatable :: contour(:)
 
     ! Allocate all arrays required
     !    allocate(Feval_stuff_1%Tree_local)
@@ -242,9 +242,9 @@ contains
     implicit none
     ! This function evaluates the F function (and gradient) using the FMM and the sgma evaluator
     !! Flags to select the different versions of F
-    !integer ( kind = 8 ), intent(in) :: adapt_flag,n_targets
-    integer (kind = 8) :: adapt_flag
-    integer (kind = 8) :: n_targets
+    !integer, intent(in) :: adapt_flag,n_targets
+    integer  :: adapt_flag
+    integer  :: n_targets
 
     !List of calling arguments
     type ( Geometry ), intent(in) :: Geometry1                   !! data type that contains all the information about the geometry
@@ -255,15 +255,15 @@ contains
 
 
     !List of local variables
-    integer ( kind = 8 ) ier, iprec,ifcharge,ifdipole,ifpottarg,iffldtarg   !! Different flags to run appropriately the FMM
-    integer ( kind = 8 ) count,count2,count1
-    integer ( kind = 8 ) n_sources
+    integer ier, iprec,ifcharge,ifdipole,ifpottarg,iffldtarg   !! Different flags to run appropriately the FMM
+    integer count,count2,count1
+    integer n_sources
     real ( kind = 8 ) tfmm
     complex ( kind = 8 ), allocatable :: sigma(:),mu(:),pottarg(:),fldtarg(:,:)
     real ( kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:),trads(:)
-    integer ( kind = 4 ), allocatable :: flag_error(:)
+    integer , allocatable :: flag_error(:)
     real ( kind = 8 ), allocatable :: missed_Points(:,:)
-    integer ( kind = 8 ) ipointer
+    integer ipointer
     character (len=100) plot_name
 
 
@@ -369,12 +369,12 @@ contains
     !List of calling arguments
     type ( Geometry ), intent(inout) :: Geometry1                   !! data type that contains all the information about the geometry
     type ( Feval_stuff ), pointer :: Fev_stf_1      !! data type that contains all the information to evaluate F
-    integer ( kind = 8 ), intent(in) :: adapt_flag
+    integer, intent(in) :: adapt_flag
 
     !List of local variables
     real ( kind = 8 ), allocatable :: dummy_t_1(:,:),dummy_t_2(:,:)
     real ( kind = 8 ), allocatable :: sgma(:), sgma_grad(:,:)
-    integer ( kind = 8 ) count1,count2,ipcount,n_order,n_tri_dummy,n_ref
+    integer count1,count2,ipcount,n_order,n_tri_dummy,n_ref
     character (len=100) plot_name
     real ( kind = 8 ) hhh
 
@@ -516,12 +516,12 @@ contains
     implicit none
 
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n_order,n_tri
+    integer, intent(in) :: n_order,n_tri
     real ( kind = 8 ), intent(in) :: Points_in(3,n_tri*n_order)
     real ( kind = 8 ), intent(out) :: Points_out(3,n_tri*n_order*4)
 
     !List of local variables
-    integer ( kind = 8 ) count,count1,count2,ipcount
+    integer count,count1,count2,ipcount
     !    real ( kind = 8 ) sgma_tri(n_order)
     real ( kind = 8 ) x_tri(n_order),y_tri(n_order),z_tri(n_order)
     real ( kind = 8 ) x_tri_1(n_order),y_tri_1(n_order),z_tri_1(n_order)
@@ -573,9 +573,9 @@ contains
     type ( Geometry ), intent(inout)  :: Geometry1
 
     !List of local variables
-    integer ( kind = 8 ), allocatable :: Edges_aux(:,:),Boundary_aux(:,:)
-    integer ( kind = 8 ) icount, count1,count2,n_nodes_l
-    integer ( kind = 8 ), allocatable :: flags(:)
+    integer, allocatable :: Edges_aux(:,:),Boundary_aux(:,:)
+    integer icount, count1,count2,n_nodes_l
+    integer, allocatable :: flags(:)
     real ( kind = 8 ) coef_x(3),coef_y(3),coef_z(3),P1(3),P2(3),P3(3),t(32),w(32)
 
     allocate(flags(Geometry1%npoints))
@@ -664,14 +664,14 @@ contains
     !List of calling arguments
     type ( Feval_stuff ), pointer :: Fev_stf_1      !! data type that contains all the information to evaluate F
     type ( Geometry ), intent(in)  :: Geometry1      !! data type that contains all the information about the geometry
-    integer (kind = 8 ), intent(in) :: n_targ,adapt_flag
+    integer , intent(in) :: n_targ,adapt_flag
     real ( kind = 8 ), intent(in) :: targ(3,n_targ)
     real ( kind = 8 ), intent(in) :: v_norm(3,n_targ)
     real ( kind = 8 ), intent(out) :: F(n_targ),grad_F(3,n_targ)
 
     !List of local variables
     real (kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:)
-    integer (kind = 8) count1, count2, count3, iaux,n_tri_local,n_edge_local,iffld,icount2
+    integer  count1, count2, count3, iaux,n_tri_local,n_edge_local,iffld,icount2
     type (Box), pointer :: pointer_out
     real ( kind = 8 ) pot, fld(3),dipvec(3),qwt,source(3),my_sign
     real ( kind = 8 ) F2(n_targ),grad_F2(3,n_targ)
@@ -853,7 +853,7 @@ contains
 
     !List of local variables
     real ( kind = 8 ) v_aux(3),v_aux2(3),normv,normv2,factor,normp,pi
-    integer (kind = 8 ) count1, count2
+    integer  count1, count2
 
 
     pi=3.1415926535897932384626433d0

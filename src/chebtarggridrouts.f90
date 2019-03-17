@@ -732,7 +732,7 @@ subroutine f_eval_slow(n,targets,iflag,ns,sources,wts,dipvec,stdev, &
 
 
    implicit double precision (a-h,o-z)
-   integer *8 n
+   integer :: n
    double precision targets(3,n), sources(3,ns),wts(ns),dipvec(3,ns),stdev(n)
    double precision stdev_grad(3,n),pot(n),grad(3,n),ptmp,ftmp(3)
    integer iflag(n)

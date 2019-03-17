@@ -6,7 +6,7 @@ subroutine funcion_skeleton(Geometry1,n_order_sk)
 
   !List of calling arguments
   type (Geometry), intent(inout) :: Geometry1
-  integer ( kind = 8 ), intent(in) :: n_order_sk
+  integer, intent(in) :: n_order_sk
 
 
   !List of local variables
@@ -14,7 +14,7 @@ subroutine funcion_skeleton(Geometry1,n_order_sk)
   double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
   double precision F_x(n_order_sk),F_y(n_order_sk),F_z(n_order_sk),dS(n_order_sk)
   double precision nP_x(n_order_sk),nP_y(n_order_sk),nP_z(n_order_sk)
-  integer ( kind = 8 ) count
+  integer count
 
   if (n_order_sk==45) then
     call GaussTri45(U,V,w)
@@ -66,7 +66,7 @@ subroutine eval_quadratic_patch(P1,P2,P3,P4,P5,P6,U,V, &
   !
 
   !List of calling arguments
-  integer ( kind = 8 ), intent(in) :: n_order
+  integer, intent(in) :: n_order
   double precision, intent(in) :: P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
   double precision, intent(in) :: U(n_order),V(n_order)
   double precision, intent(out) :: F_x(n_order),F_y(n_order),F_z(n_order),dS(n_order)
@@ -74,7 +74,7 @@ subroutine eval_quadratic_patch(P1,P2,P3,P4,P5,P6,U,V, &
 
   !List of local variables
   double precision coef_x(6),coef_y(6),coef_z(6),U_x,U_y,U_z,V_x,V_y,V_z
-  integer ( kind = 8 ) count
+  integer count
 
   coef_x(1)=P1(1)
   coef_x(2)=-3*P1(1)-P2(1)+4*P4(1)
@@ -138,7 +138,7 @@ subroutine funcion_normal_vert(Geometry1)
   
   !List of local variables
   type (My_cell) My_cell1
-  integer ( kind = 8 ) count, n_order
+  integer count, n_order
   double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
   double precision U(3),V(3)
   double precision F_x(3),F_y(3),F_z(3),dS(3)
@@ -261,12 +261,12 @@ subroutine mimean(All_Normals,n_Normals,Current_Normal)
   implicit none
 
   !List of calling arguments
-  integer ( kind = 8 ), intent(in) :: n_Normals
+  integer, intent(in) :: n_Normals
   double precision, intent(in) :: All_Normals(4,n_Normals)
   double precision, intent(out) :: Current_Normal(3)
 
   !List of local variables
-  integer ( kind = 8 ) count
+  integer count
   double precision coef(n_Normals),sum_coef
 
   current_Normal=(/ 0.0d0, 0.0d0, 0.0d0 /)
@@ -299,7 +299,7 @@ subroutine eval_quadratic_patch_UV(P1,P2,P3,P4,P5,P6,U,V, &
     !
     
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n_order
+    integer, intent(in) :: n_order
     double precision, intent(in) :: P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
     double precision, intent(in) :: U(n_order),V(n_order)
     double precision, intent(out) :: F_x(n_order),F_y(n_order),F_z(n_order),dS(n_order)
@@ -308,7 +308,7 @@ subroutine eval_quadratic_patch_UV(P1,P2,P3,P4,P5,P6,U,V, &
 
     !List of local variables
     double precision coef_x(6),coef_y(6),coef_z(6)
-    integer ( kind = 8 ) count
+    integer count
 
     coef_x(1)=P1(1)
     coef_x(2)=-3*P1(1)-P2(1)+4*P4(1)

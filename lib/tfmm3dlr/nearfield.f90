@@ -38,7 +38,7 @@
 subroutine tpotfld3d_dp(iffld,source,qwt,dipvec,targ,sigma,grad_sigma,pot,fld)
 implicit none
 !List of calling arguments
-integer ( kind = 8 ), intent(in) :: iffld
+integer, intent(in) :: iffld
 double precision , intent(in) :: source(3),qwt,dipvec(3),targ(3),sigma,grad_sigma(3)
 double precision, intent(out) ::  pot,fld(3)
 
@@ -68,7 +68,7 @@ double precision, intent(out) ::  H, HH, HHH
 
 !List of local variables
 double precision pi, my_exp, denom,x(15),w(15)
-integer ( kind = 8) count
+integer  count
 
     pi=3.141592653589793238462643383d0
     my_exp=exp(-r**2/(2*sgma**2))
