@@ -13,9 +13,9 @@ program Test_6
   type ( Geometry ), pointer :: Geometry1
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
-  integer ( kind = 8 ) :: N,n_order_sk,n_order_sf, count,n_refinement
-  integer ( kind = 8 ) N_plot,M_plot,count1,count2,icount,adapt_flag
-  integer (kind=8) :: n_targ,n_targets,interp_flag,fmm_flag
+  integer  :: N,n_order_sk,n_order_sf, count,n_refinement
+  integer :: N_plot,M_plot,count1,count2,icount,adapt_flag
+  integer :: n_targ,n_targets,interp_flag,fmm_flag
   integer :: t1, t2,clock_rate, clock_max
   integer :: norder_skel, norder_smooth
 
@@ -211,7 +211,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   type (Geometry) :: Geometry1
   character (len=*) filename
 
-  integer ( kind = 8 ) :: umio,count1,count2,flag,n_order_sf
+  integer :: umio,count1,count2,flag,n_order_sf
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
   integer :: ntot, ltot, npols7, npols, info, iii, n, l, nnn, iw
   real (kind = 8) :: us(1000), vs(1000), ws(1000), dcond

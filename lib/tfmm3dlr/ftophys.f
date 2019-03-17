@@ -11,7 +11,8 @@ ccc      COMPLEX *16 FEXPS(40,100,40)
       COMPLEX *16 FEXPO(1)
       REAL *8     RLAMS(NLAMBS)
       REAL *8     ALPHAS(0:200)
-      INTEGER *4  NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
+cccc      INTEGER *4  NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
+      INTEGER  NLAMBS,NUMFOUR(NLAMBS),NUMPHYS(NLAMBS),NTHMAX
       DATA IMA/(0.0D0,1.0D0)/
 C***********************************************************************
 C
@@ -93,7 +94,8 @@ C
      1                   MEXPPHYS,CINT)
 C***********************************************************************
       IMPLICIT REAL *8 (A-H,O-Z)
-      INTEGER *4 NUMTETS(1),NLAMBS
+cccc      INTEGER *4 NUMTETS(1),NLAMBS
+      INTEGER  NUMTETS(1),NLAMBS
       COMPLEX *16 ALPHINTV,CINT
       COMPLEX *16 MEXPPHYS(1)
       DIMENSION CENTER(3)

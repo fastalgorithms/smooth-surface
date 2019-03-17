@@ -13,7 +13,7 @@ subroutine readgeometry(Geometry1,filename,n_order_sk,n_order_sf)
   implicit none
   type (Geometry) :: Geometry1
   character(len=100) :: filename
-  integer ( kind = 8 ) :: n_order_sk,n_order_sf
+  integer :: n_order_sk,n_order_sf
   !
   ! This subroutine open a msh file and load the information in a
   ! variable of type Geometry
@@ -60,10 +60,10 @@ subroutine readmsh(Geometry1,filename,n_order_sk,n_order_sf)
   !List of calling arguments
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer ( kind = 8 ), intent(in) :: n_order_sk,n_order_sf
-  integer (kind=8) :: norder_skel, norder_smooth
+  integer, intent(in) :: n_order_sk,n_order_sf
+  integer  :: norder_skel, norder_smooth
   
-  integer ( kind = 8 ) umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
+  integer umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
   integer :: ierror
 
 
@@ -130,9 +130,9 @@ subroutine readtri(Geometry1,filename,n_order_sk,n_order_sf)
 
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer ( kind = 8 ), intent(in) :: n_order_sk,n_order_sf
+  integer, intent(in) :: n_order_sk,n_order_sf
 
-  integer ( kind = 8 ) umio,i,m,N,j,aux1,aux2,aux3,ipointer
+  integer umio,i,m,N,j,aux1,aux2,aux3,ipointer
   integer :: ierror
 
   open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
@@ -194,7 +194,7 @@ subroutine record_Geometry(Geometry1,filename)
   character (len=100) filename
 
   !List of local variables
-  integer ( kind = 8 ) umio,count1,count2,flag,n_order_sf
+  integer umio,count1,count2,flag,n_order_sf
   integer :: ierror
 
   open(8, FILE=filename,STATUS='REPLACE')

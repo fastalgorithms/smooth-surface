@@ -46,8 +46,8 @@
 
 subroutine vioreanu_simplex_quad(norder, npols, xys, &
     umatr, vmatr, whts)
-  implicit real *8 (a-h,o-z)
-  real *8 :: xys(2,*), whts(*)
+  implicit double precision (a-h,o-z)
+  double precision :: xys(2,*), whts(*)
   dimension xsout(10000), ysout(10000), umatr(1),vmatr(1)
   !
   ! This subroutine constructs the Vioreanu-Rokhlin quadrature nodes
@@ -103,10 +103,10 @@ end subroutine vioreanu_simplex_quad
 
 
 subroutine koorn_pols(uv, nmax, npols, pols)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), pols(*)
+  implicit double precision (a-h,o-z)
+  double precision :: uv(2), pols(*)
 
-  real *8 :: legpols(0:100), jacpols(0:100,0:100)
+  double precision :: legpols(0:100), jacpols(0:100,0:100)
 
   !
   ! This subroutine evalutes a bunch of orthogonal polynomials on the
@@ -215,13 +215,13 @@ end subroutine koorn_pols
 
 
 subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), pols(*), ders(2,*), der2s(3,*)
+  implicit double precision (a-h,o-z)
+  double precision :: uv(2), pols(*), ders(2,*), der2s(3,*)
 
-  real *8 :: legpols(0:100), jacpols(0:100,0:100)
-  real *8 :: legu(0:100), legv(0:100), leguu(0:100)
-  real *8 :: leguv(0:100), legvv(0:100)
-  real *8 :: jacv(0:100,0:100), jacvv(0:100,0:100)
+  double precision :: legpols(0:100), jacpols(0:100,0:100)
+  double precision :: legu(0:100), legv(0:100), leguu(0:100)
+  double precision :: leguv(0:100), legvv(0:100)
+  double precision :: jacv(0:100,0:100), jacvv(0:100,0:100)
   
   
   !
@@ -421,10 +421,10 @@ end subroutine koorn_ders
 
 
 subroutine koorn_vals2coefs(nmax, npols, uvs, amat)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uvs(2,npols), amat(npols,npols)
+  implicit double precision (a-h,o-z)
+  double precision :: uvs(2,npols), amat(npols,npols)
 
-  real *8, allocatable :: bmat(:,:)
+  double precision, allocatable :: bmat(:,:)
   
   !
   ! This routine returns a square matrix that maps point values of a
@@ -461,10 +461,10 @@ end subroutine koorn_vals2coefs
 
 
 subroutine koorn_coefs2vals(nmax, npols, uvs, amat)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uvs(2,npols), amat(npols,npols)
+  implicit double precision (a-h,o-z)
+  double precision :: uvs(2,npols), amat(npols,npols)
 
-  real *8 :: pols(2000)
+  double precision :: pols(2000)
   
   !
   ! This routine returns a square matrix that maps coefficients in an
@@ -500,10 +500,10 @@ end subroutine koorn_coefs2vals
 
 
 subroutine koorn_evalexp(nmax, npols, uv, coefs, val)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), coefs(npols)
+  implicit double precision (a-h,o-z)
+  double precision :: uv(2), coefs(npols)
 
-  real *8 :: pols(2000)
+  double precision :: pols(2000)
 
   !
   ! Evaluate the orthgonal polynomial expansion with given
@@ -535,10 +535,10 @@ end subroutine koorn_evalexp
 
 
 subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der, der2)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), coefs(npols), der(2), der2(3)
+  implicit double precision (a-h,o-z)
+  double precision :: uv(2), coefs(npols), der(2), der2(3)
 
-  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
+  double precision :: pols(2000), ders(2,2000), der2s(3,2000)
 
   !
   ! Evaluate the orthgonal polynomial expansion with given
@@ -587,12 +587,12 @@ end subroutine koorn_evalexp2
 
 
 subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der, der2)
-  implicit real *8 (a-h,o-z)
-  real *8 :: uv(2)
-  complex *16 :: coefs(npols), val, der(2), der2(3)
+  implicit double precision (a-h,o-z)
+  double precision :: uv(2)
+  double complex :: coefs(npols), val, der(2), der2(3)
 
-  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
-  complex *16 :: du, dv, duu, duv, dvv
+  double precision :: pols(2000), ders(2,2000), der2s(3,2000)
+  double complex :: du, dv, duu, duv, dvv
 
   !
   ! Evaluate the orthgonal polynomial expansion with given

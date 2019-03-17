@@ -572,8 +572,8 @@ implicit none
     real ( kind = 8 ) factorial
 
     !List of local variables
-    integer ( kind = 8 ) count1
-    integer ( kind = 8 ) n_aux
+    integer count1
+    integer n_aux
 
         n_aux=nint(n,8)
         factorial=1.0d0
@@ -643,7 +643,7 @@ implicit none
 !! and do the matvec product yourself
 
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n            !! Number of samples in the unit triangle
+    integer, intent(in) :: n            !! Number of samples in the unit triangle
     real ( kind = 8 ), intent(in) :: u(n),v(n)       !! Samples in the unit triangle
     real ( kind = 8 ), intent(in) :: Coef(45)        !! Input coefficients in the expansion
     real ( kind = 8 ), intent(out) :: P(n)           !! Output, value of the expansion
@@ -675,7 +675,7 @@ implicit none
 
 
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n           !! Number of samples in the unit triangle
+    integer, intent(in) :: n           !! Number of samples in the unit triangle
     real ( kind = 8 ), intent(in) :: u(n),v(n)      !! Samples in the unit triangle
     real ( kind = 8 ), intent(in) :: Coef(78)       !! Input coefficients in the expansion
     real ( kind = 8 ), intent(out) :: P(n)          !! Output, value of the expansion
@@ -8953,7 +8953,7 @@ subroutine Gauss1D(x,w,n)
 implicit none
 
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n
+    integer, intent(in) :: n
     real ( kind = 8 ), intent(out) :: x(n),w(n)
 
 

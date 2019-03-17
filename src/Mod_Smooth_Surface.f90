@@ -31,12 +31,12 @@ contains
     implicit none
 
     !List of calling arguments
-    integer ( kind = 8 ), intent(in) :: n_Normals
+    integer, intent(in) :: n_Normals
     double precision, intent(out) :: coef
     double precision, intent(in) :: All_Normals(3,n_Normals), v(3)
 
     !List of local variables
-    integer ( kind = 8 ) count
+    integer count
     double precision n_times, tol, my_dot, norm1, norm2
     n_times=0
     tol=1.0d-10
@@ -61,12 +61,12 @@ contains
 
     !List of calling arguments
     type (Geometry), intent(inout) :: Geometry1
-    integer (kind = 8 ), intent(in) :: n_order_sf
+    integer , intent(in) :: n_order_sf
 
     !List of local variables
-    integer ( kind = 8 ) count,contador_indices
+    integer count,contador_indices
     double precision, allocatable :: Points(:,:), Normal_Vert(:,:)
-    integer ( kind = 8 ), allocatable :: Tri(:,:)
+    integer, allocatable :: Tri(:,:)
     double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
     double precision Pa(3),Pb(3),Pc(3),Pd(3),Pe(3),Pf(3),Pg(3),Ph(3),Pi(3)
     double precision Nor1(3),Nor2(3),Nor3(3),Nor4(3),Nor5(3),Nor6(3)
@@ -75,7 +75,7 @@ contains
     double precision F_x(9),F_y(9),F_z(9),dS(9)
     double precision nP_x(9),nP_y(9),nP_z(9)
     double precision U_x(9),U_y(9),U_z(9),V_x(9),V_y(9),V_z(9)
-    integer ( kind = 8 ) m,N,n_order_aux
+    integer m,N,n_order_aux
 
     allocate(Points(3,Geometry1%ntri*15))
     allocate(Normal_Vert(3,Geometry1%ntri*15))
@@ -200,7 +200,7 @@ contains
     double precision nP_x(Geometry1%n_order_sf),nP_y(Geometry1%n_order_sf),nP_z(Geometry1%n_order_sf)
     double precision U_x(Geometry1%n_order_sf),U_y(Geometry1%n_order_sf),U_z(Geometry1%n_order_sf)
     double precision V_x(Geometry1%n_order_sf),V_y(Geometry1%n_order_sf),V_z(Geometry1%n_order_sf)
-    integer ( kind = 8 ) count,n_order_sf
+    integer count,n_order_sf
 
     n_order_sf=Geometry1%n_order_sf
 
@@ -276,10 +276,10 @@ contains
     !List of calling arguments
     type (Geometry), intent(inout) :: Geometry1
     type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
-    integer ( kind = 8 ), intent(in) :: adapt_flag
+    integer, intent(in) :: adapt_flag
 
     !List of local variables
-    integer ( kind = 8 ) :: flag,maxiter,ipoint,count,n_order_sf,itri
+    integer :: flag,maxiter,ipoint,count,n_order_sf,itri
     double precision :: h(Geometry1%n_Sf_points),tol,Norm_N
     double precision :: r_t(3,Geometry1%n_Sf_points)
     double precision :: F(Geometry1%n_Sf_points)
@@ -402,20 +402,20 @@ contains
 
     !List of calling arguments
     type (Geometry), intent(in) :: Geometry1
-    integer ( kind = 8 ), intent(in) :: maxiter
+    integer, intent(in) :: maxiter
     double precision, intent(inout) :: x(Geometry1%n_Sf_points)
     double precision, intent(in) :: tol
-    integer ( kind = 8 ), intent(out) :: flag
+    integer, intent(out) :: flag
     type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
-    integer ( kind = 8 ), intent(in) :: adapt_flag
+    integer, intent(in) :: adapt_flag
     double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points)
     double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
 
 
     !List of local variables
-    integer ( kind = 8 ) count,count2
+    integer count,count2
     double precision F(Geometry1%n_Sf_points),dF(Geometry1%n_Sf_points),err(Geometry1%n_Sf_points)
-    integer (kind = 8 ) flag_con(Geometry1%n_Sf_points)
+    integer  flag_con(Geometry1%n_Sf_points)
 
     do count2=1,Geometry1%n_Sf_points
       err(count2)=tol+1.0d0
@@ -466,7 +466,7 @@ contains
     double precision, intent(out) :: err_rel
 
     !List of local variables
-    integer ( kind = 8 ) umio,count1,count2,flag,n_order_sf
+    integer umio,count1,count2,flag,n_order_sf
     double precision  F,Ex,Ey,Ez,R,x,y,z,pi,w,nx,ny,nz
 
     pi=3.141592653589793238462643383d0
@@ -507,8 +507,8 @@ contains
         dF(Geometry1%n_Sf_points)
     type ( Feval_stuff ), pointer :: Feval_stuff_1
     
-    integer ( kind = 8 ), intent(in) :: adapt_flag
-    integer ( kind = 8 ), intent(in) :: flag_con(Geometry1%n_Sf_points)
+    integer, intent(in) :: adapt_flag
+    integer, intent(in) :: flag_con(Geometry1%n_Sf_points)
     double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points), &
         grad_F(3,Geometry1%n_Sf_points)
 
@@ -516,7 +516,7 @@ contains
 
     !List of local variables
     double precision Norm_N
-    integer (kind = 8 ) count,ipointer
+    integer count,ipointer
     double precision, allocatable :: r_t2(:,:),v_norm(:,:),grad_F2(:,:),F2(:)
 
     allocate(r_t2(3,Geometry1%n_Sf_points-sum(flag_con)))
@@ -585,9 +585,9 @@ contains
 
     !List of local variables
     character ( len=100 ) plot_name
-    integer ( kind = 8 ) count,contador_indices
+    integer count,contador_indices
     double precision, allocatable :: Points(:,:), Normal_Vert(:,:)
-    integer ( kind = 8 ), allocatable :: Tri(:,:)
+    integer, allocatable :: Tri(:,:)
     double precision, allocatable :: h_new(:)
     double precision h_tri(Geometry1%n_order_sf)
     double precision h_1(Geometry1%n_order_sf),h_2(Geometry1%n_order_sf)
@@ -600,7 +600,7 @@ contains
     double precision F_x(9),F_y(9),F_z(9),dS(9)
     double precision nP_x(9),nP_y(9),nP_z(9)
     double precision U_x(9),U_y(9),U_z(9),V_x(9),V_y(9),V_z(9)
-    integer ( kind = 8 ) m,N,n_order_aux,n_order_sf
+    integer m,N,n_order_aux,n_order_sf
     double precision U45(45),V45(45),w45(45)
     double precision coef_h(45)
 
