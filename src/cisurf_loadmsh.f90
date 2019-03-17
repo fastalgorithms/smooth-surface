@@ -8,12 +8,13 @@
 ! *.gov file
 !
 
-subroutine readgeometry(Geometry1,filename,n_order_sk,n_order_sf)
+subroutine readgeometry(Geometry1, filename, norder_skel, &
+    n_order_sk,n_order_sf)
   use ModType_Smooth_Surface
   implicit none
   type (Geometry) :: Geometry1
   character(len=100) :: filename
-  integer :: n_order_sk,n_order_sf
+  integer :: n_order_sk,n_order_sf, norder_skel
   !
   ! This subroutine open a msh file and load the information in a
   ! variable of type Geometry
@@ -25,7 +26,8 @@ subroutine readgeometry(Geometry1,filename,n_order_sk,n_order_sf)
   !
 
   if (index(filename,'.msh') > 0) then
-    call readmsh(Geometry1,filename,n_order_sk,n_order_sf)
+    call readmsh(Geometry1, filename, norder_skel, &
+        n_order_sk,n_order_sf)
   elseif (index(filename,'.tri')>0) then
     call readtri(Geometry1,filename,n_order_sk,n_order_sf)
   else
@@ -40,7 +42,8 @@ end subroutine readgeometry
 
 
 
-subroutine readmsh(Geometry1,filename,n_order_sk,n_order_sf)
+subroutine readmsh(Geometry1, filename, norder_skel, &
+    n_order_sk,n_order_sf)
   use ModType_Smooth_Surface
   implicit none
 
@@ -60,7 +63,7 @@ subroutine readmsh(Geometry1,filename,n_order_sk,n_order_sf)
   !List of calling arguments
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer, intent(in) :: n_order_sk,n_order_sf
+  integer :: n_order_sk,n_order_sf
   integer  :: norder_skel, norder_smooth
   
   integer umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
@@ -70,12 +73,19 @@ subroutine readmsh(Geometry1,filename,n_order_sk,n_order_sf)
   open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) aux1,aux2,aux3,m, N
 
+  print *
+  print *
+  write (6,*) 'loading file ', trim(filename)
+  write (13,*) 'loading file ', trim(filename)
   call prinf('npoints = *', m, 1)
   call prinf('ntri = *', n, 1)
-  
+
   !write (*,*) 'npoints: ',m,'ntri: ',N,n_order_sf,n_order_sk
 
   !!stop
+  n_order_sk = (norder_skel+1)*(norder_skel+2)/2
+  call prinf('n_order_sk = *', n_order_sk, 1)
+  !stop
   
   Geometry1%n_order_sf=n_order_sf
   Geometry1%npoints=m

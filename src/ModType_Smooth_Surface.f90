@@ -71,7 +71,13 @@ type, public :: Geometry
     integer n_Sf_points                            !total number of points on the real smooth surface
     integer n_Sk_points                            !total number of integration nodes on the skeleton
     integer ntri                                   !Total number of triangles on the smooth surface
-    integer ntri_sk                                !Total number of triangles on the skeleton
+    integer ntri_sk                                !Total number of
+    !triangles on the skeleton
+
+    ! order of smooth discretization, and points per triangle
+    integer norder_skel
+    !integer nskel
+    
     integer n_order_sf                             !number of nodes per smooth triangle (45 or 78)
 
 end type Geometry

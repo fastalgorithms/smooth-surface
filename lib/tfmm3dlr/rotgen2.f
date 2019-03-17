@@ -23,10 +23,10 @@ c
       THETA = -PI/2.0d0
       CALL FSTRTN(NTERMS,RDMPI2,DC,THETA)
       THETA = DACOS(DSQRT(3.0D0)/3.0D0)
-      call prin2(' theta = *',theta,1)
+cccc      call prin2(' theta = *',theta,1)
       CALL FSTRTN(NTERMS,RDSQ3,DC,THETA)
       THETA = DACOS(-DSQRT(3.0D0)/3.0D0)
-      call prin2(' theta = *',theta,1)
+cccc      call prin2(' theta = *',theta,1)
       CALL FSTRTN(NTERMS,RDMSQ3,DC,THETA)
       RETURN
       END

@@ -136,7 +136,7 @@ c       Find nudnsew
       enddo
 
       call l3dmpalloc_newtree(itree(1),iaddr,nlevels,lmptot,nterms)
-      call prinf(' lmptot is *',lmptot,1)
+cccc      call prinf(' lmptot is *',lmptot,1)
 
 
       allocate(rmlexp(lmptot),stat=ier)

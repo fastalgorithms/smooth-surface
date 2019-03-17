@@ -82,7 +82,8 @@ program Test_6
 
 
   ! load in the msh file
-  call readgeometry(Geometry1, nombre, n_order_sk, n_order_sf)
+  call readgeometry(Geometry1, nombre, norder_skel, &
+      n_order_sk, n_order_sf)
 
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1,n_order_sk)
@@ -113,15 +114,21 @@ program Test_6
   call system_clock ( t2, clock_rate, clock_max )
   time_report(1) = real( t2 - t1 ) / real( clock_rate )
 
-  write (*,*) 'SAVING .GOV FILE'
+  print *
   name_aux=trim(filename)// '_r00.gov'
+  write (*,*) 'SAVING .GOV FILE: ', name_aux
   call record_Geometry(Geometry1,name_aux)
+
+  print *
+  print *, '. . . checking gauss identity'
   call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
   !
   ! plot the smoothed surface
   !
   filename='smoothed.vtk'
+  print *
+  print *
   print *, 'plotting vtk smoothed geometry...'
   call plotSmoothGeometryVTK(Geometry1, filename)
   print *, 'finished plotting vtk smoothed geometry...'
@@ -342,17 +349,17 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   end if
 
   call prinf('total triangles, ntot = *', ntot, 1)
-  call prin2('uvs = *', uvs, 6*ntot)
+  !call prin2('uvs = *', uvs, 6*ntot)
 
   !
   ! now compute the koornwinder expansion of the triangle
   !
   allocate(pmat(k,k))
 
-  call prin2('us = *', us, k)
-  call prin2('vs = *', vs, k)
-  print *
-  print *
+  !call prin2('us = *', us, k)
+  !call prin2('vs = *', vs, k)
+  !print *
+  !print *
 
   do i = 1,k
     uv(1) = us(i)
@@ -375,7 +382,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
 
 
   call dinverse(npols, pmat, info, pinv)
-  call prinf('after inverse, info = *', info, 1)
+  !call prinf('after inverse, info = *', info, 1)
   
   !
   ! loop over each triangle, solve for each of the sets of

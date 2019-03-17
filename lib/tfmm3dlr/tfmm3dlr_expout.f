@@ -748,7 +748,7 @@ c     Prints timing breakdown and other things if ifprint=1.
 c     Prints timing breakdown, list information, 
 c     and other things if ifprint=2.
 c       
-        ifprint=1
+cccc        ifprint=1
         ifhesstarg = 0
 c
 c

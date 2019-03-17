@@ -397,59 +397,84 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine My_Newton(x,tol,maxiter,Geometry1,flag,Feval_stuff_1,adapt_flag,grad_F,r_t) !!Hay que modificar esto y vectorizarlo
-    implicit none
+subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
+    Feval_stuff_1 ,adapt_flag,grad_F,r_t)
+  !Hay que modificar esto y vectorizarlo
+  implicit none
 
-    !List of calling arguments
-    type (Geometry), intent(in) :: Geometry1
-    integer, intent(in) :: maxiter
-    double precision, intent(inout) :: x(Geometry1%n_Sf_points)
-    double precision, intent(in) :: tol
-    integer, intent(out) :: flag
-    type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
-    integer, intent(in) :: adapt_flag
-    double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points)
-    double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
+  !List of calling arguments
+  type (Geometry), intent(in) :: Geometry1
+  integer, intent(in) :: maxiter
+  double precision, intent(inout) :: x(Geometry1%n_Sf_points)
+  double precision, intent(in) :: tol
+  integer, intent(out) :: flag
+  type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
+  integer, intent(in) :: adapt_flag
+  double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points)
+  double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
 
 
-    !List of local variables
-    integer count,count2
-    double precision F(Geometry1%n_Sf_points),dF(Geometry1%n_Sf_points),err(Geometry1%n_Sf_points)
-    integer  flag_con(Geometry1%n_Sf_points)
+  !List of local variables
+  integer count,count2
+  double precision F(Geometry1%n_Sf_points)
+  double precision :: dF(Geometry1%n_Sf_points), err(Geometry1%n_Sf_points)
+  integer  flag_con(Geometry1%n_Sf_points)
 
+  do count2=1,Geometry1%n_Sf_points
+    err(count2)=tol+1.0d0
+    flag_con(count2)=0
+  enddo
+  count=1
+  flag=0
+
+  write (*,*) 'iteration  targets       err'  
+  
+  do while ((maxval(err)>tol).and.(count<maxiter))
+
+    !write (*,*) 'Number of living targets: ', &
+    !    Geometry1%n_Sf_points-sum(flag_con), sum(flag_con)
+
+    !write (*,*) 'Ratio of living targets: ', &
+    !    (real(Geometry1%n_Sf_points-sum(flag_con),8))&
+    !    /(real(Geometry1%n_Sf_points,8))
+
+    call fun_roots_derivative(x,Geometry1,F,dF,Feval_stuff_1, &
+        adapt_flag,flag_con,grad_F,r_t)
+
+    count=count+1
     do count2=1,Geometry1%n_Sf_points
-      err(count2)=tol+1.0d0
-      flag_con(count2)=0
-    enddo
-    count=1
-    flag=0
-    do while ((maxval(err)>tol).and.(count<maxiter))
-      write (*,*) 'Number of living targets: ', Geometry1%n_Sf_points-sum(flag_con),sum(flag_con)
-      write (*,*) 'Ratio of living targets: ',(real(Geometry1%n_Sf_points-sum(flag_con),8))/(real(Geometry1%n_Sf_points,8))
-      call fun_roots_derivative(x,Geometry1,F,dF,Feval_stuff_1,adapt_flag,flag_con,grad_F,r_t)
-      count=count+1
-      do count2=1,Geometry1%n_Sf_points
-        if (flag_con(count2)==0) then
-          err(count2)=F(count2)/dF(count2)
-          x(count2)=x(count2)-err(count2)
-          err(count2)=abs(err(count2))
-          if (err(count2)<tol) then
-            flag_con(count2)=1
-          endif
+      if (flag_con(count2)==0) then
+        err(count2)=F(count2)/dF(count2)
+        x(count2)=x(count2)-err(count2)
+        err(count2)=abs(err(count2))
+        if (err(count2)<tol) then
+          flag_con(count2)=1
         endif
-      enddo
-      !       do count2=1,Geometry1%n_Sf_points
-      !           write (*,*) 'Newton iteration all: ', err(count2)
-      !       enddo
-      write (*,*) 'Newton iteration: ', count, maxval(err)
-    end do
-    if (maxval(err)>tol) then
-      flag=1
-      !       write (*,*) 'contador máximo Newton', count, err
-    endif
+      endif
+    enddo
+    !       do count2=1,Geometry1%n_Sf_points
+    !           write (*,*) 'Newton iteration all: ', err(count2)
+    !       enddo
+    !write (*,*) 'Newton iteration: ', count, maxval(err)
 
-    return
-  end subroutine My_Newton
+    write (*,4999) count, &
+        Geometry1%n_Sf_points-sum(flag_con), maxval(err)
+ 4999   format(i10,i9,e10.2)
+        
+    
+
+  end do
+
+  print *
+
+  
+  if (maxval(err)>tol) then
+    flag=1
+    !       write (*,*) 'contador máximo Newton', count, err
+  endif
+
+  return
+end subroutine My_Newton
 
 
 
@@ -524,7 +549,7 @@ contains
     allocate(grad_F2(3,Geometry1%n_Sf_points-sum(flag_con)))
     allocate(F2(Geometry1%n_Sf_points-sum(flag_con)))
 
-    write (*,*) 'a punto'
+    !write (*,*) 'a punto'
     ipointer=1
     do count=1,Geometry1%n_Sf_points
       Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&

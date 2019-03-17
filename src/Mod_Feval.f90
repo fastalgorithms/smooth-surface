@@ -277,11 +277,11 @@ contains
     allocate(flag_error(n_targets))
 
     !! obtain the value of sgma at the target points, needed to make the FMM call
-    write (*,*) 'START eval sigma',n_targets
+    !write (*,*) 'START eval sigma',n_targets
     call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
         &sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     !       read (*,*)
-    write (*,*) 'STOP eval sigma'
+    !write (*,*) 'STOP eval sigma'
 
     trads=12.0d0*sgma
 
@@ -311,12 +311,12 @@ contains
       write (*,*) 'trying'
     else
       if (.not.allocated(Fev_stf_1%treecenters)) then
-        write (*,*) 'start fmm ', 'n_sources: ',n_sources,'n_targets: ',n_targets
+        !write (*,*) 'start fmm ', 'n_sources: ',n_sources,'n_targets: ',n_targets
         call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,Geometry1%skeleton_N,n_sources,&
             &Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
             &n_targets,trads,sgma,sgma_grad,ifpottarg,&
             &pottarg,iffldtarg,fldtarg,tfmm)
-        write (*,*) 'out of fmm'
+        !write (*,*) 'out of fmm'
         do count2=1,n_targets
           pottarg(count2)=pottarg(count2)-0.5d0
         enddo
