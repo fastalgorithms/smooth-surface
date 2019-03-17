@@ -86,7 +86,7 @@ program Test_6
       n_order_sk, n_order_sf)
 
   ! dump out discretization points on the skeleton mesh
-  call funcion_skeleton(Geometry1,n_order_sk)
+  call funcion_skeleton(Geometry1, norder_skel)
 
 
   call funcion_normal_vert(Geometry1)

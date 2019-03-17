@@ -1,54 +1,84 @@
 
 
-subroutine funcion_skeleton(Geometry1,n_order_sk)
+subroutine funcion_skeleton(Geometry1, norder_skel)
   use ModType_Smooth_Surface
   implicit none
 
   !List of calling arguments
+  integer :: norder_skel
   type (Geometry), intent(inout) :: Geometry1
-  integer, intent(in) :: n_order_sk
+  integer :: nsk
 
 
   !List of local variables
-  double precision U(n_order_sk),V(n_order_sk),w(n_order_sk)
-  double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
-  double precision F_x(n_order_sk),F_y(n_order_sk),F_z(n_order_sk),dS(n_order_sk)
-  double precision nP_x(n_order_sk),nP_y(n_order_sk),nP_z(n_order_sk)
-  integer count
+  double precision, allocatable :: U(:),V(:),w(:)
+  double precision :: P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
+  double precision, allocatable :: F_x(:), F_y(:), F_z(:), dS(:)
+  double precision, allocatable :: nP_x(:), nP_y(:), nP_z(:)
+  integer count, itype, npols
 
-  if (n_order_sk==45) then
-    call GaussTri45(U,V,w)
-  else if (n_order_sk==78) then
-    call GaussTri78(U,V,w)
+  double precision :: umatr(1000000), vmatr(1000000)
+
+  nsk = (norder_skel+1)*(norder_skel+2)/2
+  allocate( U(nsk), V(nsk), w(nsk) )
+  allocate( F_x(nsk), F_y(nsk), F_z(nsk), dS(nsk) )
+  allocate( nP_x(nsk), nP_y(nsk), nP_z(nsk) )
+  
+  !if (n_order_sk==45) then
+  !  call GaussTri45(U,V,w)
+  !else if (n_order_sk==78) then
+  !  call GaussTri78(U,V,w)
+  !end if
+
+  ! get the specified quadrature nodes and weights on the simplex of
+  ! order norder_skel
+  if (norder_skel .gt. 20) then
+    call prinf('norder_skel too large = *', norder_skel, 1)
+    stop
   end if
+  
+  call ortho2siexps(itype, norder_skel, npols, U, V, &
+      umatr, vmatr, w)
+  
+
+  
   if (allocated(Geometry1%skeleton_Points)) then
     deallocate(Geometry1%skeleton_Points)
   endif
+
   if (allocated(Geometry1%skeleton_w)) then
     deallocate(Geometry1%skeleton_w)
   endif
+
   if (allocated(Geometry1%skeleton_N)) then
     deallocate(Geometry1%skeleton_N)
   endif
+
   allocate(Geometry1%skeleton_Points(3,Geometry1%n_Sk_points))
   allocate(Geometry1%skeleton_w(Geometry1%n_Sk_points))
   allocate(Geometry1%skeleton_N(3,Geometry1%n_Sk_points))
+
   do count=1,Geometry1%ntri_sk
+
     P1=Geometry1%Points(:,Geometry1%Tri(1,count))
     P2=Geometry1%Points(:,Geometry1%Tri(2,count))
     P3=Geometry1%Points(:,Geometry1%Tri(3,count))
     P4=Geometry1%Points(:,Geometry1%Tri(4,count))
     P5=Geometry1%Points(:,Geometry1%Tri(5,count))
     P6=Geometry1%Points(:,Geometry1%Tri(6,count))
-    call eval_quadratic_patch(P1,P2,P3,P4,P5,P6,U,V,F_x,F_y,F_z,nP_x,nP_y,nP_z,dS,n_order_sk)
-    Geometry1%skeleton_Points(1,(count-1)*n_order_sk+1:(count)*n_order_sk)=F_x
-    Geometry1%skeleton_Points(2,(count-1)*n_order_sk+1:(count)*n_order_sk)=F_y
-    Geometry1%skeleton_Points(3,(count-1)*n_order_sk+1:(count)*n_order_sk)=F_z
-    Geometry1%skeleton_w((count-1)*n_order_sk+1:(count)*n_order_sk)=w*dS
-    Geometry1%skeleton_N(1,(count-1)*n_order_sk+1:(count)*n_order_sk)=nP_x
-    Geometry1%skeleton_N(2,(count-1)*n_order_sk+1:(count)*n_order_sk)=nP_y
-    Geometry1%skeleton_N(3,(count-1)*n_order_sk+1:(count)*n_order_sk)=nP_z
+
+    call eval_quadratic_patch(P1,P2,P3,P4,P5,P6,U,V,F_x,F_y,F_z,nP_x,nP_y,nP_z,dS,nsk)
+
+    Geometry1%skeleton_Points(1,(count-1)*nsk+1:(count)*nsk)=F_x
+    Geometry1%skeleton_Points(2,(count-1)*nsk+1:(count)*nsk)=F_y
+    Geometry1%skeleton_Points(3,(count-1)*nsk+1:(count)*nsk)=F_z
+    Geometry1%skeleton_w((count-1)*nsk+1:(count)*nsk)=w*dS
+
+    Geometry1%skeleton_N(1,(count-1)*nsk+1:(count)*nsk)=nP_x
+    Geometry1%skeleton_N(2,(count-1)*nsk+1:(count)*nsk)=nP_y
+    Geometry1%skeleton_N(3,(count-1)*nsk+1:(count)*nsk)=nP_z
   enddo
+
   return
 end subroutine funcion_skeleton
 

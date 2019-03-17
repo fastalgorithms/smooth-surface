@@ -76,7 +76,7 @@ type, public :: Geometry
 
     ! order of smooth discretization, and points per triangle
     integer norder_skel
-    !integer nskel
+    integer nskel
     
     integer n_order_sf                             !number of nodes per smooth triangle (45 or 78)
 

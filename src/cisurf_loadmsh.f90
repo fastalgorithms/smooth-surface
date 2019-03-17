@@ -29,6 +29,9 @@ subroutine readgeometry(Geometry1, filename, norder_skel, &
     call readmsh(Geometry1, filename, norder_skel, &
         n_order_sk,n_order_sf)
   elseif (index(filename,'.tri')>0) then
+    print *, 'filename = ', trim(filename)
+    print *, 'order not converted in .tri files!'
+    stop
     call readtri(Geometry1,filename,n_order_sk,n_order_sf)
   else
     write (*,*) 'Geometry type not recognized'
@@ -86,6 +89,12 @@ subroutine readmsh(Geometry1, filename, norder_skel, &
   n_order_sk = (norder_skel+1)*(norder_skel+2)/2
   call prinf('n_order_sk = *', n_order_sk, 1)
   !stop
+
+  Geometry1%norder_skel = norder_skel
+  Geometry1%nskel = n_order_sk
+
+  !Geometry1%norder_smooth = norder_smooth
+  !Geometry1%nsmooth = n_order_sf
   
   Geometry1%n_order_sf=n_order_sf
   Geometry1%npoints=m
