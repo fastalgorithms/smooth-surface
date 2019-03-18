@@ -47,7 +47,7 @@ Module Mod_Feval
   use Mod_TreeLRD
   use Mod_Fast_Sigma
   use ModType_Smooth_Surface
-  !use prefunrouts
+  use prefunrouts
 
   implicit none
   
@@ -121,13 +121,13 @@ contains
     Fev_stf_1%eps=1.0d-6
     Fev_stf_1%norder=6
 
-    call initialize_feval(Fev_stf_1%eps,int(Geometry1%n_Sk_points,4),Geometry1%skeleton_Points,Geometry1%skeleton_w,&
-        &Geometry1%skeleton_N,int(Geometry1%n_dummy_targ,4),&
+    call initialize_feval(Fev_stf_1%eps,int(Geometry1%n_Sk_points),Geometry1%skeleton_Points,Geometry1%skeleton_w,&
+        &Geometry1%skeleton_N,int(Geometry1%n_dummy_targ),&
         &Geometry1%Dummy_targ,Fev_stf_1%norder,&
         &Fev_stf_1%itree,Fev_stf_1%ltree,Fev_stf_1%nlevels,Fev_stf_1%nboxes,Fev_stf_1%iptr,&
         &Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,Fev_stf_1%fcoeffs,&
         &Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,Fev_stf_1%fcoeffsz,&
-        &Fev_stf_1%FSS_1,int(adapt_flag,4))
+        &Fev_stf_1%FSS_1,int(adapt_flag))
 
 
     write (*,*) 'INITIALIZED'
@@ -325,7 +325,7 @@ contains
         grad_F=-1.0d0*real(fldtarg)
       else
         write (*,*) 'start interpolation'
-        call f_eval(int(n_targets,4),targets,Fev_stf_1%norder,Fev_stf_1%itree,&
+        call f_eval(int(n_targets),targets,Fev_stf_1%norder,Fev_stf_1%itree,&
             &Fev_stf_1%ltree,Fev_stf_1%nlevels,Fev_stf_1%nboxes,Fev_stf_1%iptr,&
             &Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,Fev_stf_1%fcoeffs,Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,&
             &Fev_stf_1%fcoeffsz, F, grad_F(1,:), grad_F(2,:), grad_F(3,:),flag_error)
@@ -339,7 +339,7 @@ contains
         write (*,*) 'reported'
         !    read (*,*)
         if (sum(flag_error).gt.0) then
-          call f_eval_slow(n_targets,targets,flag_error,int(Geometry1%n_Sk_points,4),Geometry1%skeleton_Points,&
+          call f_eval_slow(n_targets,targets,flag_error,int(Geometry1%n_Sk_points),Geometry1%skeleton_Points,&
               &Geometry1%skeleton_w,Geometry1%skeleton_N,sgma,sgma_grad,F,grad_F)
         endif
       endif

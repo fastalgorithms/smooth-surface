@@ -86,6 +86,7 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
 
   print *
   print *
+  
   write (6,*) 'loading file ', trim(filename)
   write (13,*) 'loading file ', trim(filename)
   call prinf('npoints = *', m, 1)
@@ -93,7 +94,7 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
 
 
   nsk = (norder_skel+1)*(norder_skel+2)/2
-  call prinf('nsk = *', nsk, 1)
+  !call prinf('nsk = *', nsk, 1)
   !stop
 
   Geometry1%norder_skel = norder_skel

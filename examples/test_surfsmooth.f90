@@ -57,7 +57,7 @@ program Test_6
 
   call prinf('. . . printing flags and options*', norder_skel, 0)
   call prinf('norder_skel = *', norder_skel, 1)
-  !call prinf('norder_smooth = *', norder_smooth, 1)
+  call prinf('norder_smooth = *', norder_smooth, 1)
   call prinf('n_refinement = *', n_refinement, 1)
   call prinf('adapt_flag = *', adapt_flag, 1)
   call prinf('interp_flag = *', interp_flag, 1)
@@ -220,10 +220,10 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   type (Geometry) :: Geometry1
   character (len=*) filename
 
-  integer :: umio,count1,count2,flag,n_order_sf
+  integer :: umio,count1,count2,flag,n_order_sf, norder_smooth
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
   integer :: ntot, ltot, npols7, npols, info, iii, n, l, nnn, iw
-  real (kind = 8) :: us(1000), vs(1000), ws(1000), dcond
+  real (kind = 8) :: us(100000), vs(100000), ws(100000), dcond
   real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
   real (kind = 8) :: xcoefs(10000), xrhs(10000)
   real (kind = 8) :: ycoefs(10000), yrhs(10000)
@@ -248,7 +248,15 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   !id = 888
   !open(id, FILE=trim(filename),STATUS='REPLACE')
 
-  n_order_sf = (Geometry1%n_Sf_points)/(Geometry1%ntri)
+  norder_smooth = Geometry1%norder_smooth
+  n_order_sf = Geometry1%n_order_sf
+
+  
+  
+  !
+  ! get the nodes here
+  !
+  
 
   if (n_order_sf .eq. 45) then
     norder=8

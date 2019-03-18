@@ -45,15 +45,15 @@ ifeq ($(HOST),osx-intel)
   FLINK = ifort -i8 -w -mkl -o $(PROJECT)
 endif
 
-ifeq ($(HOST),linux-gfortran)
+ifeq ($(HOST),linux-gcc)
    FC = gfortran
-   FFLAGS = -O2 -mcmodel=medium  -w
+   FFLAGS = -O2 -mcmodel=medium  -w -fdefault-integer-8 -finteger-4-integer-8
    FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
 endif
 
-ifeq ($(HOST),linux-gfortran-openmp)
+ifeq ($(HOST),linux-gcc-openmp)
    FC = gfortran 
-   FFLAGS = -O3  -w --openmp
+   FFLAGS = -O2  -w --openmp
    FLINK = gfortran --openmp -w -o $(PROJECT) -llapack -lblas
 endif
 
@@ -69,6 +69,7 @@ EXM = examples
 MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/ModType_Smooth_Surface.f90 \
  $(SRC)/Mod_Fast_Sigma.f90 \
+ $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/Mod_Plot_Tools_sigma.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
@@ -83,7 +84,6 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(SRC)/cisurf_skeleton.f90 \
  $(SRC)/cisurf_plottools.f90 \
  $(SRC)/cisurf_tritools.f90 \
- $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/lapack_wrap.f90 \
  $(SRC)/pplot2.f \
  $(TFMM3D)/tfmm3dlr_expout.f \
