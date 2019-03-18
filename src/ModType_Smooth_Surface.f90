@@ -78,7 +78,10 @@ type, public :: Geometry
     integer norder_skel
     integer nskel
     
-    integer n_order_sf                             !number of nodes per smooth triangle (45 or 78)
+    integer norder_smooth
+    integer nsmooth
+    !number of nodes per smooth triangle (45 or 78)
+    integer n_order_sf   
 
 end type Geometry
 

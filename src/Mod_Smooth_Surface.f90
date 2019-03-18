@@ -209,6 +209,10 @@ contains
     else if (n_order_sf==78) then
       call GaussTri78(U,V,w)
     end if
+
+
+
+    
     if (allocated(Geometry1%Base_Points)) then
       deallocate(Geometry1%Base_Points)
     endif
@@ -716,9 +720,6 @@ end subroutine My_Newton
       !evaluate the new height on each of the 4 triangles
 
 
-!!!            call fast_Matvec(M_inv,h_tri,coef_h,45)
-      !            write (*,*) coef_h
-      !            read (*,*)
 
 !!!            call pol_val_2D_45_fast2(U45/2.0d0,V45/2.0d0,45,coef_h,h_1)
 !!!            call pol_val_2D_45_fast2(0.5d0-U45/2.0d0,0.5d0-V45/2.0d0,45,coef_h,h_2)

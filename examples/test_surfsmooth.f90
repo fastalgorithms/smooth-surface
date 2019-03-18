@@ -27,7 +27,7 @@ program Test_6
 
   real ( kind = 8 ), allocatable :: Pts(:,:), sgmas(:)
   real ( kind = 8 ), allocatable :: F_plot(:,:),targ_vect(:,:),sgma(:)
-  real (kind=8), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
+  real ( kind = 8 ), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
   real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
 
 
@@ -35,13 +35,12 @@ program Test_6
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  n_order_sk=78
-  norder_skel = 11
+  norder_skel = 12
   
-
-  
-  ! number of points per triangle on smooth surface, set to 45 or 78
-  n_order_sf=45
+  ! order with which to discretize the smooth patches, choose
+  ! something reasonable: 4, 6, 8, 10, etc.
+  norder_smooth = 8
+  !n_order_sf=45
   ! n_order_sf=78
 
 
@@ -83,12 +82,10 @@ program Test_6
 
   ! load in the msh file
   call readgeometry(Geometry1, nombre, norder_skel, &
-      n_order_sk, n_order_sf)
+      norder_smooth)
 
   ! dump out discretization points on the skeleton mesh
-  call funcion_skeleton(Geometry1, norder_skel)
-
-
+  call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
 
   
@@ -140,16 +137,21 @@ program Test_6
 
 
 
+  !  
+  ! this command triggers the new interpolation method
+  ! otherwise, the fmm newton iteration method is used
+  !
+  if (interp_flag==1) then
+    call system_clock ( t1, clock_rate, clock_max )
+    call start_Feval(Feval_stuff_1,Geometry1,adapt_flag)
+    call system_clock ( t2, clock_rate, clock_max )
+    time_report(0)=real ( t2 - t1 ) / real ( clock_rate )
+  endif
+  
+  print *, 'refinement is not updated with ortho2siexps yet!'
+  stop
+  
     
-!!!THIS COMMAND TRIGGERS THE NEW INTERPOLATION METHOD
-    if (interp_flag==1) then
-        call system_clock ( t1, clock_rate, clock_max )
-        call start_Feval(Feval_stuff_1,Geometry1,adapt_flag)
-        call system_clock ( t2, clock_rate, clock_max )
-        time_report(0)=real ( t2 - t1 ) / real ( clock_rate )
-    endif
-!!!IF IT IS COMMENTED, THE OLD FMM NEWTON ITERATION METHOD IS USED
-
     do count=1,n_refinement
 !        read (*,*)
         write (*,*) 'Refinement nº: ',count

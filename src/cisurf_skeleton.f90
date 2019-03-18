@@ -1,6 +1,6 @@
 
 
-subroutine funcion_skeleton(Geometry1, norder_skel)
+subroutine funcion_skeleton(Geometry1)
   use ModType_Smooth_Surface
   implicit none
 
@@ -19,24 +19,14 @@ subroutine funcion_skeleton(Geometry1, norder_skel)
 
   double precision :: umatr(1000000), vmatr(1000000)
 
+  norder_skel = Geometry1%norder_skel  
   nsk = (norder_skel+1)*(norder_skel+2)/2
   allocate( U(nsk), V(nsk), w(nsk) )
   allocate( F_x(nsk), F_y(nsk), F_z(nsk), dS(nsk) )
   allocate( nP_x(nsk), nP_y(nsk), nP_z(nsk) )
   
-  !if (n_order_sk==45) then
-  !  call GaussTri45(U,V,w)
-  !else if (n_order_sk==78) then
-  !  call GaussTri78(U,V,w)
-  !end if
-
   ! get the specified quadrature nodes and weights on the simplex of
   ! order norder_skel
-  if (norder_skel .gt. 20) then
-    call prinf('norder_skel too large = *', norder_skel, 1)
-    stop
-  end if
-  
   call ortho2siexps(itype, norder_skel, npols, U, V, &
       umatr, vmatr, w)
   
@@ -54,6 +44,7 @@ subroutine funcion_skeleton(Geometry1, norder_skel)
     deallocate(Geometry1%skeleton_N)
   endif
 
+  
   allocate(Geometry1%skeleton_Points(3,Geometry1%n_Sk_points))
   allocate(Geometry1%skeleton_w(Geometry1%n_Sk_points))
   allocate(Geometry1%skeleton_N(3,Geometry1%n_Sk_points))

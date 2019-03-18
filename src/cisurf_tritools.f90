@@ -442,12 +442,12 @@ subroutine fast_Matvec(Matrix,X,B,N)
 implicit none
 
     !List of calling arguments
-    integer (kind = 4 ), intent(in) :: N
+    integer , intent(in) :: N
     real (kind = 8 ), intent(in) :: Matrix(N,N),X(N)
     real (kind = 8 ), intent(out) :: B(N)
 
     !List of local variables
-    integer (kind = 4 ) count1,count2,incrx,incry
+    integer count1,count2,incrx,incry
     real (kind = 8 ) beta,alpha
 
         alpha=1.0d0
@@ -466,12 +466,12 @@ subroutine fast_Matvec2(Matrix,X,B,M,N)
 implicit none
 
 !List of calling arguments
-integer (kind = 4 ), intent(in) :: M,N
+integer, intent(in) :: M,N
 real (kind = 8 ), intent(in) :: Matrix(M,N),X(N)
 real (kind = 8 ), intent(out) :: B(M)
 
 !List of local variables
-integer (kind = 4 ) count1,count2,incrx,incry
+integer  count1,count2,incrx,incry
 real (kind = 8 ) beta,alpha
     alpha=1.0d0
     beta=0.0d0
@@ -490,12 +490,12 @@ implicit none
 !!This function does a MatVect product not optimized in terms of cache, openmp, blas...
 
     !List of calling arguments
-    integer (kind = 8 ), intent(in) :: M,N
+    integer  :: M,N
     real (kind = 8 ), intent(in) :: Matrix(M,N),X(N)
     real (kind = 8 ), intent(out) :: B(M)
 
     !List of local variables
-    integer (kind = 4 ) count1,count2
+    integer  count1,count2
 
         do count1=1,M
             B(count1)=0.0d0
@@ -516,8 +516,8 @@ implicit none
 !! on a set of points prescribed by the array x of size n in the interval (-1,1)
 
     !List of calling arguments
-    integer (kind = 8 ), intent(in) :: M            !! Order of the polynomial (up to M)
-    integer (kind = 8 ), intent(in) :: n            !! Number of points in the array
+    integer, intent(in) :: M            !! Order of the polynomial (up to M)
+    integer, intent(in) :: n            !! Number of points in the array
     real (kind = 8 ), intent(in) :: x(n)            !! Points where the polynomials are computed
     real ( kind = 8 ), intent(in) :: alpha,beta     !! Parameters of Jacobi
     real (kind = 8 ), intent(out) :: P(n,M+1)       !! Output (n
@@ -526,7 +526,7 @@ implicit none
     double precision :: factorial
 
     !List of local variables
-    integer (kind = 8 ) count1,count2
+    integer count1,count2
     double precision ::  gamma0,gamma1,aux1,aux2,aux3,aold,h1,anew,bnew,c1,c2
 
     gamma0 = 2.0d0**(alpha+beta+1.0d0)/(alpha+beta+1) &
@@ -593,13 +593,13 @@ implicit none
 
 
     !List of calling arguments
-    integer (kind = 8 ), intent(in) :: d                !! Total order of the polynomials
-    integer (kind = 8 ), intent(in) :: n                !! Number of samples in the unit triangle
+    integer, intent(in) :: d                !! Total order of the polynomials
+    integer, intent(in) :: n                !! Number of samples in the unit triangle
     real (kind = 8 ), intent(in) :: u(n),v(n)           !! Samples in the unit triangle
     real (kind = 8 ), intent(out) :: P(n,(d+1)*(d+2)/2) !! Output (n points and (d+1)(d+2)/2 polynomials)
 
     !List of local variables
-    integer (kind = 8 ) count1,count2,count3,ipointer,ijump
+    integer count1,count2,count3,ipointer,ijump
     real (kind = 8 ) u_1(n),v_1(n),P_aux(n,d+1),x_p(n),alpha,beta
 
     alpha=0
@@ -649,7 +649,7 @@ implicit none
     real ( kind = 8 ), intent(out) :: P(n)           !! Output, value of the expansion
 
     !List of local variables
-    integer (kind = 8 ) count1,count2,d,n_aux
+    integer count1,count2,d,n_aux
     real (kind = 8 ) M(n,45)
 
         d=8
@@ -681,7 +681,7 @@ implicit none
     real ( kind = 8 ), intent(out) :: P(n)          !! Output, value of the expansion
 
     !List of local variables
-    integer (kind = 8 ) count1,count2,d,n_aux
+    integer count1,count2,d,n_aux
     real (kind = 8 ) M(n,78)
 
         d=11
@@ -709,7 +709,7 @@ implicit none
     real ( kind = 8 ), intent(out) :: f1(45),f2(45),f3(45),f4(45)   !! Interpolated values on each triangle
 
     !List of local variables
-    integer (kind = 8 ) count1,count2,d,n_aux
+    integer count1,count2,d,n_aux
     real ( kind = 8 ) coef0(45),coef1(45),coef2(45),coef3(45),coef4(45)
     real ( kind = 8 ) U45_0(45),V45_0(45),w45_0(45),Mi45(45,45)
     real ( kind = 8 ) U45_1(45),V45_1(45),M45_01(45,45)
@@ -763,7 +763,7 @@ implicit none
     real ( kind = 8 ), intent(out) :: f1(78),f2(78),f3(78),f4(78)   !! Interpolated values on each triangle
 
     !List of local variables
-    integer (kind = 8 ) count1,count2,d,n_aux
+    integer  count1,count2,d,n_aux
     real ( kind = 8 ) coef0(78),coef1(78),coef2(78),coef3(78),coef4(78)
     real ( kind = 8 ) U78_0(78),V78_0(78),w78_0(78),Mi78(78,78)
     real ( kind = 8 ) U78_1(78),V78_1(78),M78_01(78,78)

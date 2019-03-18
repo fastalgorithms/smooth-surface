@@ -9,30 +9,39 @@
 !
 
 subroutine readgeometry(Geometry1, filename, norder_skel, &
-    n_order_sk,n_order_sf)
+    norder_smooth)
   use ModType_Smooth_Surface
   implicit none
   type (Geometry) :: Geometry1
   character(len=100) :: filename
-  integer :: n_order_sk,n_order_sf, norder_skel
+  integer :: n_order_sf, norder_skel, norder_smooth
   !
   ! This subroutine open a msh file and load the information in a
   ! variable of type Geometry
   !
   ! Input
   !   filename - name of .msh file
-  !   n_order_sk - number of points to put on a skeleton triangle
   !   n_order_sf - number of points to put on a smooth triangle
   !
 
+  if (norder_skel .gt. 20) then
+    call prinf('norder_skel too large = *', norder_skel, 1)
+    stop
+  end if
+
+  if (norder_smooth .gt. 20) then
+    call prinf('norder_smooth too large = *', norder_smooth, 1)
+    stop
+  end if
+
+  
   if (index(filename,'.msh') > 0) then
-    call readmsh(Geometry1, filename, norder_skel, &
-        n_order_sk,n_order_sf)
+    call readmsh(Geometry1, filename, norder_skel, norder_smooth)
   elseif (index(filename,'.tri')>0) then
     print *, 'filename = ', trim(filename)
-    print *, 'order not converted in .tri files!'
+    print *, 'order not converted in .tri files, double check!!'
     stop
-    call readtri(Geometry1,filename,n_order_sk,n_order_sf)
+    call readtri(Geometry1, filename, norder_skel, n_order_sf)
   else
     write (*,*) 'Geometry type not recognized'
     stop
@@ -45,8 +54,7 @@ end subroutine readgeometry
 
 
 
-subroutine readmsh(Geometry1, filename, norder_skel, &
-    n_order_sk,n_order_sf)
+subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   use ModType_Smooth_Surface
   implicit none
 
@@ -66,7 +74,7 @@ subroutine readmsh(Geometry1, filename, norder_skel, &
   !List of calling arguments
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer :: n_order_sk,n_order_sf
+  integer :: n_order_sf, nsk, nsf
   integer  :: norder_skel, norder_smooth
   
   integer umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
@@ -83,25 +91,27 @@ subroutine readmsh(Geometry1, filename, norder_skel, &
   call prinf('npoints = *', m, 1)
   call prinf('ntri = *', n, 1)
 
-  !write (*,*) 'npoints: ',m,'ntri: ',N,n_order_sf,n_order_sk
 
-  !!stop
-  n_order_sk = (norder_skel+1)*(norder_skel+2)/2
-  call prinf('n_order_sk = *', n_order_sk, 1)
+  nsk = (norder_skel+1)*(norder_skel+2)/2
+  call prinf('nsk = *', nsk, 1)
   !stop
 
   Geometry1%norder_skel = norder_skel
-  Geometry1%nskel = n_order_sk
+  Geometry1%nskel = nsk
 
   !Geometry1%norder_smooth = norder_smooth
   !Geometry1%nsmooth = n_order_sf
+
+  Geometry1%norder_smooth = norder_smooth
+  nsf = (norder_smooth+1)*(norder_smooth+2)/2
+  Geometry1%nsmooth = nsf
   
-  Geometry1%n_order_sf=n_order_sf
+  Geometry1%n_order_sf = nsf
   Geometry1%npoints=m
   Geometry1%ntri=N
   Geometry1%ntri_sk=N
-  Geometry1%n_Sf_points=N*n_order_sf
-  Geometry1%n_Sk_points=N*n_order_sk
+  Geometry1%n_Sf_points=N*nsf
+  Geometry1%n_Sk_points=N*nsk
 
   if (allocated(Geometry1%Points)) then
     deallocate(Geometry1%Points)
@@ -140,7 +150,7 @@ end subroutine readmsh
 
 
 
-subroutine readtri(Geometry1,filename,n_order_sk,n_order_sf)
+subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
   use ModType_Smooth_Surface
   implicit none
 
@@ -149,21 +159,37 @@ subroutine readtri(Geometry1,filename,n_order_sk,n_order_sf)
 
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer, intent(in) :: n_order_sk,n_order_sf
+  integer :: n_order_sf, norder_skel
 
   integer umio,i,m,N,j,aux1,aux2,aux3,ipointer
-  integer :: ierror
+  integer :: ierror, nsk
 
   open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) m, N
-  write (*,*) 'npoints: ',m,'ntri: ',N,n_order_sf,n_order_sk
 
+
+  print *
+  print *
+  write (6,*) 'loading file ', trim(filename)
+  write (13,*) 'loading file ', trim(filename)
+  call prinf('npoints = *', m, 1)
+  call prinf('ntri = *', n, 1)
+
+
+  nsk = (norder_skel+1)*(norder_skel+2)/2
+  call prinf('nsk = *', nsk, 1)
+  !stop
+
+  Geometry1%norder_skel = norder_skel
+  Geometry1%nskel = nsk
+
+  
   Geometry1%n_order_sf=n_order_sf
   Geometry1%npoints=m+N*3
   Geometry1%ntri=N
   Geometry1%ntri_sk=N
   Geometry1%n_Sf_points=N*n_order_sf
-  Geometry1%n_Sk_points=N*n_order_sk
+  Geometry1%n_Sk_points=N*nsk
 
   if (allocated(Geometry1%Points)) then
     deallocate(Geometry1%Points)
