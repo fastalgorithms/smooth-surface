@@ -117,7 +117,7 @@ implicit none
         call make_level_restricted(FSS_1%TreeLRD_1)                   !! Make tree level restricted
         call setup_nearest(FSS_1%TreeLRD_1%Main_box)
         call defrag_tree_Points(FSS_1%TreeLRD_1)                      !! Defragment the tree
-        write (*,*) 'Start P_vect setup'
+        !write (*,*) 'Start P_vect setup'
 !        write (*,*) 'big box data (center): ', FSS_1%TreeLRD_1%Main_Box%Box_center
 !        write (*,*) 'big box data (size): ', FSS_1%TreeLRD_1%Main_Box%Box_size
 
@@ -131,7 +131,7 @@ implicit none
 
         call setup_P_vect(FSS_1%TreeLRD_1,FSS_1%TreeLRD_1%Main_Box%Box_center,FSS_1%TreeLRD_1%Main_Box%Box_size)
 
-        write (*,*) 'finito P_vect setup'
+        !write (*,*) 'finito P_vect setup'
 !        read (*,*)
 
         !Compute the mean value of the sigmas to allow nonadaptivity

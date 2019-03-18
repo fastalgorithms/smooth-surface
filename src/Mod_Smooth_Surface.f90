@@ -1,14 +1,13 @@
 Module Mod_Smooth_Surface
-
+  
   use Mod_Feval
   use ModType_Smooth_Surface
-
-
+  
   implicit none
-
+  
 contains
-
-
+  
+  
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -200,16 +199,22 @@ contains
     double precision nP_x(Geometry1%n_order_sf),nP_y(Geometry1%n_order_sf),nP_z(Geometry1%n_order_sf)
     double precision U_x(Geometry1%n_order_sf),U_y(Geometry1%n_order_sf),U_z(Geometry1%n_order_sf)
     double precision V_x(Geometry1%n_order_sf),V_y(Geometry1%n_order_sf),V_z(Geometry1%n_order_sf)
-    integer count,n_order_sf
 
+    integer :: count,n_order_sf, itype, npols, norder_smooth
+    double precision :: umatr(100000), vmatr(100000)
+
+
+    
+    norder_smooth = Geometry1%norder_smooth
     n_order_sf=Geometry1%n_order_sf
 
-    if (n_order_sf==45) then
-      call GaussTri45(U,V,w)
-    else if (n_order_sf==78) then
-      call GaussTri78(U,V,w)
-    end if
-
+    !
+    ! get the smooth nodes and quadrature weights
+    !
+    call ortho2siexps(itype, norder_smooth, npols, U, V, &
+        umatr, vmatr, w)
+    
+    
 
 
     
@@ -269,7 +274,7 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+  subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
     implicit none
 
     !
@@ -290,7 +295,7 @@ contains
     double precision :: grad_F(3,Geometry1%n_Sf_points)
     double precision :: dVdu(3),dVdv(3),dhdu,dhdv,h_var
 
-    write (*,*) 'telita2'
+    !write (*,*) 'telita2'
 
 
     if (allocated(Geometry1%S_smooth)) then
@@ -310,7 +315,7 @@ contains
     endif
     allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
     if (.not.allocated(Geometry1%height)) then
-      write (*,*) 'not allocated'
+      !write (*,*) 'not allocated'
       !            read (*,*)
       allocate (Geometry1%height(Geometry1%n_Sf_points))
       do count=1,Geometry1%n_Sf_points
@@ -340,7 +345,8 @@ contains
     tol=1.0d-14
     maxiter=14
     flag=0
-    write (*,*) 'No llega nunca1'
+    !write (*,*) 'No llega nunca1'
+
     call My_Newton(h,tol,maxiter,Geometry1,flag,Feval_stuff_1,adapt_flag,grad_F,r_t)
 
     if (flag==1) then
@@ -431,6 +437,8 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   count=1
   flag=0
 
+  print *
+  print *
   write (*,*) 'iteration  targets       err'  
   
   do while ((maxval(err)>tol).and.(count<maxiter))
@@ -442,8 +450,8 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     !    (real(Geometry1%n_Sf_points-sum(flag_con),8))&
     !    /(real(Geometry1%n_Sf_points,8))
 
-    call fun_roots_derivative(x,Geometry1,F,dF,Feval_stuff_1, &
-        adapt_flag,flag_con,grad_F,r_t)
+    call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
+        adapt_flag, flag_con, grad_F, r_t)
 
     count=count+1
     do count2=1,Geometry1%n_Sf_points
@@ -636,22 +644,28 @@ end subroutine My_Newton
     double precision coef_h(45)
 
     n_order_sf=Geometry1%n_order_sf
+
     call GaussTri45(U45,V45,w45)
+
     allocate(Points(3,Geometry1%ntri*15))
     allocate(Normal_Vert(3,Geometry1%ntri*15))
     allocate(Tri(6,Geometry1%ntri*4))
     allocate(h_new(Geometry1%n_Sf_points*4))
+
     contador_indices=1
     n_order_aux=9
     U=[0.2500d0,0.7500d0,0d0,0.2500d0,0.5000d0,0.7500d0,0.2500d0,0d0,0.2500d0]
     V=[0d0,0d0,0.2500d0,0.2500d0,0.2500d0,0.2500d0,0.5000d0,0.7500d0,0.7500d0]
+
     do count=1,Geometry1%ntri
+
       P1=Geometry1%Points(:,Geometry1%Tri(1,count))
       P2=Geometry1%Points(:,Geometry1%Tri(2,count))
       P3=Geometry1%Points(:,Geometry1%Tri(3,count))
       P4=Geometry1%Points(:,Geometry1%Tri(4,count))
       P5=Geometry1%Points(:,Geometry1%Tri(5,count))
       P6=Geometry1%Points(:,Geometry1%Tri(6,count))
+
       call eval_quadratic_patch_UV(P1,P2,P3,P4,P5,P6,U,V,F_x,F_y,F_z,U_x,U_y,U_z,V_x,V_y,V_z,nP_x,nP_y,nP_z,dS,n_order_aux)
       Pa=[F_x(1),F_y(1),F_z(1)]
       Pb=[F_x(2),F_y(2),F_z(2)]
@@ -751,6 +765,7 @@ end subroutine My_Newton
 
 
     enddo
+
     Geometry1%npoints=Geometry1%ntri*15
     Geometry1%ntri=Geometry1%ntri*4
     m=Geometry1%npoints
@@ -761,18 +776,20 @@ end subroutine My_Newton
       deallocate(Geometry1%Points)
     endif
     allocate(Geometry1%Points(3,m))
+
     if (allocated(Geometry1%Tri)) then
       deallocate(Geometry1%Tri)
     endif
     allocate(Geometry1%Tri(6,N))
+
     if (allocated(Geometry1%Normal_Vert)) then
       deallocate(Geometry1%Normal_Vert)
     endif
     allocate(Geometry1%Normal_Vert(3,m))
 
-    Geometry1%Points=Points
-    Geometry1%Tri=Tri
-    Geometry1%Normal_Vert=Normal_Vert
+    Geometry1%Points = Points
+    Geometry1%Tri = Tri
+    Geometry1%Normal_Vert = Normal_Vert
 
     deallocate(Points)
     deallocate(Normal_Vert)
@@ -783,6 +800,7 @@ end subroutine My_Newton
 
     allocate(Geometry1%height(Geometry1%n_Sf_points))
     Geometry1%height=h_new
+
     return
   end subroutine refine_geometry_smart
 

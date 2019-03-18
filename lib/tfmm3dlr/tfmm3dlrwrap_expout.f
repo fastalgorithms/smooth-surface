@@ -106,13 +106,20 @@ c
 cc      call prinf('ltree=*',ltree,1)
 cc      call prinf('nboxes=*',nboxes,1)
 
-c       Call tree code
+cCall tree code
+      ifprint = 1
+      call cpu_time(t0)
         call mklraptree(source,ns,radsrc,expc,
      1               nexpc,targets,nt,trads,idivflag,ndiv,isep,
      2               mhung,mnbors,mnlist1,mnlist2,mnlist3,mnlist4,
      3               nlevels,nboxes,treecenters,boxsize,itree,
      3               ltree,ipointer)
 
+        call cpu_time(t1)
+        if (ifprint .eq. 1) print *, 'time in mklraptree = ', t1-t0
+
+
+        
 c       Find nudnsew
         if(isep.eq.1) mnlist2 = 27*7
         if(isep.eq.2) mnlist2 = 125*7

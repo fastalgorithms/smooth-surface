@@ -1,4 +1,10 @@
-program Test_6
+!
+! (c) 2019 Felipe Vico, Manas Rachh, Mike O'Neil
+! oneil@cims.nyu.edu
+!
+!
+
+program smoother
 
   use ModType_Smooth_Surface
   use Mod_TreeLRD
@@ -9,47 +15,33 @@ program Test_6
 
   implicit none
 
-  integer, parameter :: seed = 86456 
   type ( Geometry ), pointer :: Geometry1
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
-  integer  :: N,n_order_sk,n_order_sf, count,n_refinement
-  integer :: N_plot,M_plot,count1,count2,icount,adapt_flag
-  integer :: n_targ,n_targets,interp_flag,fmm_flag
-  integer :: t1, t2,clock_rate, clock_max
+  integer :: N, count,n_refinement
+  integer :: adapt_flag
+  integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
-  character (len=100 ) :: nombre,filename,plot_name,name_aux
-  character (len=100) :: nombre1,nombre2
+  character (len=100) :: nombre, filename,plot_name,name_aux
   character (len=8) :: istr1
-  real ( kind = 8 ) :: U(78),V(78),w(78),x0,y0,z0
-  real ( kind = 8 ) x_min,x_max,y_min,y_max,z_min,z_max
-
-  real ( kind = 8 ), allocatable :: Pts(:,:), sgmas(:)
-  real ( kind = 8 ), allocatable :: F_plot(:,:),targ_vect(:,:),sgma(:)
-  real ( kind = 8 ), allocatable :: sgma_x(:),sgma_y(:),sgma_z(:)
-  real ( kind = 8 ), allocatable :: time_report(:),error_report(:)
+  double precision :: x0,y0,z0
+  double precision, allocatable :: time_report(:), error_report(:)
 
 
   call prini(6,13)
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 16
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
   norder_smooth = 8
-  !n_order_sf=45
-  ! n_order_sf=78
 
-
+  
   n_refinement=1  ! Specify the numnber of refinements to do starting from 0
   adapt_flag=1    ! this is to enable adaptativity (otherwise sigma is constant)
-
-  ! this is to enable the interpolation machinery (otherwise iterates
-  ! with FMM every time or with stokes identity)
-  interp_flag=0
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -60,20 +52,17 @@ program Test_6
   call prinf('norder_smooth = *', norder_smooth, 1)
   call prinf('n_refinement = *', n_refinement, 1)
   call prinf('adapt_flag = *', adapt_flag, 1)
-  call prinf('interp_flag = *', interp_flag, 1)
 
   
 
   allocate(Geometry1)
-  allocate(time_report(n_refinement+1))
-  allocate(error_report(n_refinement+1))
-  time_report(0)=0.0d0
+  allocate(error_report(n_refinement+100))
 
   !
   ! specify the msh file to read in
   !
-  nombre='./msh_files/sphere.msh'
-  filename='./plot_files/sphere'
+  nombre='./msh_files/sphere_subtract.msh'
+  filename='./plot_files/sphere_subtract'
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0
@@ -87,12 +76,10 @@ program Test_6
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
-
   
   call start_Feval_tree(Feval_stuff_1, Geometry1)
-  
-  
   call funcion_Base_Points(Geometry1)
+
 
   !! Esto es para el modo sin FMM
   if (fmm_flag.eq.0) then
@@ -102,14 +89,7 @@ program Test_6
   endif
 
   
-  !call plot_sigma(Feval_stuff_1%FSS_1, Geometry1,adapt_flag)
-  !    call plot_tree_tool(Feval_stuff_1%Tree_local)
-  !    stop
-
-  call system_clock ( t1, clock_rate, clock_max )
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
-  call system_clock ( t2, clock_rate, clock_max )
-  time_report(1) = real( t2 - t1 ) / real( clock_rate )
 
   print *
   name_aux=trim(filename)// '_r00.gov'
@@ -120,92 +100,47 @@ program Test_6
   print *, '. . . checking gauss identity'
   call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
+  
   !
   ! plot the smoothed surface
   !
-  filename='smoothed.vtk'
   print *
   print *
   print *, '. . . plotting vtk smoothed geometry'
-  call plotSmoothGeometryVTK(Geometry1, filename)
+  plot_name = 'smoothed.vtk'
+  call plotsmoothgeometryvtk(Geometry1, plot_name)
   print *, '. . . finished plotting vtk smoothed geometry'
 
-  stop
 
-
-
-
-
-
-  !  
-  ! this command triggers the new interpolation method
-  ! otherwise, the fmm newton iteration method is used
   !
-  if (interp_flag==1) then
-    call system_clock ( t1, clock_rate, clock_max )
-    call start_Feval(Feval_stuff_1,Geometry1,adapt_flag)
-    call system_clock ( t2, clock_rate, clock_max )
-    time_report(0)=real ( t2 - t1 ) / real ( clock_rate )
-  endif
+  ! refinement not working properly, must rewrite
+  !
   
-  print *, 'refinement is not updated with ortho2siexps yet!'
-  stop
+
+  !
+  ! do some refinement and experiment
+  !
   
-    
-    do count=1,n_refinement
-!        read (*,*)
-        write (*,*) 'Refinement nº: ',count
-        call refine_geometry_smart(Geometry1)
-        call funcion_Base_Points(Geometry1)
-        call system_clock ( t1, clock_rate, clock_max )
-            call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
-        call system_clock ( t2, clock_rate, clock_max )
-        time_report(count+1)=real ( t2 - t1 ) / real ( clock_rate )
-        write (*,*) 'SAVING .GOV FILE'
-        write(istr1,"(I2.2)") count
-        name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'
-        call record_Geometry(Geometry1,name_aux)
-        call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
-    enddo
-    write (*,*) 'FINAL REPORT'
-    do count=0,n_refinement
-        write (*,*) 'Refinement nº: ',int(count,4), '  Error: ', &
-        &real(error_report(count+1),4), '  Time: ',real(time_report(count+1),4),'sec'
-    enddo
-    write (*,*) 'Interpolation time: ',real(time_report(0),4),'sec'
-
-    nombre1 = trim(filename)//'.rec'
-
-    call record_results(n_refinement,time_report,error_report,nombre1)
+  ! do count=1,n_refinement
+  !   write (*,*) 'Refinement num: ',count
+  !   call refine_geometry_smart(Geometry1)
+  !   call funcion_Base_Points(Geometry1)
+  !   call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+  !   !write (*,*) 'SAVING .GOV FILE'
+  !   !write(istr1,"(I2.2)") count
+  !   !name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'
+  !   !call record_Geometry(Geometry1,name_aux)
+  !   call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
+  ! enddo
 
 
+  ! write (*,*) 'FINAL REPORT'
+  ! do count=0,n_refinement
+  !   write (*,*) 'Refinement num: ',int(count), '  Error: ', &
+  !       &error_report(count+1)
+  ! enddo
 
-
-
-    
-stop
-end program
-
-
-
-
-subroutine record_results(n_refinement,time_report,error_report,nombre)
-
-integer umio,i,m,n,j
-character(len=100) nombre
-real *8 time_report(n_refinement+1)
-real *8 error_report(n_refinement+1)
-
-    umio=1
-    write (*,*) umio
-    open(umio, FILE=nombre,STATUS='REPLACE')
-    do i=0,n_refinement
-        write (umio,*) i,error_report(i+1),time_report(i+1)
-    enddo
-    close (umio)
-
-return
-end
+end program smoother
 
 
 
@@ -213,7 +148,8 @@ end
 
 
 
-subroutine plotSmoothGeometryVTK(Geometry1, filename)
+
+subroutine plotsmoothgeometryvtk(Geometry1, filename)
   use Mod_Smooth_Surface
   implicit none
 
@@ -222,7 +158,7 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
 
   integer :: umio,count1,count2,flag,n_order_sf, norder_smooth
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
-  integer :: ntot, ltot, npols7, npols, info, iii, n, l, nnn, iw
+  integer :: ntot, ltot, npols7, info, iii, n, l, nnn, iw
   real (kind = 8) :: us(100000), vs(100000), ws(100000), dcond
   real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
   real (kind = 8) :: xcoefs(10000), xrhs(10000)
@@ -232,6 +168,9 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
 
   real (kind = 8), allocatable :: xyzs(:,:,:), uvs(:,:,:)
   real (kind = 8), allocatable :: pmat(:,:), triout(:,:,:)
+
+  double precision :: umatr(100000), vmatr(100000)
+  integer :: itype, npols
   
   !
   ! This routien dumps out smoothed geometry into a vtk file,
@@ -251,29 +190,24 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   norder_smooth = Geometry1%norder_smooth
   n_order_sf = Geometry1%n_order_sf
 
-  
-  
   !
   ! get the nodes here
   !
-  
 
-  if (n_order_sf .eq. 45) then
-    norder=8
-    nover = 4
-    nsub = 4**nover
-    k = 45
-    call GaussTri45(us, vs, ws)
-  end if
-  
-  if (n_order_sf .eq. 78) then
-    norder=11
-    nover = 3
-    nover = 5
-    nsub = 4**nover
-    k = 78
-    call GaussTri78(us, vs, ws)
-  end if
+  call ortho2siexps(itype, norder_smooth, npols, us, vs, &
+      umatr, vmatr, ws)
+
+  norder = norder_smooth
+  k = npols
+
+  if (n_order_sf .gt. 4**0) nover = 1
+  if (n_order_sf .gt. 4**1) nover = 2
+  if (n_order_sf .gt. 4**2) nover = 3
+  if (n_order_sf .gt. 4**3) nover = 4
+  if (n_order_sf .gt. 4**4) nover = 5
+
+  nover = nover + 1
+  nsub = 4**nover
 
   !
   ! now dump out all the info needed for the triangles, compute xtri
@@ -281,7 +215,10 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   !
   ntri = Geometry1%ntri
   call prinf('in vtk plotter, original ntri = *', ntri, 1)
+
+  
   allocate(xyzs(3,k,ntri))
+
 
   ictr = 0
   do i = 1,ntri
@@ -410,19 +347,9 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
       zrhs(j) = xyzs(3,j,i)
     end do
 
-    
-    !call dgausselim(k, pmat, xrhs, info, xcoefs, dcond)
-    !call dgausselim(k, pmat, yrhs, info, ycoefs, dcond)
-    !call dgausselim(k, pmat, zrhs, info, zcoefs, dcond)
-
     call dmatvec(k, k, pinv, xrhs, xcoefs)
     call dmatvec(k, k, pinv, yrhs, ycoefs)
     call dmatvec(k, k, pinv, zrhs, zcoefs)
-    
-    !call prin2('xcoefs = *', xcoefs, k)
-    !call prin2('ycoefs = *', ycoefs, k)
-    !call prin2('zcoefs = *', zcoefs, k)
-    !stop
 
     !
     ! now evaluate the new triangle nodes
@@ -443,10 +370,6 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
           yval = yval + ycoefs(l)*pols(l)
           zval = zval + zcoefs(l)*pols(l)
         end do
-
-        !call prin2('xcoefs = *', xcoefs, k)
-        !call prin2('ycoefs = *', ycoefs, k)
-        !call prin2('zcoefs = *', zcoefs, k)
         
         triout(1,iii,nnn) = xval
         triout(2,iii,nnn) = yval
@@ -464,23 +387,20 @@ subroutine plotSmoothGeometryVTK(Geometry1, filename)
   call prinf('num triangles plotted = *', nnn, 1)
   
   
-  iw = 33
-  call xtri_vtk_flat(iw, nnn, triout, 'smoothed geometry')
-
-
+  call xtri_vtk_flat(nnn, triout, 'smoothed geometry', filename)
 
   !close (id)
   return
-end subroutine plotSmoothGeometryVTK
+end subroutine plotsmoothgeometryvtk
 
 
 
-subroutine xtri_vtk_flat(iw, ntri, xtri1s, title)
+subroutine xtri_vtk_flat(ntri, xtri1s, title, filename)
   implicit real *8 (a-h,o-z)
   real *8 :: xtri1s(3,3,ntri)
-  character(len=*) :: title
+  character(len=*) :: title, filename
 
-  character(len=1024) :: filename, dataname, valsname, imgname
+  character(len=1024) :: dataname, valsname, imgname
   character(len=1024) :: trisname, vecsname, centname
   character(len=12) :: fmt, fmt3, fmt4
   character(len=25) :: fmt2
@@ -490,7 +410,6 @@ subroutine xtri_vtk_flat(iw, ntri, xtri1s, title)
   ! color vals.
   !
   ! Input:
-  !   iw - plot number, controls the filenames
   !   ntri - number of flat triangles
   !   xtri1s - full triangle information
   !
@@ -498,26 +417,6 @@ subroutine xtri_vtk_flat(iw, ntri, xtri1s, title)
   !   files which can be executed in matlab to plot the surface
   !
   !
-
-  if (iw .lt. 10) then
-    fmt = "(A4,I1,A4)"
-    fmt3 = "(A8,I1,A4)"
-    fmt4 = "(A5,I1,A4)"
-  elseif (iw .lt. 100) then
-    fmt = "(A4,I2,A4)"
-    fmt3 = "(A8,I2,A4)"
-    fmt4 = "(A5,I2,A4)"
-  elseif (iw .lt. 1000) then
-    fmt = "(A4,I3,A4)"
-    fmt3 = "(A8,I3,A4)"
-    fmt4 = "(A5,I3,A4)"
-  elseif (iw .lt. 10000) then
-    fmt = "(A4,I4,A4)"
-    fmt3 = "(A8,I4,A4)"
-    fmt4 = "(A5,I4,A4)"
-  end if
-
-  write(filename, fmt) 'plot', iw, '.vtk'
 
   !
   ! write the vtk plotting script
@@ -573,16 +472,7 @@ subroutine xtri_vtk_flat(iw, ntri, xtri1s, title)
         xtri1s(3,2,i) + xtri1s(3,3,i))/3
   end do
 
-
-
-
-
-
-
   close(iunit1)
-
-
-
 
   return
 end subroutine xtri_vtk_flat

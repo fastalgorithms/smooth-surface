@@ -244,7 +244,8 @@ subroutine record_Geometry(Geometry1,filename)
   integer :: ierror
 
   open(8, FILE=filename,STATUS='REPLACE')
-  n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
+  n_order_sf = Geometry1%n_order_sf
+  
   write(8,*) n_order_sf
   write(8,*) Geometry1%ntri
   write(8,*) Geometry1%n_Sf_points

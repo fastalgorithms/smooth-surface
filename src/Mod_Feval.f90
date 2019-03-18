@@ -259,13 +259,14 @@ contains
     integer count,count2,count1
     integer n_sources
     real ( kind = 8 ) tfmm
-    complex ( kind = 8 ), allocatable :: sigma(:),mu(:),pottarg(:),fldtarg(:,:)
+    double complex, allocatable :: sigma(:),mu(:),pottarg(:),fldtarg(:,:)
     real ( kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:),trads(:)
     integer , allocatable :: flag_error(:)
     real ( kind = 8 ), allocatable :: missed_Points(:,:)
     integer ipointer
     character (len=100) plot_name
-
+    double precision :: t0, t1, telap
+    !$ double precision :: omp_get_wtime
 
     allocate(sgma(n_targets))
     allocate(trads(n_targets))
@@ -278,8 +279,13 @@ contains
 
     !! obtain the value of sgma at the target points, needed to make the FMM call
     !write (*,*) 'START eval sigma',n_targets
+    call cpu_time(t0)
     call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
         &sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
+    call cpu_time(t1)
+    telap = t1-t0
+    print *, 'time for eval sigma = ', telap
+
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
 
@@ -312,10 +318,16 @@ contains
     else
       if (.not.allocated(Fev_stf_1%treecenters)) then
         !write (*,*) 'start fmm ', 'n_sources: ',n_sources,'n_targets: ',n_targets
+        call cpu_time(t0)
+        !$ t0 = omp_get_wtime()
         call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,Geometry1%skeleton_N,n_sources,&
             &Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
             &n_targets,trads,sgma,sgma_grad,ifpottarg,&
             &pottarg,iffldtarg,fldtarg,tfmm)
+        call cpu_time(t1)
+        !$ t1 = omp_get_wtime()
+        telap = t1-t0
+        print *, 'time for fmm = ', telap
         !write (*,*) 'out of fmm'
         do count2=1,n_targets
           pottarg(count2)=pottarg(count2)-0.5d0

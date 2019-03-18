@@ -1205,7 +1205,7 @@ C$OMP END PARALLEL DO
 
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 8 (direct) =====*',i,0)
-      time1=second()
+      call cpu_time(time1)
 C$        time1=omp_get_wtime()
 
       do ilev=0,nlevels
@@ -1249,8 +1249,9 @@ c
          enddo
 C$OMP END PARALLEL DO      
       enddo
-      time2 = second()
+      call cpu_time(time2)
 C$        time2=omp_get_wtime()
+      print *, 'time in nearfield = ', time2-time1
 
       timeinfo(8) = time2-time1
       if(ifprint.ge.1) call prin2('timeinfo=*',timeinfo,8)

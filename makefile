@@ -47,14 +47,16 @@ endif
 
 ifeq ($(HOST),linux-gcc)
    FC = gfortran
-   FFLAGS = -O2 -mcmodel=medium  -w -fdefault-integer-8 -finteger-4-integer-8
-   FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
+   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8
+   FLINK = gfortran -g -w -fdefault-integer-8 -finteger-4-integer-8 \
+       -o $(PROJECT) -llapack -lblas
 endif
 
 ifeq ($(HOST),linux-gcc-openmp)
    FC = gfortran 
-   FFLAGS = -O2  -w --openmp
-   FLINK = gfortran --openmp -w -o $(PROJECT) -llapack -lblas
+   FFLAGS = -O2  -w --openmp -fdefault-integer-8 -finteger-4-integer-8
+   FLINK = gfortran --openmp -fdefault-integer-8 -finteger-4-integer-8 \
+       -w -o $(PROJECT) -llapack -lblas
 endif
 
 
