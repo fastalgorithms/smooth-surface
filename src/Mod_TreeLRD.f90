@@ -2301,7 +2301,7 @@ implicit none
             if (Current_box%n_points>0) then
                 allocate(tri_redundant(Current_box%n_points))
                 do count1=1,Current_box%n_points
-                    tri_redundant(count1)=int(Current_box%sgmas(count1),8)
+                    tri_redundant(count1)=int(Current_box%sgmas(count1))
                 enddo
                 Current_box%triangles_box=Unique(tri_redundant)
 !                write (*,*) Current_box%triangles_box

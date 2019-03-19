@@ -575,7 +575,7 @@ implicit none
     integer count1
     integer n_aux
 
-        n_aux=nint(n,8)
+        n_aux = nint(n)
         factorial=1.0d0
         do count1=1,n_aux
             factorial=factorial*count1
