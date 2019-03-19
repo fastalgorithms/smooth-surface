@@ -362,8 +362,7 @@ contains
 
       Geometry1%S_smooth(:,count)=r_t(:,count)
     enddo
-    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)
-    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
+    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
     n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
     do count=1,Geometry1%n_Sf_points
       Geometry1%N_smooth(:,count)=-1.0d0*grad_F(:,count)/(sqrt(grad_F(1,count)**2+grad_F(2,count)**2+grad_F(3,count)**2))

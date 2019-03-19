@@ -65,64 +65,37 @@ implicit none
 !List of calling arguments
 real ( kind = 8 ) , intent(in) :: r,sgma
 real ( kind = 8 ), intent(out) ::  H, HH, HHH
+double precision :: uuu2, uuu4, uuu6, uuu8
 
 !List of local variables
-real ( kind = 8 ) pi, my_exp, denom,x(15),w(15)
-integer ( kind = 8) count
+real ( kind = 8 ) pi, my_exp, denom,x(15),w(15),uuu
+integer ( kind = 8) count,nlg
 
     pi=3.141592653589793238462643383d0
     my_exp=exp(-r**2/(2*sgma**2))
     HHH=-1/(4*pi)*sqrt(2/pi)*(1/sgma**4)*my_exp
 
+    uuu = r/(sqrt(2.0d0)*sgma)
     if (r==0.0d0) then
-        H=sqrt(2.0d0)/(12*sgma**3*sqrt(pi**3))
-        HH=-1.0d0*sqrt(2.0d0)/(20.0d0*sgma**5.0d0*sqrt(pi**3))
-    else if (r/sgma<0.9d0) then
-        x(1)=6.003740989757256e-03
-        x(2)=3.136330379964697e-02
-        x(3)=7.589670829478640e-02
-        x(4)=1.377911343199150e-01
-        x(5)=2.145139136957306e-01
-        x(6)=3.029243264612183e-01
-        x(7)=3.994029530012828e-01
-        x(8)=5.000000000000000e-01
-        x(9)=6.005970469987173e-01
-        x(10)=6.970756735387817e-01
-        x(11)=7.854860863042694e-01
-        x(12)=8.622088656800850e-01
-        x(13)=9.241032917052137e-01
-        x(14)=9.686366962003530e-01
-        x(15)=9.939962590102427e-01
-        w(1)=1.537662099805856e-02
-        w(2)=3.518302374405402e-02
-        w(3)=5.357961023358594e-02
-        w(4)=6.978533896307718e-02
-        w(5)=8.313460290849692e-02
-        w(6)=9.308050000778104e-02
-        w(7)=9.921574266355579e-02
-        w(8)=1.012891209627806e-01
-        w(9)=9.921574266355579e-02
-        w(10)=9.308050000778104e-02
-        w(11)=8.313460290849692e-02
-        w(12)=6.978533896307718e-02
-        w(13)=5.357961023358594e-02
-        w(14)=3.518302374405402e-02
-        w(15)=1.537662099805856e-02
-        x=x*r/sgma/sqrt(2.0d0)
-        w=w*r/sgma/sqrt(2.0d0)
-        H=0.0d0
-        HH=0.0d0
-        do count=1,15
-!            x(count)=x(count)*r/sgma/sqrt(2.0d0)
-!            w(count)=w(count)*r/sgma/sqrt(2.0d0)
-            H=H+(x(count)**2)*exp(-x(count)**2)/(sqrt(pi**3))*w(count)/(r**3);
-            HH=HH+(x(count)**4)*exp(-x(count)**2)*-2.0d0*w(count)/(r**5*sqrt(pi**3));
-        enddo
+      H=sqrt(2.0d0)/(12*sgma**3*sqrt(pi**3))
+      HH=-1.0d0*sqrt(2.0d0)/(20.0d0*sgma**5.0d0*sqrt(pi**3))
+    else if (uuu<0.1d0) then
+      uuu2 = uuu*uuu
+      uuu4 = uuu2*uuu2
+      uuu6 = uuu2*uuu4
+      uuu8 = uuu2*uuu6
+      H=0.0d0
+      HH=0.0d0
+      H = uuu8/132.0d0 - uuu6/27.0d0 + uuu4/7.0d0 - 2*uuu2/5.0d0 + 2.0d0/3.0d0
+      H = H/(4*sqrt(2.0d0)*sqrt(pi**3)*(sgma**3))
     else
-        H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r
-        denom=(4.*r**5*sgma**3*sqrt(pi**3))
-        HH=(sqrt(2.0d0)*r**3*my_exp - 3*sgma**3*sqrt(pi)*erf((sqrt(2.0d0)*r)/(2*sgma)) + 3*sqrt(2.0d0)*r*sgma**2*my_exp)/denom
+      H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) &
+          - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r
+      denom=(4*r**5*sgma**3*sqrt(pi**3))
+      HH=(sqrt(2.0d0)*r**3*my_exp - 3*sgma**3*sqrt(pi) &
+          *erf((sqrt(2.0d0)*r)/(2*sgma)) &
+          + 3*sqrt(2.0d0)*r*sgma**2*my_exp)/denom
     end if
-return
-end
+    return
+  end subroutine my_erf_like_v4
 

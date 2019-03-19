@@ -37,7 +37,7 @@ program smoother
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 8
+  norder_smooth = 16
 
   
   n_refinement=1  ! Specify the numnber of refinements to do starting from 0

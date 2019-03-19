@@ -95,7 +95,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/prini.f \
  $(TFMM3D)/l3dterms.f \
  $(TFMM3D)/laprouts3d.f \
- $(TFMM3D)/nearfield.f90 \
+ $(TFMM3D)/nearfield32.f90 \
  $(TFMM3D)/l3dmpmpfinal4.f \
  $(TFMM3D)/l3dloclocfinal4.f \
  $(TFMM3D)/l3dmplocfinal4.f \

@@ -284,7 +284,7 @@ contains
         &sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     call cpu_time(t1)
     telap = t1-t0
-    print *, 'time for eval sigma = ', telap
+    !print *, 'time for eval sigma = ', telap
 
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
