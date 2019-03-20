@@ -61,12 +61,12 @@ program smoother
   !
   ! specify the msh file to read in
   !
-  nombre='./msh_files/sphere_subtract.msh'
-  filename='./plot_files/sphere_subtract'
+  nombre='./msh_files/pico_2.msh'
+  filename='./plot_files/pico_2'
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0
-  z0 = 0
+  z0 = 4
 
 
   ! load in the msh file

@@ -66,12 +66,20 @@ implicit none
 real ( kind = 8 ) , intent(in) :: r,sgma
 real ( kind = 8 ), intent(out) ::  H, HH, HHH
 double precision :: uuu2, uuu4, uuu6, uuu8
+double precision :: r2, r3, r5
 
 !List of local variables
-real ( kind = 8 ) pi, my_exp, denom,x(15),w(15),uuu
+double precision :: my_exp, denom,x(15),w(15),uuu
 integer ( kind = 8) count,nlg
 
-    pi=3.141592653589793238462643383d0
+double precision, parameter :: pi=3.141592653589793238462643383d0
+double precision, parameter :: sqrt2 = 1.41421356237310d0
+double precision, parameter :: fourpi = 12.5663706143592d0
+double precision, parameter :: foursqrtpi3 = 22.2733119873268d0
+double precision, parameter :: threesqrtpi = 5.31736155271655d0
+!double precision, parameter :: 
+
+    
     my_exp=exp(-r**2/(2*sgma**2))
     HHH=-1/(4*pi)*sqrt(2/pi)*(1/sgma**4)*my_exp
 
@@ -89,12 +97,23 @@ integer ( kind = 8) count,nlg
       H = uuu8/132.0d0 - uuu6/27.0d0 + uuu4/7.0d0 - 2*uuu2/5.0d0 + 2.0d0/3.0d0
       H = H/(4*sqrt(2.0d0)*sqrt(pi**3)*(sgma**3))
     else
-      H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) &
-          - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r
-      denom=(4*r**5*sgma**3*sqrt(pi**3))
-      HH=(sqrt(2.0d0)*r**3*my_exp - 3*sgma**3*sqrt(pi) &
-          *erf((sqrt(2.0d0)*r)/(2*sgma)) &
-          + 3*sqrt(2.0d0)*r*sgma**2*my_exp)/denom
+
+      !print *, 'sqrt(2) = ', sqrt(2.0d0)
+      !print *, '4pi = ', 4*pi
+      !print *, '4sqrt(pi3) = ', 4*sqrt(pi**3)
+      !print *, '3sqrt(pi) = ', 3*sqrt(pi)
+      !stop
+
+      r2 = r*r
+      r3 = r2*r
+      r5 = r2*r3
+      
+      H=(erf((sqrt2*r)/(2*sgma))/(fourpi*r2) &
+          - (sqrt2*my_exp)/(foursqrtpi3*sgma*r))/r
+      denom=(foursqrtpi3*r5*sgma**3)
+      HH=(sqrt2*r3*my_exp - threesqrtpi*sgma**3 &
+          *erf(r/sqrt2/sgma) &
+          + 3*sqrt2*r*sgma**2*my_exp)/denom
     end if
     return
   end subroutine my_erf_like_v4
