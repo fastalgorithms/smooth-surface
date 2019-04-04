@@ -46,12 +46,20 @@ type, public :: Geometry
     real ( kind = 8 ), allocatable :: rv_smooth(:,:)            !v vectro on the real smooth surface
     real ( kind = 8 ), allocatable :: w_smooth(:)               !Integration weigths on the real smooth surface
 !
-! That was removed from here. There will be only one copy of the centroids and sgmas at centroids in the tree.
+
+    ! That was removed from here. There will be only one copy of the centroids and sgmas at centroids in the tree.
 !    real ( kind = 8 ), allocatable :: Centroids(:,:)            !Centroids of each triangle of the skeleton (to compute sgma(x))
 !    real ( kind = 8 ), allocatable :: sgmas(:)                  !Values of sgma on each centroid, proportional to the side of the triangle
-!
-    real ( kind = 8 ), allocatable :: Points(:,:)               !Points that define the msh file (Each quadratic triangle has 6 points)
-    real ( kind = 8 ), allocatable :: Normal_Vert(:,:)          !Pseudo-normals defined on each vertex of each triangle of the skeleton
+    !
+
+    ! flag for triangle type, flat or quadratic
+    integer :: ifflat
+    
+    !Points that define the msh file (Each quadratic triangle has 6 points)
+    real ( kind = 8 ), allocatable :: Points(:,:)
+
+    !Pseudo-normals defined on each vertex of each triangle of the skeleton
+    real ( kind = 8 ), allocatable :: Normal_Vert(:,:)          
     real ( kind = 8 ), allocatable :: Base_Points(:,:)          !base base points of eachs mooth point on the skeleton
     real ( kind = 8 ), allocatable :: Base_Points_N(:,:)        !Pseudo-normals defined on each base point of the surface
     real ( kind = 8 ), allocatable :: Base_Points_U(:,:)        !U vector defined on each base point of the smooth surface
