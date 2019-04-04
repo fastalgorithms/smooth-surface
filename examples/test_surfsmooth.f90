@@ -19,7 +19,7 @@ program smoother
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
   integer :: N, count,nrefine
-  integer :: adapt_flag
+  integer :: adapt_flag, ifflatten
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
@@ -33,12 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 16
+  norder_skel = 6
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 16
-
+  norder_smooth = 8
   
   nrefine=1  ! Specify the numnber of refinements to do starting from 0
   adapt_flag=1    ! this is to enable adaptativity (otherwise sigma is constant)
@@ -83,7 +82,6 @@ program smoother
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
 
-  stop
   
   
   !call refineskeleton(Geometry1, nrefine)
@@ -97,7 +95,7 @@ program smoother
 
 
   !! Esto es para el modo sin FMM
-  if (fmm_flag.eq.0) then
+  if (fmm_flag .eq. 0) then
     print *, 'do not run with fmm_flag = 0 !!!'
     stop
     call start_Feval_local(Feval_stuff_1,Geometry1)

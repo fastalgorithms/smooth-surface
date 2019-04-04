@@ -55,6 +55,9 @@ type, public :: Geometry
     ! flag for triangle type, flat or quadratic
     integer :: ifflat
     
+    !Triangles of the skeleton (each triangle 6 points)
+    integer, allocatable :: Tri(:,:)
+
     !Points that define the msh file (Each quadratic triangle has 6 points)
     real ( kind = 8 ), allocatable :: Points(:,:)
 
@@ -67,7 +70,6 @@ type, public :: Geometry
     real ( kind = 8 ), allocatable :: Dummy_targ(:,:)        !Dummy targets on pseudonormals
     real ( kind = 8 ), allocatable :: height(:)                 !Value of the root in newton where F(h)=1/2 for each point on the smooth surface
     integer n_dummy_targ   !total number of dummy targets
-    integer, allocatable :: Tri(:,:)               !Triangles of the skeleton (each triangle 6 points)
 
 !Edges and Boundary is use to compute the line integral in the non-FMM case (beyond that line integral, the kernel is 1/r and erf=1)
     integer, allocatable :: Edges(:,:)             !Set of 3 integers with the location of the points Points(1:3,:) for each edge in the skeleton (set of quadratic triangles)

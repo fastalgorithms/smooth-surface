@@ -5,9 +5,38 @@ subroutine cisurf_quad2flat(Geometry1)
   implicit double precision (a-h,o-z)
 
   type (Geometry) :: Geometry1
-
   
+  integer :: js(10)
+  double precision :: xyz1(10), xyz2(10), xyz3(10)
+  
+  !
+  ! this subroutine flattens the quadratic triangles that were loaded
+  ! into 1st order, flat triangles
+  !
 
+  ntri = Geometry1%ntri_sk
+
+  do i = 1,ntri
+
+    do j = 1,6
+      js(j) = Geometry1%Tri(j,i)
+    end do
+
+    do k = 1,3
+      xyz1(k) = Geometry1%Points(k,js(1))
+      xyz2(k) = Geometry1%Points(k,js(2))
+      xyz3(k) = Geometry1%Points(k,js(3))
+    end do
+
+    do k = 1,3
+      Geometry1%Points(k,js(4)) = (xyz1(k) + xyz2(k))/2
+      Geometry1%Points(k,js(5)) = (xyz2(k) + xyz3(k))/2
+      Geometry1%Points(k,js(6)) = (xyz3(k) + xyz1(k))/2
+    end do
+    
+  end do
+
+  Geometry1%ifflat = 1
 
   return
 end subroutine cisurf_quad2flat
