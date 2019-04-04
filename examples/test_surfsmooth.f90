@@ -18,7 +18,7 @@ program smoother
   type ( Geometry ), pointer :: Geometry1
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
-  integer :: N, count,n_refinement
+  integer :: N, count,nrefine
   integer :: adapt_flag
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
@@ -40,7 +40,7 @@ program smoother
   norder_smooth = 16
 
   
-  n_refinement=1  ! Specify the numnber of refinements to do starting from 0
+  nrefine=1  ! Specify the numnber of refinements to do starting from 0
   adapt_flag=1    ! this is to enable adaptativity (otherwise sigma is constant)
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
@@ -50,13 +50,13 @@ program smoother
   call prinf('. . . printing flags and options*', norder_skel, 0)
   call prinf('norder_skel = *', norder_skel, 1)
   call prinf('norder_smooth = *', norder_smooth, 1)
-  call prinf('n_refinement = *', n_refinement, 1)
+  call prinf('nrefine = *', nrefine, 1)
   call prinf('adapt_flag = *', adapt_flag, 1)
 
   
 
   allocate(Geometry1)
-  allocate(error_report(n_refinement+100))
+  allocate(error_report(nrefine+100))
 
   !
   ! specify the msh file to read in
@@ -73,6 +73,8 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
+  !call refineskeleton(Geometry1, nrefine)
+  
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
@@ -121,7 +123,7 @@ program smoother
   ! do some refinement and experiment
   !
   
-  ! do count=1,n_refinement
+  ! do count=1,nrefine
   !   write (*,*) 'Refinement num: ',count
   !   call refine_geometry_smart(Geometry1)
   !   call funcion_Base_Points(Geometry1)
@@ -135,7 +137,7 @@ program smoother
 
 
   ! write (*,*) 'FINAL REPORT'
-  ! do count=0,n_refinement
+  ! do count=0,nrefine
   !   write (*,*) 'Refinement num: ',int(count), '  Error: ', &
   !       &error_report(count+1)
   ! enddo
