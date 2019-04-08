@@ -66,8 +66,8 @@ program smoother
   !
   ! specify the msh file to read in
   !
-  nombre='./geometries/mi_barco_simple.msh'
-  filename='./plot_files/high_genus'
+  nombre='./geometries/round/Round_1.msh'
+  !filename='./plot_files/high_genus'
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0
@@ -111,9 +111,9 @@ program smoother
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
   print *
-  name_aux=trim(filename)// '_r00.gov'
-  print *, '. . . saving *.gov file: ', trim(name_aux)
-  call record_Geometry(Geometry1,name_aux)
+  !name_aux=trim(filename)// '_r00.gov'
+  !print *, '. . . saving *.gov file: ', trim(name_aux)
+  !call record_Geometry(Geometry1,name_aux)
 
   print *
   print *, '. . . checking gauss identity'
