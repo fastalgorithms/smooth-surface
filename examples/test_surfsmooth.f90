@@ -66,7 +66,7 @@ program smoother
   !
   ! specify the msh file to read in
   !
-  nombre='./geometries/huge_genus_4.msh'
+  nombre='./geometries/substraction/substraction2.msh'
   filename='./plot_files/high_genus'
   ! point inside to check Gauss integral
   x0 = 0
