@@ -213,8 +213,9 @@ subroutine function_eval_sigma(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,
         sgma_x,sgma_y,sgma_z, adapt_flag)
 
   elseif (adapt_flag==1) then
-            call fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,adapt_flag)
-        endif
+    call fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma, &
+        sgma_x,sgma_y,sgma_z, adapt_flag)
+  endif
 
 !        elseif ((adapt_flag==1).and.(speed_flag==0)) then
 !            call function_eval_sigma_v1(targ_vect,n_targ,FSS_1,sgma,sgma_x,sgma_y,sgma_z)   !! alfa will be constant (sigma not) computed by brute force
@@ -304,73 +305,78 @@ end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,adapt_flag)
-implicit none
-!! This program runs the fixed point iteration to find sigma starting from initial guess that comes from a the size of the box
-!! in which the target would land in the level restricted tree.
-!! Notice that the tree covers the full domail
+subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
+    sgma_x, sgma_y, sgma_z, adapt_flag)
 
-    !List of calling arguments
-    type ( Fast_Sigma_stuff ), pointer ::  FSS_1
-!    type ( TreeLRD ), pointer :: TreeLRD_1
-    integer, intent(in) :: n_targ,adapt_flag
-    real ( kind = 8 ), intent(in) :: targ_vect(3,n_targ)
-    real ( kind = 8 ), intent(out) :: sgma(n_targ),sgma_x(n_targ),sgma_y(n_targ),sgma_z(n_targ)
+  implicit none
+  !! This program runs the fixed point iteration to find sigma
+  !! starting from initial guess that comes from a the size of the box
+  !! in which the target would land in the level restricted tree.
+  !! Notice that the tree covers the full domain
 
-    !List of local variables
-    integer count1,count2
-    real ( kind = 8 ) d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
-    type ( TreeLRD ), pointer :: TreeLRD_1
+  ! List of calling arguments
+  type ( Fast_Sigma_stuff ), pointer ::  FSS_1
 
-    TreeLRD_1 => FSS_1%TreeLRD_1
+  integer, intent(in) :: n_targ,adapt_flag
+  real ( kind = 8 ), intent(in) :: targ_vect(3,n_targ)
+  real ( kind = 8 ), intent(out) :: sgma(n_targ),sgma_x(n_targ),sgma_y(n_targ),sgma_z(n_targ)
 
-        tol=1.0d-10
-!$OMP PARALLEL DO DEFAULT(SHARED), &
-!$OMP& PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
-!$OMP& PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2)
-        do count1=1,n_targ
-!            write (*,*) 'adapt_flag: ', adapt_flag
-!            read (*,*)
-            if (adapt_flag==2) then
-                err=tol+1.0d0
-!                call initial_guess_sgma(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad)
-                !alpha=1/(10*sgm_rad/70.71d0)**2
+  ! List of local variables
+  integer count1,count2
+  real ( kind = 8 ) d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+  type ( TreeLRD ), pointer :: TreeLRD_1
 
-                alpha=FSS_1%alpha        !! Esto hay que revisarlo!!!!
-                sgm_rad=12.0d0/sqrt(2.0d0*alpha)
+  TreeLRD_1 => FSS_1%TreeLRD_1
+
+  tol=1.0d-10
+
+  !$OMP PARALLEL DO DEFAULT(SHARED), &
+  !$OMP& PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
+  !$OMP& PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2)
+  do count1 = 1,n_targ
+
+    if (adapt_flag==2) then
+      err=tol+1.0d0
+      !                call initial_guess_sgma(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad)
+      !alpha=1/(10*sgm_rad/70.71d0)**2
+
+      !! Esto hay que revisarlo!!!!
+      alpha = FSS_1%alpha
+      sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+
+      count2=0
+      do while ( (err>tol) .and. (count2<1) )
+        call fast_gaussian_box_v2(TreeLRD_1%Main_box, targ_vect(:&
+            ,count1), sgm_rad, alpha, F, D)
+
+        pot1=F/D
+        ! write (*,*) 'pot iteration: ', pot1,pot2,err
+
+        err=dabs(pot2-pot1)/dabs(pot1)
+        count2 = count2+1
+        pot2=pot1
+        sgm_rad = 70.7d0*pot2
+        alpha = 1/(10*pot2)**2
+      end do
+
+    else
+      !! Esto hay que revisarlo!!!!
+      alpha = FSS_1%alpha
+      sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+    endif
+
+    call fast_gaussian_box_grad(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad,alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+
+    sgma(count1) = F/D
+    sgma_x(count1) = (dF_x*D-F*dD_x)/D**2
+    sgma_y(count1) = (dF_y*D-F*dD_y)/D**2
+    sgma_z(count1) = (dF_z*D-F*dD_z)/D**2
+  enddo
+  !$OMP END PARALLEL DO
 
 
-                count2=0
-                do while ((err>tol).and.(count2<1))
-                    call fast_gaussian_box_v2(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad,alpha,F,D)
-                    !call fast_gaussian_box_grad(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad,alpha,F,&
-                    ! &D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
-                    pot1=F/D
-!                    write (*,*) 'pot iteration: ', pot1,pot2,err
-                    err=dabs(pot2-pot1)/dabs(pot1)
-                    count2=count2+1
-                    pot2=pot1
-                    sgm_rad=70.7d0*pot2
-                    alpha=1/(10*pot2)**2
-                end do
-!                write (*,*) 'count2: ',count2
-            else
-                alpha=FSS_1%alpha        !! Esto hay que revisarlo!!!!
-                sgm_rad=12.0d0/sqrt(2.0d0*alpha)
-            endif
-!            write (*,*) 'dentro box', count1
-            call fast_gaussian_box_grad(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad,alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
-!            write (*,*) 'emd'
-            sgma(count1)=F/D
-            sgma_x(count1)=(dF_x*D-F*dD_x)/D**2
-            sgma_y(count1)=(dF_y*D-F*dD_y)/D**2
-            sgma_z(count1)=(dF_z*D-F*dD_z)/D**2
-        enddo
-!$OMP END PARALLEL DO
-
-
-return
-end
+  return
+end subroutine fast_gaussian_global
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -557,10 +563,11 @@ implicit none
         endif
 
 return
-end
+end subroutine fast_gaussian_box_grad
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 
 recursive subroutine initial_guess_sgma(Current_box,targ,sgm_rad)
 implicit none
