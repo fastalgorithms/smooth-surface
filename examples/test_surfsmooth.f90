@@ -38,9 +38,15 @@ program smoother
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
   norder_smooth = 8
-  
-  nrefine=1  ! Specify the numnber of refinements to do starting from 0
-  adapt_flag=1    ! this is to enable adaptativity (otherwise sigma is constant)
+
+  ! Specify the numnber of refinements to do starting from 0
+  ! nrefine=1  
+
+  ! this is to enable adaptativity (otherwise sigma is constant)
+  ! adapt_flag = 0  ->  no adaptivity, mean triangle size
+  ! adapt_flag = 1  ->  some adaptivity, alpha form
+  ! adapt_flag = 2  ->  full recursive definition, slightly slower
+  adapt_flag = 2    
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -49,7 +55,7 @@ program smoother
   call prinf('. . . printing flags and options*', norder_skel, 0)
   call prinf('norder_skel = *', norder_skel, 1)
   call prinf('norder_smooth = *', norder_smooth, 1)
-  call prinf('nrefine = *', nrefine, 1)
+  ! call prinf('nrefine = *', nrefine, 1)
   call prinf('adapt_flag = *', adapt_flag, 1)
 
   
@@ -60,8 +66,8 @@ program smoother
   !
   ! specify the msh file to read in
   !
-  nombre='./msh_files/sphere.msh'
-  filename='./plot_files/sphere'
+  nombre='./geometries/huge_genus_4.msh'
+  filename='./plot_files/high_genus'
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0
@@ -82,7 +88,7 @@ program smoother
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
 
-  
+  stop
   
   !call refineskeleton(Geometry1, nrefine)
   
