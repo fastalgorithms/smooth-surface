@@ -346,8 +346,8 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
 
       count2=0
       do while ( (err>tol) .and. (count2<1) )
-        call fast_gaussian_box_v2(TreeLRD_1%Main_box, targ_vect(:&
-            ,count1), sgm_rad, alpha, F, D)
+        call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+            targ_vect(:,count1), sgm_rad, alpha, F, D)
 
         pot1=F/D
         ! write (*,*) 'pot iteration: ', pot1,pot2,err
