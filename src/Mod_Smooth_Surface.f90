@@ -455,9 +455,14 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     count=count+1
     do count2=1,Geometry1%n_Sf_points
       if (flag_con(count2)==0) then
-        err(count2)=F(count2)/dF(count2)
-        x(count2)=x(count2)-err(count2)
-        err(count2)=abs(err(count2))
+        err(count2) = F(count2)/dF(count2)
+        x(count2) = x(count2) - err(count2)
+
+        if (x(count2) .lt. 1.0d0) err(count2) = abs(err(count2))
+
+        if (x(count2) .ge. 1.0d0) &
+            err(count2) = abs(err(count2)/x(count)
+        
         if (err(count2)<tol) then
           flag_con(count2)=1
         endif

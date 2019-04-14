@@ -88,7 +88,6 @@ program smoother
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
 
-  stop
   
   !call refineskeleton(Geometry1, nrefine)
   
