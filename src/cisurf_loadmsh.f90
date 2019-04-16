@@ -37,11 +37,13 @@ subroutine readgeometry(Geometry1, filename, norder_skel, &
   
   if (index(filename,'.msh') > 0) then
     call readmsh(Geometry1, filename, norder_skel, norder_smooth)
+
   elseif (index(filename,'.tri')>0) then
     print *, 'filename = ', trim(filename)
     print *, 'order not converted in .tri files, double check!!'
     stop
     call readtri(Geometry1, filename, norder_skel, n_order_sf)
+
   else
     write (*,*) 'Geometry type not recognized'
     stop
@@ -81,6 +83,8 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   integer :: ierror
 
 
+  Geometry1%ifflat = 0
+
   open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) aux1,aux2,aux3,m, N
 
@@ -89,6 +93,7 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   
   write (6,*) 'loading file ', trim(filename)
   write (13,*) 'loading file ', trim(filename)
+
   call prinf('ntri = *', n, 1)
   !call prinf('npoints = *', m, 1)
 
@@ -111,7 +116,6 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   Geometry1%nsmooth = nsf
 
   call prinf('num points on smooth mesh = *', nsf*n, 1)
-
   
   Geometry1%n_order_sf = nsf
   Geometry1%npoints=m
@@ -171,6 +175,10 @@ subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
   integer umio,i,m,N,j,aux1,aux2,aux3,ipointer
   integer :: ierror, nsk
 
+  ! set the flag for flat vs quadratic
+  Geometry1%ifflat = 1
+
+  
   open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) m, N
 

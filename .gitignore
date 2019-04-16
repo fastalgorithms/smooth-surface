@@ -1,3 +1,6 @@
+fort.*
+int2
+*.o
 *.vtk
 *.gov
 *.mod

@@ -362,8 +362,7 @@ contains
 
       Geometry1%S_smooth(:,count)=r_t(:,count)
     enddo
-    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)
-    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
+    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
     n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
     do count=1,Geometry1%n_Sf_points
       Geometry1%N_smooth(:,count)=-1.0d0*grad_F(:,count)/(sqrt(grad_F(1,count)**2+grad_F(2,count)**2+grad_F(3,count)**2))
@@ -456,9 +455,14 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     count=count+1
     do count2=1,Geometry1%n_Sf_points
       if (flag_con(count2)==0) then
-        err(count2)=F(count2)/dF(count2)
-        x(count2)=x(count2)-err(count2)
-        err(count2)=abs(err(count2))
+        err(count2) = F(count2)/dF(count2)
+        x(count2) = x(count2) - err(count2)
+
+        if (x(count2) .lt. 1.0d0) err(count2) = abs(err(count2))
+
+        if (x(count2) .ge. 1.0d0) &
+            err(count2) = abs(err(count2)/x(count)
+        
         if (err(count2)<tol) then
           flag_con(count2)=1
         endif

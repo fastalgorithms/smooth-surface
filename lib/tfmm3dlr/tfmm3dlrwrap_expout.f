@@ -116,7 +116,7 @@ cCall tree code
      3               ltree,ipointer)
 
         call cpu_time(t1)
-        if (ifprint .eq. 1) print *, 'time in mklraptree = ', t1-t0
+cccc        if (ifprint .eq. 1) print *, 'time in mklraptree = ', t1-t0
 
 
         

@@ -46,12 +46,23 @@ type, public :: Geometry
     real ( kind = 8 ), allocatable :: rv_smooth(:,:)            !v vectro on the real smooth surface
     real ( kind = 8 ), allocatable :: w_smooth(:)               !Integration weigths on the real smooth surface
 !
-! That was removed from here. There will be only one copy of the centroids and sgmas at centroids in the tree.
+
+    ! That was removed from here. There will be only one copy of the centroids and sgmas at centroids in the tree.
 !    real ( kind = 8 ), allocatable :: Centroids(:,:)            !Centroids of each triangle of the skeleton (to compute sgma(x))
 !    real ( kind = 8 ), allocatable :: sgmas(:)                  !Values of sgma on each centroid, proportional to the side of the triangle
-!
-    real ( kind = 8 ), allocatable :: Points(:,:)               !Points that define the msh file (Each quadratic triangle has 6 points)
-    real ( kind = 8 ), allocatable :: Normal_Vert(:,:)          !Pseudo-normals defined on each vertex of each triangle of the skeleton
+    !
+
+    ! flag for triangle type, flat or quadratic
+    integer :: ifflat
+    
+    !Triangles of the skeleton (each triangle 6 points)
+    integer, allocatable :: Tri(:,:)
+
+    !Points that define the msh file (Each quadratic triangle has 6 points)
+    real ( kind = 8 ), allocatable :: Points(:,:)
+
+    !Pseudo-normals defined on each vertex of each triangle of the skeleton
+    real ( kind = 8 ), allocatable :: Normal_Vert(:,:)          
     real ( kind = 8 ), allocatable :: Base_Points(:,:)          !base base points of eachs mooth point on the skeleton
     real ( kind = 8 ), allocatable :: Base_Points_N(:,:)        !Pseudo-normals defined on each base point of the surface
     real ( kind = 8 ), allocatable :: Base_Points_U(:,:)        !U vector defined on each base point of the smooth surface
@@ -59,7 +70,6 @@ type, public :: Geometry
     real ( kind = 8 ), allocatable :: Dummy_targ(:,:)        !Dummy targets on pseudonormals
     real ( kind = 8 ), allocatable :: height(:)                 !Value of the root in newton where F(h)=1/2 for each point on the smooth surface
     integer n_dummy_targ   !total number of dummy targets
-    integer, allocatable :: Tri(:,:)               !Triangles of the skeleton (each triangle 6 points)
 
 !Edges and Boundary is use to compute the line integral in the non-FMM case (beyond that line integral, the kernel is 1/r and erf=1)
     integer, allocatable :: Edges(:,:)             !Set of 3 integers with the location of the points Points(1:3,:) for each edge in the skeleton (set of quadratic triangles)

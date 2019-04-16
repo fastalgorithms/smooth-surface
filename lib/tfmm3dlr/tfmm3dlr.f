@@ -1252,6 +1252,8 @@ C$OMP END PARALLEL DO
       time2 = second()
 C$        time2=omp_get_wtime()
 
+      print *, 'time in direct calculation = ', time2-time1
+
       timeinfo(8) = time2-time1
       if(ifprint.ge.1) call prin2('timeinfo=*',timeinfo,8)
       d = 0
