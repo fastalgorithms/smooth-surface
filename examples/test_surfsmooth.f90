@@ -61,8 +61,8 @@ program smoother
   !
   ! specify the msh file to read in
   !
-  nombre='./msh_files/sphere_subtract.msh'
-  filename='./plot_files/sphere_subtract'
+  nombre='./msh_files/A380_antennas_v9_ASCII.msh'
+  filename='./plot_files/A380_antennas_v9_ASCII'
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0

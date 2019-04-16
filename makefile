@@ -45,6 +45,14 @@ ifeq ($(HOST),osx-intel)
   FLINK = ifort -i8 -w -mkl -o $(PROJECT)
 endif
 
+
+ifeq ($(HOST),linux-intel-openmp)
+  FC = ifort
+  FFLAGS = -i8 -O2 -w -qopenmp
+  FLINK = ifort -i8 -w -mkl=parallel -qopenmp -o $(PROJECT)
+endif
+
+
 ifeq ($(HOST),linux-gcc)
    FC = gfortran
    FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8

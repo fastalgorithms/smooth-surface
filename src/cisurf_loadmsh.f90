@@ -89,14 +89,17 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   
   write (6,*) 'loading file ', trim(filename)
   write (13,*) 'loading file ', trim(filename)
-  call prinf('npoints = *', m, 1)
   call prinf('ntri = *', n, 1)
+  !call prinf('npoints = *', m, 1)
 
+  
 
   nsk = (norder_skel+1)*(norder_skel+2)/2
   !call prinf('nsk = *', nsk, 1)
   !stop
 
+  call prinf('num points on skeleton mesh = *', nsk*n, 1)
+  
   Geometry1%norder_skel = norder_skel
   Geometry1%nskel = nsk
 
@@ -106,6 +109,9 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
   Geometry1%norder_smooth = norder_smooth
   nsf = (norder_smooth+1)*(norder_smooth+2)/2
   Geometry1%nsmooth = nsf
+
+  call prinf('num points on smooth mesh = *', nsf*n, 1)
+
   
   Geometry1%n_order_sf = nsf
   Geometry1%npoints=m
