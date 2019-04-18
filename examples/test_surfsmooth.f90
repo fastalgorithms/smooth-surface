@@ -66,8 +66,10 @@ program smoother
   !
   ! specify the msh file to read in
   !
+
   nombre='./geometries/round/Round_1.msh'
   !filename='./plot_files/high_genus'
+
   ! point inside to check Gauss integral
   x0 = 0
   y0 = 0
