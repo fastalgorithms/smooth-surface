@@ -37,7 +37,7 @@ program smoother
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 8
+  norder_smooth = 4
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -67,7 +67,8 @@ program smoother
   ! specify the msh file to read in
   !
 
-  nombre='./geometries/round/Round_1.msh'
+  !nombre='./geometries/sphere.msh'
+  nombre='./geometries/rcube.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
@@ -80,7 +81,7 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 0
+  ifflatten = 1
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
