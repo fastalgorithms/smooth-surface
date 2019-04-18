@@ -81,7 +81,7 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 1
+  ifflatten = 0
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
