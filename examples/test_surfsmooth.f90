@@ -68,20 +68,24 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/torus.gidmsh'
+  nombre='./geometries/rcube.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
-  x0 = 2
-  y0 = 0
-  z0 = 0
+  x0 = 4.5d0
+  y0 = 4.5d0
+  z0 = 5
+
+  !x0 = 2.0d0
+  !y0 = 0d0
+  !z0 = 0
 
 
   ! load in the msh file
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 1
+  ifflatten = 0
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
