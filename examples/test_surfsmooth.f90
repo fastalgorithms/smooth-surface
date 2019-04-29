@@ -72,9 +72,13 @@ program smoother
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
-  x0 = 2
-  y0 = 0
-  z0 = 0
+  x0 = 4.5d0
+  y0 = 4.5d0
+  z0 = 5
+
+  !x0 = 2.0d0
+  !y0 = 0d0
+  !z0 = 0
 
 
   ! load in the msh file
