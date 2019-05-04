@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 8
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 6
+  norder_smooth = 4
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -68,7 +68,7 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/torus_384.gidmsh'
+  nombre='./geometries/rcube.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
