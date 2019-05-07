@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 4
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 6
+  norder_smooth = 4
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -68,7 +68,7 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/torus_384.gidmsh'
+  nombre='./geometries/rcube.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
@@ -85,7 +85,7 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 0
+  ifflatten = 1
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
