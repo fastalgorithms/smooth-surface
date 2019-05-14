@@ -68,7 +68,7 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/rcube.gidmsh'
+  nombre='./geometries/rcube_refined.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
