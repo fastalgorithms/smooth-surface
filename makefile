@@ -48,8 +48,8 @@ endif
 
 ifeq ($(HOST),linux-intel-openmp)
   FC = ifort
-  FFLAGS = -i8 -O2 -w -qopenmp
-  FLINK = ifort -i8 -w -mkl=parallel -qopenmp -o $(PROJECT)
+  FFLAGS = -i8 -r8 -O2 -w -qopenmp
+  FLINK = ifort -i8 -r8 -w -mkl=parallel -qopenmp -o $(PROJECT)
 endif
 
 
