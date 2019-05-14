@@ -68,7 +68,7 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/rcube_refined.gidmsh'
+  nombre='./geometries/sphere416.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
@@ -79,6 +79,10 @@ program smoother
   !x0 = 2.0d0
   !y0 = 0d0
   !z0 = 0
+
+  x0 = .1d0
+  y0 = 0d0
+  z0 = 0
 
 
   ! load in the msh file

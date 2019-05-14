@@ -1,0 +1,33 @@
+BeginZE /Users/oneil/codes/smooth-surface/geometries/sphere.gid/sphere.vv
+   x -2.2220149040222168 2.50423645973205566
+   y 1.3834221363067627 -1.42576849460601807
+   z -5.1961522102355957 5.1961522102355957
+   e 1.73205077648162842
+   v 0.491827570244799617 0.246212976684166723 0.234683741882177554
+   r 0.801503806950160658
+   m 0.768605411052703857 -0.134011164307594299 0.625529170036315918 0 0.618388473987579346 0.406058371067047119 -0.672838985919952393 0 -0.163833409547805786 0.903967678546905518 0.39496961236000061 0 0 0 0 1
+   c -1.8503717628539684e-17 1.23358114766329185e-17 1.8503717628539684e-17
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /Users/oneil/codes/smooth-surface/geometries/sphere.gid/sphere.vv
+
