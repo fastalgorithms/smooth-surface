@@ -18,7 +18,7 @@ program smoother
   type ( Geometry ), pointer :: Geometry1
   type ( Feval_stuff ), pointer :: Feval_stuff_1
 
-  integer :: N, count,nrefine
+  integer :: N, count,nrefine, ifplot
   integer :: adapt_flag, ifflatten
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 4
+  norder_skel = 16
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 4
+  norder_smooth = 16
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -129,13 +129,16 @@ program smoother
   !
   ! plot the smoothed surface
   !
-  print *
-  print *
-  print *, '. . . plotting vtk smoothed geometry'
-  plot_name = 'smoothed.vtk'
-  call plotsmoothgeometryvtk(Geometry1, plot_name)
-  print *, '. . . finished plotting vtk smoothed geometry'
-
+  ifplot = 0
+  if (ifplot .eq. 1) then
+    print *
+    print *
+    print *, '. . . plotting vtk smoothed geometry'
+    plot_name = 'smoothed.vtk'
+    call plotsmoothgeometryvtk(Geometry1, plot_name)
+    print *, '. . . finished plotting vtk smoothed geometry'
+  end if
+  
 
   !
   ! refinement not working properly, must rewrite
