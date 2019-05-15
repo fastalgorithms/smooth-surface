@@ -192,7 +192,7 @@ subroutine readgidmsh(Geometry1, filename, norder_skel, norder_smooth)
   integer :: node, nnodes, maxnodes
   integer, allocatable :: elems(:,:)
   integer :: ielem, nelems, maxelems
-  double precision :: x, y, z
+  double precision :: x, y, z, d, dmin
   double precision, allocatable :: xs(:), ys(:), zs(:)
   integer :: ierror
 
@@ -232,6 +232,36 @@ subroutine readgidmsh(Geometry1, filename, norder_skel, norder_smooth)
     
   end do
 
+
+  ! find the minimun distance between nodes
+  if (1 .eq. 0) then
+
+    dmin = 1000
+
+    do i = 1,nnodes
+      do j = 1,nnodes
+        
+        if (i .ne. j) then
+          d = (xs(i)-xs(j))**2 + (ys(i)-ys(j))**2 + (zs(i)-zs(j))**2 
+          d = sqrt(d)
+          if (d .lt. dmin) then
+            !print *
+            !print *, xs(i), ys(i), zs(i)
+            !print *, xs(j), ys(j), zs(j)
+            dmin = d
+          end if
+        end if
+        
+        
+      end do
+    end do
+    
+    !call prin2('minimum dist between nodes = *', dmin, 1)
+    !stop
+  end if
+
+  
+  
   do i = 1,100
     read(8,*) tmp1
     if (index(tmp1, 'Elements') > 0) exit
@@ -254,6 +284,8 @@ subroutine readgidmsh(Geometry1, filename, norder_skel, norder_smooth)
     !call prinf('elem = *', elems(1,i), 6)
     
   end do
+
+
   
 
 

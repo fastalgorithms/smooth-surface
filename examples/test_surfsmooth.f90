@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 10
+  norder_skel = 4
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 10
+  norder_smooth = 4
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -69,6 +69,7 @@ program smoother
 
   !nombre='./geometries/sphere.msh'
   nombre='./geometries/sphere416.gidmsh'
+  !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
@@ -124,7 +125,7 @@ program smoother
   !
   print *
   print *, '. . . checking gauss identity on skeleton'
-  call check_gauss_skeleton(Geometry1, x0, y0, z0, error_report(1))
+  call check_gauss_skeleton(Geometry1, x0, y0, z0)
 
   
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
@@ -187,18 +188,18 @@ end program smoother
 
 
 
-subroutine check_gauss_skeleton(Geometry1, x0, y0, z0, err_rel)
+subroutine check_gauss_skeleton(Geometry1, x0, y0, z0)
   use ModType_Smooth_Surface
   implicit none
 
   !List of calling arguments
   type (Geometry) :: Geometry1
   double precision :: x0,y0,z0
-  double precision :: err_rel
 
   !List of local variables
   integer :: umio,count1,count2,flag,n_order_sf
   double precision :: F,Ex,Ey,Ez,R,x,y,z,pi,w,nx,ny,nz, done
+  double precision :: err_rel
 
   done = 1
   pi = 4*atan(done)

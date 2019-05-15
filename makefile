@@ -32,8 +32,8 @@ endif
 
 ifeq ($(HOST),osx-intel-openmp)
   FC = ifort
-  FFLAGS = -i8 -O2 -w -qopenmp
-  FLINK = ifort -i8 -w -mkl=parallel -qopenmp \
+  FFLAGS = -i8 -r8 -O2 -w -qopenmp
+  FLINK = ifort -i8 -r8 -w -mkl=parallel -qopenmp \
        -Wl,-stack_size,0x40000000 -o $(PROJECT)
   export OMP_NUM_THREADS=4
   export OMP_STACKSIZE=2048M
