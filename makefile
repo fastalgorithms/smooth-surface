@@ -41,8 +41,8 @@ endif
 
 ifeq ($(HOST),osx-intel)
   FC = ifort
-  FFLAGS = -i8 -O2 -w
-  FLINK = ifort -i8 -w -mkl -o $(PROJECT)
+  FFLAGS = -i8 -r8 -O2 -w
+  FLINK = ifort -i8 -r8 -w -mkl -o $(PROJECT)
 endif
 
 

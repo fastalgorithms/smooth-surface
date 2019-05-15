@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 16
+  norder_skel = 10
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 16
+  norder_smooth = 10
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -89,7 +89,7 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 1
+  ifflatten = 0
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
@@ -105,7 +105,7 @@ program smoother
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
-  
+
   call start_Feval_tree(Feval_stuff_1, Geometry1)
   call funcion_Base_Points(Geometry1)
 
@@ -117,16 +117,25 @@ program smoother
     call start_Feval_local(Feval_stuff_1,Geometry1)
   endif
 
+
+  !
+  ! before finding smooth surface, compute the Gauss integral on the
+  ! skeleton mesh
+  !
+  print *
+  print *, '. . . checking gauss identity on skeleton'
+  call check_gauss_skeleton(Geometry1, x0, y0, z0, error_report(1))
+
   
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
-  print *
+  !print *
   !name_aux=trim(filename)// '_r00.gov'
   !print *, '. . . saving *.gov file: ', trim(name_aux)
   !call record_Geometry(Geometry1,name_aux)
 
   print *
-  print *, '. . . checking gauss identity'
+  print *, '. . . checking gauss identity on smooth surface'
   call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
   
@@ -173,6 +182,54 @@ program smoother
   ! enddo
 
 end program smoother
+
+
+
+
+
+subroutine check_gauss_skeleton(Geometry1, x0, y0, z0, err_rel)
+  use ModType_Smooth_Surface
+  implicit none
+
+  !List of calling arguments
+  type (Geometry) :: Geometry1
+  double precision :: x0,y0,z0
+  double precision :: err_rel
+
+  !List of local variables
+  integer :: umio,count1,count2,flag,n_order_sf
+  double precision :: F,Ex,Ey,Ez,R,x,y,z,pi,w,nx,ny,nz, done
+
+  done = 1
+  pi = 4*atan(done)
+
+  F = 0
+
+  do count1=1,Geometry1%n_Sk_points
+
+    x=Geometry1%skeleton_Points(1,count1)
+    y=Geometry1%skeleton_Points(2,count1)
+    z=Geometry1%skeleton_Points(3,count1)
+    w=Geometry1%skeleton_w(count1)
+
+    nx=Geometry1%skeleton_N(1,count1)
+    ny=Geometry1%skeleton_N(2,count1)
+    nz=Geometry1%skeleton_N(3,count1)
+
+    R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
+
+    Ex=(x-x0)/(4*pi*R**3)
+    Ey=(y-y0)/(4*pi*R**3)
+    Ez=(z-z0)/(4*pi*R**3)
+    F = F + (Ex*nx+Ey*ny+Ez*nz)*w
+  enddo
+
+  err_rel=abs(F-1)
+  call prin2('value of integral = *', F, 1)
+  call prin2('relative error = *', err_rel, 1)
+    
+  return
+end subroutine check_gauss_skeleton
 
 
 
