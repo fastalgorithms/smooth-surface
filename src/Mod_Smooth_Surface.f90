@@ -274,137 +274,140 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
-    implicit none
 
-    !
-    ! this is the main driver routine that 
-    !
-    double precision :: my_cross(3)
-    
-    !List of calling arguments
-    type (Geometry), intent(inout) :: Geometry1
-    type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
-    integer, intent(in) :: adapt_flag
+  
+subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
+  implicit none
 
-    !List of local variables
-    integer :: flag,maxiter,ipoint,count,n_order_sf,itri
-    double precision :: h(Geometry1%n_Sf_points),tol,Norm_N
-    double precision :: r_t(3,Geometry1%n_Sf_points)
-    double precision :: F(Geometry1%n_Sf_points)
-    double precision :: grad_F(3,Geometry1%n_Sf_points)
-    double precision :: dVdu(3),dVdv(3),dhdu,dhdv,h_var
+  !
+  ! this is the main driver routine that finds the smooth surface via
+  ! convolution
+  !
+  double precision :: my_cross(3)
 
-    !write (*,*) 'telita2'
+  !List of calling arguments
+  type (Geometry), intent(inout) :: Geometry1
+  type ( Feval_stuff ), pointer :: Feval_stuff_1
+  integer, intent(in) :: adapt_flag
 
-
-    if (allocated(Geometry1%S_smooth)) then
-      deallocate(Geometry1%S_smooth)
-    endif
-    allocate(Geometry1%S_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%N_smooth)) then
-      deallocate(Geometry1%N_smooth)
-    endif
-    allocate(Geometry1%N_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%ru_smooth)) then
-      deallocate(Geometry1%ru_smooth)
-    endif
-    allocate(Geometry1%ru_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%rv_smooth)) then
-      deallocate(Geometry1%rv_smooth)
-    endif
-    allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
-    if (.not.allocated(Geometry1%height)) then
-      !write (*,*) 'not allocated'
-      !            read (*,*)
-      allocate (Geometry1%height(Geometry1%n_Sf_points))
-      do count=1,Geometry1%n_Sf_points
-        Geometry1%height(count)=0.0d0
-        h(count)=0.0d0
-      enddo
-    else
-
-      !            write (*,*) 'not allocated'
-      !            read (*,*)
-      !            deallocate (Geometry1%height)
-      !            allocate (Geometry1%height(Geometry1%n_Sf_points))
-      !            do count=1,Geometry1%n_Sf_points
-      !                Geometry1%height(count)=0.0d0
-      !                h(count)=0.0d0
-      !            enddo
+  !List of local variables
+  integer :: flag,maxiter,ipoint,count,n_order_sf,itri
+  double precision :: h(Geometry1%n_Sf_points),tol,Norm_N
+  double precision :: r_t(3,Geometry1%n_Sf_points)
+  double precision :: F(Geometry1%n_Sf_points)
+  double precision :: grad_F(3,Geometry1%n_Sf_points)
+  double precision :: dVdu(3),dVdv(3),dhdu,dhdv,h_var
 
 
 
+  !
+  ! check the memory allocation
+  !
+  if (allocated(Geometry1%S_smooth)) then
+    deallocate(Geometry1%S_smooth)
+  endif
+  allocate(Geometry1%S_smooth(3,Geometry1%n_Sf_points))
 
-      write (*,*) 'yes allocated'
-      !            read (*,*)
-      do count=1,Geometry1%n_Sf_points
-        h(count)=Geometry1%height(count)
-      enddo
-    endif
-    tol=1.0d-14
-    maxiter=14
-    flag=0
-    !write (*,*) 'No llega nunca1'
+  if (allocated(Geometry1%N_smooth)) then
+    deallocate(Geometry1%N_smooth)
+  endif
+  allocate(Geometry1%N_smooth(3,Geometry1%n_Sf_points))
 
-    call My_Newton(h,tol,maxiter,Geometry1,flag,Feval_stuff_1,adapt_flag,grad_F,r_t)
+  if (allocated(Geometry1%ru_smooth)) then
+    deallocate(Geometry1%ru_smooth)
+  endif
+  allocate(Geometry1%ru_smooth(3,Geometry1%n_Sf_points))
 
-    if (flag==1) then
-      write (*,*) 'ERROR DE CONVERGENCIA NEWTON'
-    end if
+  if (allocated(Geometry1%rv_smooth)) then
+    deallocate(Geometry1%rv_smooth)
+  endif
+  allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
+
+  if (.not.allocated(Geometry1%height)) then
+    allocate (Geometry1%height(Geometry1%n_Sf_points))
+
     do count=1,Geometry1%n_Sf_points
-      !            Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
-      !            &**2+Geometry1%Base_Points_N(3,count)**2)
+      Geometry1%height(count)=0.0d0
+      h(count)=0.0d0
+    enddo
+  else
+
+    do count=1,Geometry1%n_Sf_points
+      h(count)=Geometry1%height(count)
+    enddo
+  endif
+
+  !
+  ! set some parameters for the newton routine for finding the surface
+  !
+  tol = 1.0d-14
+  maxiter = 14
+  flag = 0
+
+  call My_Newton(h, tol, maxiter, Geometry1, flag, Feval_stuff_1, &
+      adapt_flag, grad_F, r_t)
+
+  if (flag==1) then
+    write (*,*) 'ERROR DE CONVERGENCIA NEWTON'
+    stop
+  end if
+
+  
+  do count=1,Geometry1%n_Sf_points
+    !            Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
+    !            &**2+Geometry1%Base_Points_N(3,count)**2)
 
 
 !!!r_t(:,count)=Geometry1%Base_Points(:,count)+Geometry1%Base_Points_N(:,count)*h(count)/Norm_N
-      !            r_t(:,count)=Geometry1%Base_Points(:,count)+Geometry1%Base_Points_N(:,count)*h(count)
+    !            r_t(:,count)=Geometry1%Base_Points(:,count)+Geometry1%Base_Points_N(:,count)*h(count)
 
-      Geometry1%S_smooth(:,count)=r_t(:,count)
-    enddo
-    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
-    n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
-    do count=1,Geometry1%n_Sf_points
-      Geometry1%N_smooth(:,count)=-1.0d0*grad_F(:,count)/(sqrt(grad_F(1,count)**2+grad_F(2,count)**2+grad_F(3,count)**2))
-      itri=(count-1)/n_order_sf+1
-      Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
-          &**2+Geometry1%Base_Points_N(3,count)**2)
+    Geometry1%S_smooth(:,count)=r_t(:,count)
+  enddo
+  !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
+  n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
+  do count=1,Geometry1%n_Sf_points
+    Geometry1%N_smooth(:,count)=-1.0d0*grad_F(:,count)/(sqrt(grad_F(1,count)**2+grad_F(2,count)**2+grad_F(3,count)**2))
+    itri=(count-1)/n_order_sf+1
+    Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
+        &**2+Geometry1%Base_Points_N(3,count)**2)
 
 !!!!h_var=h(count)/Norm_N
-      h_var=h(count)
+    h_var=h(count)
 
-      dVdu=Geometry1%Normal_Vert(:,Geometry1%Tri(2,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
-      dVdv=Geometry1%Normal_Vert(:,Geometry1%Tri(3,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
-      dhdu=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdu*h_var+Geometry1%Base_Points_U(:,count))&
-          &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
-      dhdv=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdv*h_var+Geometry1%Base_Points_V(:,count))&
-          &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
-      Geometry1%ru_smooth(:,count)=dVdu*h_var+Geometry1%Base_Points_N(:,count)*dhdu+Geometry1%Base_Points_U(:,count)
-      Geometry1%rv_smooth(:,count)=dVdv*h_var+Geometry1&
-          %Base_Points_N(:,count)*dhdv+Geometry1%Base_Points_V(:&
-          ,count)
+    dVdu=Geometry1%Normal_Vert(:,Geometry1%Tri(2,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
+    dVdv=Geometry1%Normal_Vert(:,Geometry1%Tri(3,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
+    dhdu=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdu*h_var+Geometry1%Base_Points_U(:,count))&
+        &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
+    dhdv=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdv*h_var+Geometry1%Base_Points_V(:,count))&
+        &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
+    Geometry1%ru_smooth(:,count)=dVdu*h_var+Geometry1%Base_Points_N(:,count)*dhdu+Geometry1%Base_Points_U(:,count)
+    Geometry1%rv_smooth(:,count)=dVdv*h_var+Geometry1&
+        %Base_Points_N(:,count)*dhdv+Geometry1%Base_Points_V(:&
+        ,count)
 
-      call crossproduct(Geometry1%ru_smooth(:,count), &
-          Geometry1%rv_smooth(:,count), my_cross)
-      
-      Geometry1%w_smooth(count)=Geometry1%w_smooth(count)*norm2(my_cross)
-      
-      Geometry1%ru_smooth(:,count)=Geometry1%ru_smooth(:,count)/norm2(Geometry1%ru_smooth(:,count))
+    call crossproduct(Geometry1%ru_smooth(:,count), &
+        Geometry1%rv_smooth(:,count), my_cross)
 
-      call crossproduct(Geometry1%N_smooth(:,count), &
-          Geometry1%ru_smooth(:,count), my_cross)
-      Geometry1%rv_smooth(:,count) = my_cross
-    enddo
+    Geometry1%w_smooth(count)=Geometry1%w_smooth(count)*norm2(my_cross)
 
-    do count=1,Geometry1%n_Sf_points
-      Geometry1%height(count)=h(count)
-    enddo
+    Geometry1%ru_smooth(:,count)=Geometry1%ru_smooth(:,count)/norm2(Geometry1%ru_smooth(:,count))
 
-    return
-  end subroutine find_smooth_surface
+    call crossproduct(Geometry1%N_smooth(:,count), &
+        Geometry1%ru_smooth(:,count), my_cross)
+    Geometry1%rv_smooth(:,count) = my_cross
+  enddo
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  do count=1,Geometry1%n_Sf_points
+    Geometry1%height(count)=h(count)
+  enddo
+
+  return
+end subroutine find_smooth_surface
+
+
+
+
+
 
 subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     Feval_stuff_1 ,adapt_flag,grad_F,r_t)
