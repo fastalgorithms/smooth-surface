@@ -35,26 +35,33 @@
 !c     hess        : calculated hessian
 !c
 
-subroutine tpotfld3d_dp(iffld,source,qwt,dipvec,targ,sigma,grad_sigma,pot,fld)
-implicit none
-!List of calling arguments
-integer, intent(in) :: iffld
-double precision , intent(in) :: source(3),qwt,dipvec(3),targ(3),sigma,grad_sigma(3)
-double precision, intent(out) ::  pot,fld(3)
+subroutine tpotfld3d_dp(iffld,source,qwt,dipvec,targ,sigma, &
+    grad_sigma,pot,fld)
+  implicit none
+  !List of calling arguments
+  integer, intent(in) :: iffld
+  double precision , intent(in) :: source(3),qwt,dipvec(3)
+  double precision :: targ(3),sigma,grad_sigma(3)
+  double precision, intent(out) ::  pot,fld(3)
 
-!List of local variables
-double precision R, H, HH, HHH, prod
+  !List of local variables
+  double precision R, H, HH, HHH, prod
 
-    R=sqrt((source(1)-targ(1))**2+(source(2)-targ(2))**2+(source(3)-targ(3))**2)
-    call my_erf_like_v4(R,sigma,H,HH,HHH)
-    prod=(source(1)-targ(1))*dipvec(1)+(source(2)-targ(2))*dipvec(2)+(source(3)-targ(3))*dipvec(3)
-    pot=H*prod*qwt
-    fld(1)=-((HH*(targ(1)-source(1))*prod+HHH*prod*grad_sigma(1)-H*dipvec(1))*qwt)
-    fld(2)=-((HH*(targ(2)-source(2))*prod+HHH*prod*grad_sigma(2)-H*dipvec(2))*qwt)
-    fld(3)=-((HH*(targ(3)-source(3))*prod+HHH*prod*grad_sigma(3)-H*dipvec(3))*qwt)
+  R=sqrt((source(1)-targ(1))**2+(source(2)-targ(2))**2 &
+      +(source(3)-targ(3))**2)
+  call my_erf_like_v4(R,sigma,H,HH,HHH)
+  prod=(source(1)-targ(1))*dipvec(1)+(source(2)-targ(2))*dipvec(2) &
+      +(source(3)-targ(3))*dipvec(3)
+  pot=H*prod*qwt
+  fld(1)=-((HH*(targ(1)-source(1))*prod+HHH*prod*grad_sigma(1) &
+      -H*dipvec(1))*qwt)
+  fld(2)=-((HH*(targ(2)-source(2))*prod+HHH*prod*grad_sigma(2) &
+      -H*dipvec(2))*qwt)
+  fld(3)=-((HH*(targ(3)-source(3))*prod+HHH*prod*grad_sigma(3) &
+      -H*dipvec(3))*qwt)
 
-return
-end
+  return
+end subroutine tpotfld3d_dp
 
 
 
@@ -78,36 +85,36 @@ integer  count
         H=sqrt(2.0d0)/(12*sgma**3*sqrt(pi**3))
         HH=-1.0d0*sqrt(2.0d0)/(20.0d0*sgma**5.0d0*sqrt(pi**3))
     else if (r/sgma<0.9d0) then
-        x(1)=6.003740989757256e-03
-        x(2)=3.136330379964697e-02
-        x(3)=7.589670829478640e-02
-        x(4)=1.377911343199150e-01
-        x(5)=2.145139136957306e-01
-        x(6)=3.029243264612183e-01
-        x(7)=3.994029530012828e-01
-        x(8)=5.000000000000000e-01
-        x(9)=6.005970469987173e-01
-        x(10)=6.970756735387817e-01
-        x(11)=7.854860863042694e-01
-        x(12)=8.622088656800850e-01
-        x(13)=9.241032917052137e-01
-        x(14)=9.686366962003530e-01
-        x(15)=9.939962590102427e-01
-        w(1)=1.537662099805856e-02
-        w(2)=3.518302374405402e-02
-        w(3)=5.357961023358594e-02
-        w(4)=6.978533896307718e-02
-        w(5)=8.313460290849692e-02
-        w(6)=9.308050000778104e-02
-        w(7)=9.921574266355579e-02
-        w(8)=1.012891209627806e-01
-        w(9)=9.921574266355579e-02
-        w(10)=9.308050000778104e-02
-        w(11)=8.313460290849692e-02
-        w(12)=6.978533896307718e-02
-        w(13)=5.357961023358594e-02
-        w(14)=3.518302374405402e-02
-        w(15)=1.537662099805856e-02
+        x(1)=6.003740989757256d-03
+        x(2)=3.136330379964697d-02
+        x(3)=7.589670829478640d-02
+        x(4)=1.377911343199150d-01
+        x(5)=2.145139136957306d-01
+        x(6)=3.029243264612183d-01
+        x(7)=3.994029530012828d-01
+        x(8)=5.000000000000000d-01
+        x(9)=6.005970469987173d-01
+        x(10)=6.970756735387817d-01
+        x(11)=7.854860863042694d-01
+        x(12)=8.622088656800850d-01
+        x(13)=9.241032917052137d-01
+        x(14)=9.686366962003530d-01
+        x(15)=9.939962590102427d-01
+        w(1)=1.537662099805856d-02
+        w(2)=3.518302374405402d-02
+        w(3)=5.357961023358594d-02
+        w(4)=6.978533896307718d-02
+        w(5)=8.313460290849692d-02
+        w(6)=9.308050000778104d-02
+        w(7)=9.921574266355579d-02
+        w(8)=1.012891209627806d-01
+        w(9)=9.921574266355579d-02
+        w(10)=9.308050000778104d-02
+        w(11)=8.313460290849692d-02
+        w(12)=6.978533896307718d-02
+        w(13)=5.357961023358594d-02
+        w(14)=3.518302374405402d-02
+        w(15)=1.537662099805856d-02
         x=x*r/sgma/sqrt(2.0d0)
         w=w*r/sgma/sqrt(2.0d0)
         H=0.0d0
@@ -115,14 +122,19 @@ integer  count
         do count=1,15
 !            x(count)=x(count)*r/sgma/sqrt(2.0d0)
 !            w(count)=w(count)*r/sgma/sqrt(2.0d0)
-            H=H+(x(count)**2)*exp(-x(count)**2)/(sqrt(pi**3))*w(count)/(r**3);
-            HH=HH+(x(count)**4)*exp(-x(count)**2)*-2.0d0*w(count)/(r**5*sqrt(pi**3));
+          H=H+(x(count)**2)*exp(-x(count)**2) &
+              /(sqrt(pi**3))*w(count)/(r**3)
+          HH=HH+(x(count)**4)*exp(-x(count)**2)*-2.0d0*w(count) &
+              /(r**5*sqrt(pi**3))
         enddo
     else
-        H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r
-        denom=(4.*r**5*sgma**3*sqrt(pi**3))
-        HH=(sqrt(2.0d0)*r**3*my_exp - 3*sgma**3*sqrt(pi)*erf((sqrt(2.0d0)*r)/(2*sgma)) + 3*sqrt(2.0d0)*r*sgma**2*my_exp)/denom
+      H=(erf((sqrt(2.0d0)*r)/(2*sgma))/(4*r**2*pi) &
+          - (sqrt(2.0d0)*my_exp)/(4*sgma*r*sqrt(pi**3)))/r
+      denom=(4.*r**5*sgma**3*sqrt(pi**3))
+      HH=(sqrt(2.0d0)*r**3*my_exp &
+          - 3*sgma**3*sqrt(pi)*erf((sqrt(2.0d0)*r)/(2*sgma)) &
+          + 3*sqrt(2.0d0)*r*sgma**2*my_exp)/denom
     end if
-return
-end
+    return
+  end subroutine my_erf_like_v4
 

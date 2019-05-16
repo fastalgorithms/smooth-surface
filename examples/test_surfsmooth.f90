@@ -33,11 +33,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 4
+  norder_skel = 10
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 4
+  norder_smooth = 10
 
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
