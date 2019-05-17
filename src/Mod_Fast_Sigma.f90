@@ -342,7 +342,7 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
 
   tol = 1.0d-10
 
-  !$ call omp_set_num_threads(1)
+  !!!!$ call omp_set_num_threads(1)
 
   !$OMP PARALLEL DO DEFAULT(SHARED), &
   !$OMP PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
@@ -353,6 +353,7 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
     !! This has to be reviewed!! !
     alpha = FSS_1%alpha
     sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+
     !call prin2('. . . before adapt 2*', alpha, 0)
     !call prin2('sgm_rad = *', sgm_rad, 1)
     !call prin2('alpha = *', alpha, 1)
@@ -406,20 +407,10 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
       
     endif
 
-
-
+    !
+    ! using the obtained value, call the fast Gauss transform
+    !
     
-    !stop
-
-    ! else
-    !   !! Esto hay que revisarlo!! !!
-      
-    !   !print *, 'adapt_flag = ', adapt_flag
-    !   !stop
-    !   alpha = FSS_1%alpha
-    !   sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
-    ! endif
-
     call fast_gaussian_box_grad(TreeLRD_1%Main_box, &
         targ_vect(:,count1),sgm_rad,alpha,F,D, &
         dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
