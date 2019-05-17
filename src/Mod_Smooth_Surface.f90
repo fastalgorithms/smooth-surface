@@ -512,12 +512,14 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
         err(count2) = F(count2)/dF(count2)
         x(count2) = x(count2) - err(count2)
 
-        err(count2) = abs(err(count2))
+        !err(count2) = abs(err(count2))
         
-        !if (x(count2) .lt. 1.0d0) err(count2) = abs(err(count2))
-
-        !if (x(count2) .ge. 1.0d0) &
-        !    err(count2) = abs(err(count2)/x(count))
+        if ( abs(x(count2)) .lt. 1.0d0) then
+          err(count2) = abs(err(count2))
+        else
+          err(count2) = abs(err(count2)/x(count2))
+        end if
+        
         
         if (err(count2)<tol) then
           flag_con(count2)=1
@@ -525,22 +527,21 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
         
       endif
     enddo
+
     !       do count2=1,Geometry1%n_Sf_points
     !           write (*,*) 'Newton iteration all: ', err(count2)
     !       enddo
-    !write (*,*) 'Newton iteration: ', count, maxval(err)
+    write (*,*) 'Newton iteration: ', count, maxval(err)
 
     write (*,4999) count, &
         Geometry1%n_Sf_points-sum(flag_con), maxval(err)
- 4999   format(i10,i9,e10.2)
+ 4999 format(i10,i9,e10.2)
         
-    
-
   end do
 
 
   
-  if (maxval(err)>tol) then
+  if ( maxval(err)>tol ) then
     flag=1
     print *, 'in My_Newton, failed to converge'
     stop

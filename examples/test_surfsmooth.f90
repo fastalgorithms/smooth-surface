@@ -33,12 +33,12 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 16
+  norder_skel = 8
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 16
-
+  norder_smooth = 8
+  
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
 
@@ -46,7 +46,7 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 1
+  adapt_flag = 2
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -143,7 +143,7 @@ program smoother
   !
   ! plot the smoothed surface
   !
-  ifplot = 0
+  ifplot = 1
   if (ifplot .eq. 1) then
     print *
     print *

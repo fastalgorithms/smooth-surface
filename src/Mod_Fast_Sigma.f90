@@ -161,19 +161,21 @@ implicit none
 return
 end
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-subroutine function_eval_sigma(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,adapt_flag)
+
+
+
+
+subroutine function_eval_sigma(FSS_1,targ_vect,n_targ,sgma, &
+    sgma_x,sgma_y,sgma_z,adapt_flag)
   implicit none
   
-  !! Use speed_flag=0 will be only interesting to debug. Compute the
-  !! value by brute force, not using the tree structure in that case,
-  !! the other flag is not relevant
-  !!
-  !! Use speed_flag=1 for fast evaluation of sgma
-  !! Use adapt_flag=0 for completely non-adaptive case (sgma=constant across the geometry) (all derivatives zero)
-  !! Use adapt_flag=1 for some adaptivity (constant alpha) it will be faster in case of no need of HUGE adaptivity
+  !! Use adapt_flag=0 for completely non-adaptive case (sgma=constant
+  !! across the geometry) (all derivatives zero)
+
+  !! Use adapt_flag=1 for some adaptivity (constant alpha) it will be
+  !! faster in case of no need of HUGE adaptivity
+
   !! Use adapt_flag=2 for HUGE adaptivity requirement
 
   !List of calling arguments
@@ -199,35 +201,38 @@ subroutine function_eval_sigma(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,
 
   !! this function calls the corresponding subroutine with the
   !! appropriate sigma generator for the selected flats
-  if (adapt_flag==0) then
 
-    !! sigma will be constant across the geometry
+  !
+  ! sigma will be constant across the geometry
+  !
+  if (adapt_flag .eq. 0) then
     call function_eval_sigma_v0(targ_vect,n_targ,FSS_1,sgma, &
         sgma_x,sgma_y,sgma_z)
-
-  elseif (adapt_flag==2) then
-
-    ! call eval_sigma_erf(targ_vect,n_targ,FSS_1,sgma,sgma_x,sgma_y,sgma_z)
-    ! call eval_sigma_LRT(targ_vect,n_targ,FSS_1,sgma,sgma_x,sgma_y,sgma_z)
-    call fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma, &
-        sgma_x,sgma_y,sgma_z, adapt_flag)
-
-  elseif (adapt_flag==1) then
-    call fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma, &
-        sgma_x,sgma_y,sgma_z, adapt_flag)
+    return
   endif
 
-!        elseif ((adapt_flag==1).and.(speed_flag==0)) then
-!            call function_eval_sigma_v1(targ_vect,n_targ,FSS_1,sgma,sgma_x,sgma_y,sgma_z)   !! alfa will be constant (sigma not) computed by brute force
-!        elseif ((adapt_flag==2).and.(speed_flag==0)) then
-!            write (*,*) 'Flag option adapt_flag==2 and speed_flag==0 not implemented yet, probably not necessary..'
-!            read (*,*)
-!        else
-!            call fast_gaussian_global(FSS_1,targ_vect,n_targ,sgma,sgma_x,sgma_y,sgma_z,adapt_flag)  !! fast algorithm for both HUGE adaptivity or constant alfa
-!        endif
+  !
+  ! otherwise sigma is adaptive
+  !
+  if ( (adapt_flag .eq. 1) .or. (adapt_flag .eq. 2) ) then
+    call fast_gaussian_global_new(FSS_1,targ_vect,n_targ,sgma, &
+        sgma_x,sgma_y,sgma_z, adapt_flag)
+    return
+  endif
 
-return
-end
+  !
+  ! otherwise flag error
+  !
+  print *, 'stopping, adapt_flag = ', adapt_flag
+  stop
+
+  return
+end subroutine function_eval_sigma
+
+
+
+
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -299,36 +304,170 @@ implicit none
         enddo
 
 return
-end
+end subroutine function_eval_sigma_v0
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
+    sgma_x, sgma_y, sgma_z, adapt_flag)
+
+  implicit none
+
+  !
+  !! This program runs the fixed point iteration to find sigma
+  !! starting from initial guess that comes from a the size of the box
+  !! in which the target would land in the level restricted tree.
+  !! Notice that the tree covers the full domain
+  !
+  
+  ! List of calling arguments
+  type ( Fast_Sigma_stuff ), pointer ::  FSS_1
+
+  integer :: n_targ, adapt_flag
+  double precision :: targ_vect(3,n_targ)
+  double precision :: sgma(n_targ), sgma_x(n_targ)
+  double precision :: sgma_y(n_targ),sgma_z(n_targ)
+
+  ! List of local variables
+  integer :: count1, count2
+  double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
+  double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+  type ( TreeLRD ), pointer :: TreeLRD_1
+
+  TreeLRD_1 => FSS_1%TreeLRD_1
+
+  tol = 1.0d-10
+
+  !$ call omp_set_num_threads(1)
+
+  !$OMP PARALLEL DO DEFAULT(SHARED), &
+  !$OMP PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
+  !$OMP PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2)
+  do count1 = 1,n_targ
+
+    !! Esto hay que revisarlo!!!!
+    !! This has to be reviewed!! !
+    alpha = FSS_1%alpha
+    sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+    !call prin2('. . . before adapt 2*', alpha, 0)
+    !call prin2('sgm_rad = *', sgm_rad, 1)
+    !call prin2('alpha = *', alpha, 1)
+
+    
+    if (adapt_flag .eq. 2) then
+
+      err=tol+1.0d0
+
+      !!!! call initial_guess_sgma(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad)
+      !!!! alpha=1/(10*sgm_rad/70.71d0)**2
+
+
+      !call prin2('. . . inside adapt 2*', alpha, 0)
+      count2=0
+      do while ( (err .gt. tol) .and. (count2 .lt. 30) )
+
+        !print *
+        !call prinf('count2 = *', count2, 1)
+        
+        call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+            targ_vect(:,count1), sgm_rad, alpha, F, D)
+
+        !call prin2('pot2 = *', pot2, 1)
+        !call prin2('sgm_rad = *', sgm_rad, 1)
+        !call prin2('alpha = *', alpha, 1)
+
+
+
+        pot1 = F/D
+        !call prin2('pot2 = *', pot2, 1)
+        
+
+
+        err = abs(pot2-pot1)/abs(pot1)
+        !call prin2('err = *', err, 1)
+
+         count2 = count2+1
+         pot2 = pot1
+         sgm_rad = 70.7d0*pot2
+         alpha = 1/(10*pot2)**2
+      end do
+
+
+      if (err .gt. tol) then
+        call prin2('sigma fixed point did not converge, F/D =*', &
+            F/D, 1)
+        call prin2('err = *', err, 1)
+        stop
+      end if
+      
+    endif
+
+
+
+    
+    !stop
+
+    ! else
+    !   !! Esto hay que revisarlo!! !!
+      
+    !   !print *, 'adapt_flag = ', adapt_flag
+    !   !stop
+    !   alpha = FSS_1%alpha
+    !   sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+    ! endif
+
+    call fast_gaussian_box_grad(TreeLRD_1%Main_box, &
+        targ_vect(:,count1),sgm_rad,alpha,F,D, &
+        dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+
+    sgma(count1) = F/D
+    sgma_x(count1) = (dF_x*D-F*dD_x)/D**2
+    sgma_y(count1) = (dF_y*D-F*dD_y)/D**2
+    sgma_z(count1) = (dF_z*D-F*dD_z)/D**2
+  enddo
+  !$omp end parallel do
+
+
+  return
+end subroutine fast_gaussian_global_new
+
+
+
+
 
 subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
     sgma_x, sgma_y, sgma_z, adapt_flag)
 
   implicit none
+
+  !
   !! This program runs the fixed point iteration to find sigma
   !! starting from initial guess that comes from a the size of the box
   !! in which the target would land in the level restricted tree.
   !! Notice that the tree covers the full domain
-
+  !
+  
   ! List of calling arguments
   type ( Fast_Sigma_stuff ), pointer ::  FSS_1
 
   integer, intent(in) :: n_targ,adapt_flag
   real ( kind = 8 ), intent(in) :: targ_vect(3,n_targ)
-  real ( kind = 8 ), intent(out) :: sgma(n_targ),sgma_x(n_targ),sgma_y(n_targ),sgma_z(n_targ)
+  real ( kind = 8 ), intent(out) :: sgma(n_targ),sgma_x(n_targ)
+  double precision :: sgma_y(n_targ),sgma_z(n_targ)
 
   ! List of local variables
   integer count1,count2
-  real ( kind = 8 ) d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+  double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
+  double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
   type ( TreeLRD ), pointer :: TreeLRD_1
 
   TreeLRD_1 => FSS_1%TreeLRD_1
 
-  tol=1.0d-10
+  tol = 1.0d-10
 
   !$OMP PARALLEL DO DEFAULT(SHARED), &
   !$OMP& PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
@@ -360,7 +499,11 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
       end do
 
     else
-      !! Esto hay que revisarlo!!!!
+      !! Esto hay que revisarlo!! !!
+      !! This has to be reviewed!! !
+      
+      !print *, 'adapt_flag = ', adapt_flag
+      !stop
       alpha = FSS_1%alpha
       sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
     endif
@@ -378,8 +521,11 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
   return
 end subroutine fast_gaussian_global
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
 
 recursive subroutine fast_gaussian_box(Current_box,targ,sgm_rad,alpha,F,D)
 implicit none
@@ -438,20 +584,22 @@ end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 recursive subroutine fast_gaussian_box_v2(Current_box,targ,sgm_rad,alpha,F,D)
-implicit none
-!! This subroutine evals the fast gaussian recursively for one target (F and D)
+  implicit none
+  
+  !! This subroutine evals the fast gaussian recursively for one
+  !! target (F and D)
 
-!! Current_box: (inout) pointer to null where the main box will be allocated
-!! n_max_leaf: (in) maximum number of points allowed in a box to stop splitting
-!! targ: (in) (3) real vector that contains the target
-!! sgm_rad: (in) radius associated with the target
-!! F, D: (inout) numerator and denominator of the solution
-!! dF_x,dF_y,dF_z,dD_x,dD_y,dD_z all the derivatives
+  !! Current_box: (inout) pointer to null where the main box will be allocated
+  !! n_max_leaf: (in) maximum number of points allowed in a box to stop splitting
+  !! targ: (in) (3) real vector that contains the target
+  !! sgm_rad: (in) radius associated with the target
+  !! F, D: (inout) numerator and denominator of the solution
+  !! dF_x,dF_y,dF_z,dD_x,dD_y,dD_z all the derivatives
 
-    !List of calling arguments
-    type ( Box ), pointer :: Current_box
-    real ( kind = 8 ), intent(in) :: targ(3),sgm_rad,alpha
-    real ( kind = 8 ), intent(inout) :: F,D
+  !List of calling arguments
+  type ( Box ), pointer :: Current_box
+  real ( kind = 8 ), intent(in) :: targ(3),sgm_rad,alpha
+  real ( kind = 8 ), intent(inout) :: F,D
 
     !List of local variables
     integer  count1,count2,count3
@@ -495,74 +643,85 @@ end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
-implicit none
-!! This subroutine evals the fast gaussian recursively for one target (F and D)
+recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
+    alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+  implicit none
+  !
+  !! This subroutine evals the fast gaussian recursively for one
+  !! target (F and D)
 
-!! Current_box: (inout) pointer to null where the main box will be allocated
-!! n_max_leaf: (in) maximum number of points allowed in a box to stop splitting
-!! targ: (in) (3) real vector that contains the target
-!! sgm_rad: (in) radius associated with the target
-!! F, D: (inout) numerator and denominator of the solution
-!! dF_x,dF_y,dF_z,dD_x,dD_y,dD_z all the derivatives
+  !! Current_box: (inout) pointer to null where the main box will be
+  !! allocated n_max_leaf: (in) maximum number of points allowed in a
+  !! box to stop splitting targ: (in) (3) real vector that contains
+  !! the target sgm_rad: (in) radius associated with the target F, D:
+  !! (inout) numerator and denominator of the solution
+  !! dF_x,dF_y,dF_z,dD_x,dD_y,dD_z all the derivatives
 
-    !List of calling arguments
-    type ( Box ), pointer :: Current_box
-    real ( kind = 8 ), intent(in) :: targ(3),sgm_rad,alpha
-    real ( kind = 8 ), intent(inout) :: F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z
+  !List of calling arguments
+  type ( Box ), pointer :: Current_box
+  real ( kind = 8 ), intent(in) :: targ(3),sgm_rad,alpha
+  real ( kind = 8 ), intent(inout) :: F,D,dF_x,dF_y,dF_z
+  double precision :: dD_x,dD_y,dD_z
 
-    !List of local variables
-    integer  count1,count2,count3
-    real ( kind = 8 ) d_aux,my_exp
-    real ( kind = 8 ) d2
+  !List of local variables
+  integer  count1,count2,count3
+  real ( kind = 8 ) d_aux,my_exp
+  real ( kind = 8 ) d2
 
-        if (.not. (associated(Current_box%Parent))) then
-            F=0.0d0
-            D=0.0d0
-            dF_x=0.0d0
-            dF_y=0.0d0
-            dF_z=0.0d0
-            dD_x=0.0d0
-            dD_y=0.0d0
-            dD_z=0.0d0
+  if (.not. (associated(Current_box%Parent))) then
+    F=0.0d0
+    D=0.0d0
+    dF_x=0.0d0
+    dF_y=0.0d0
+    dF_z=0.0d0
+    dD_x=0.0d0
+    dD_y=0.0d0
+    dD_z=0.0d0
+  endif
+
+  if (((Current_box%Box_center(1)+Current_box%Box_size/2.0d0) >= (targ(1)-sgm_rad)).and. &
+       ((Current_box%Box_center(1)-Current_box%Box_size/2.0d0) <= (targ(1)+sgm_rad)) .and. &
+      ((Current_box%Box_center(2)+Current_box%Box_size/2.0d0) >= (targ(2)-sgm_rad)).and. &
+       ((Current_box%Box_center(2)-Current_box%Box_size/2.0d0) < (targ(2)+sgm_rad)) .and. &
+      ((Current_box%Box_center(3)+Current_box%Box_size/2.0d0) >= (targ(3)-sgm_rad)).and. &
+       ((Current_box%Box_center(3)-Current_box%Box_size/2.0d0) < (targ(3)+sgm_rad))) then
+
+    ! inside of a box
+    
+    if ((Current_box%n_points)==0) then
+      do count1=1,8
+        if (associated(Current_box%Children(count1)%BP)) then
+          call fast_gaussian_box_grad(&
+              Current_box%Children(count1)%BP,targ,sgm_rad,alpha,&
+              &F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
         endif
+      enddo
+    else
 
-        if (((Current_box%Box_center(1)+Current_box%Box_size/2.0d0) >= (targ(1)-sgm_rad)).and. &
-            & ((Current_box%Box_center(1)-Current_box%Box_size/2.0d0) <= (targ(1)+sgm_rad)) .and. &
-            ((Current_box%Box_center(2)+Current_box%Box_size/2.0d0) >= (targ(2)-sgm_rad)).and. &
-            & ((Current_box%Box_center(2)-Current_box%Box_size/2.0d0) < (targ(2)+sgm_rad)) .and. &
-            ((Current_box%Box_center(3)+Current_box%Box_size/2.0d0) >= (targ(3)-sgm_rad)).and. &
-            & ((Current_box%Box_center(3)-Current_box%Box_size/2.0d0) < (targ(3)+sgm_rad))) then
-!            write (*,*) 'inside of a box'
-            if ((Current_box%n_points)==0) then
-                do count1=1,8
-                    if (associated(Current_box%Children(count1)%BP)) then
-                        call fast_gaussian_box_grad(Current_box%Children(count1)%BP,targ,sgm_rad,alpha,&
-                         &F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
-                    endif
-                enddo
-            else
-!                alpha=1.0d0/(2*(sgm_rad/10.0d0))
-!                write (*,*) Current_box%n_points
-                do count1=1,Current_box%n_points
-                    d2=(Current_box%Points(1,count1)-targ(1))**2+(Current_box%Points(2,count1)&
-                     &-targ(2))**2+(Current_box%Points(3,count1)-targ(3))**2
-                    my_exp=exp(-alpha*d2)
-                    F=F+Current_box%sgmas(count1)*my_exp
-                    D=D+my_exp
-                    dF_x=dF_x+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(1)-Current_box%Points(1,count1))
-                    dF_y=dF_y+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(2)-Current_box%Points(2,count1))
-                    dF_z=dF_z+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(3)-Current_box%Points(3,count1))
-                    dD_x=dD_x+(-2*alpha)*my_exp*(targ(1)-Current_box%Points(1,count1))
-                    dD_y=dD_y+(-2*alpha)*my_exp*(targ(2)-Current_box%Points(2,count1))
-                    dD_z=dD_z+(-2*alpha)*my_exp*(targ(3)-Current_box%Points(3,count1))
-                enddo
-            endif
-        else
-!            write (*,*) 'out of a box'
-        endif
+      ! alpha=1.0d0/(2*(sgm_rad/10.0d0))
 
-return
+      do count1=1,Current_box%n_points
+        d2=(Current_box%Points(1,count1)-targ(1))**2 &
+            +(Current_box%Points(2,count1) &
+            -targ(2))**2+(Current_box%Points(3,count1)-targ(3))**2
+        my_exp = exp(-alpha*d2)
+        F=F+Current_box%sgmas(count1)*my_exp
+        D=D+my_exp
+        dF_x=dF_x+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(1)-Current_box%Points(1,count1))
+        dF_y=dF_y+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(2)-Current_box%Points(2,count1))
+        dF_z=dF_z+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(3)-Current_box%Points(3,count1))
+        dD_x=dD_x+(-2*alpha)*my_exp*(targ(1)-Current_box%Points(1,count1))
+        dD_y=dD_y+(-2*alpha)*my_exp*(targ(2)-Current_box%Points(2,count1))
+        dD_z=dD_z+(-2*alpha)*my_exp*(targ(3)-Current_box%Points(3,count1))
+      enddo
+    endif
+  else
+
+    ! out of a box
+
+  endif
+
+  return
 end subroutine fast_gaussian_box_grad
 
 
