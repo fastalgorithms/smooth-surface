@@ -334,13 +334,31 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
 
   ! List of local variables
   integer :: count1, count2
+  double precision :: sgma_min, sgma_max
   double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
   double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+  double precision :: alphal, alphar, alpham
+  double precision :: sigmal, sigmar, sigmam
+  double precision :: sgm_radl,sgm_radr,sgm_radm
+  double precision :: hl,hm,hr,fl,fm,fr,dl,dm,dr
+  integer :: count_max
   type ( TreeLRD ), pointer :: TreeLRD_1
 
   TreeLRD_1 => FSS_1%TreeLRD_1
 
+  sgma_min = minval(TreeLRD_1%W_sgmas_mem)
+  sgma_max = maxval(TreeLRD_1%W_sgmas_mem)
+
+  call prin2('sgma_min=*',sgma_min,1)
+  call prin2('sgma_max=*',sgma_max,1)
+
   tol = 1.0d-10
+
+  count_max = (log(sgma_max-sgma_min)-log(tol))/log(2.0d0)+4
+
+  call prinf('count_max=*',count_max,1)
+  
+
 
   !!!!$ call omp_set_num_threads(1)
 
@@ -363,47 +381,60 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
 
       err=tol+1.0d0
 
+      sigmal = sgma_min
+      sigmar = sgma_max
+
+      alphal = 1.0d0/(2*sigmal**2)
+      alphar = 1.0d0/(2*sigmar**2)
+
+      sgm_radl = 12.0d0/sqrt(2.0d0*alphal)
+      sgm_radr = 12.0d0/sqrt(2.0d0*alphar)
+
+      call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+            targ_vect(:,count1), sgm_radl, alphal, fl, dl)
+      call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+            targ_vect(:,count1), sgm_radr, alphar, fr, dr)
+
+      hl = sigmal - fl/dl
+      hr = sigmar - fr/dr
+
+
       !!!! call initial_guess_sgma(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad)
       !!!! alpha=1/(10*sgm_rad/70.71d0)**2
 
 
       !call prin2('. . . inside adapt 2*', alpha, 0)
       count2=0
-      do while ( (err .gt. tol) .and. (count2 .lt. 30) )
 
-        !print *
-        !call prinf('count2 = *', count2, 1)
-        
+      do count2 = 1,count_max
+        sigmam = (sigmal + sigmar)/2.0d0
+        alpham = 1.0d0/(2*sigmam**2)
+
+        sgm_radm = 12.0d0/sqrt(2.0d0*alpham)
+
         call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
-            targ_vect(:,count1), sgm_rad, alpha, F, D)
+            targ_vect(:,count1), sgm_radm, alpham, fm, dm)
 
-        !call prin2('pot2 = *', pot2, 1)
-        !call prin2('sgm_rad = *', sgm_rad, 1)
-        !call prin2('alpha = *', alpha, 1)
+        hm = sigmam-fm/dm
 
-
-
-        pot1 = F/D
-        !call prin2('pot2 = *', pot2, 1)
+        if(hm*hl.gt.0) then
+          hl = hm
+          sigmal = sigmam
+          alphal = alpham
+          sgm_radl = sgm_radm
+        endif
         
+        if(hm*hr.gt.0) then
+          hr = hm
+          sigmar = sigmam
+          alphar = alpham
+          sgm_radr = sgm_radm
+        endif
 
-
-        err = abs(pot2-pot1)/abs(pot1)
-        !call prin2('err = *', err, 1)
-
-         count2 = count2+1
-         pot2 = pot1
-         sgm_rad = 70.7d0*pot2
-         alpha = 1/(10*pot2)**2
       end do
 
-
-      if (err .gt. tol) then
-        call prin2('sigma fixed point did not converge, F/D =*', &
-            F/D, 1)
-        call prin2('err = *', err, 1)
-        stop
-      end if
+      alpha = alpham
+      sgm_rad = sgm_radm
       
     endif
 
@@ -454,6 +485,7 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
   integer count1,count2
   double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
   double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+
   type ( TreeLRD ), pointer :: TreeLRD_1
 
   TreeLRD_1 => FSS_1%TreeLRD_1
