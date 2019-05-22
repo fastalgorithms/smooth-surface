@@ -91,7 +91,7 @@ contains
 
 
   
-subroutine setup_tree_sigma_geometry(FSS_1,Geometry1)
+subroutine setup_tree_sigma_geometry(FSS_1,Geometry1,rlam)
 implicit none
 !!This routine initialize the tree to allow a fast sigma evaluator
 
@@ -101,14 +101,14 @@ implicit none
 
     !List of local variables
     integer n_max_leaf
-    real ( kind = 8 ) Centroids(3,Geometry1%ntri),sgmas(Geometry1%ntri)
+    real ( kind = 8 ) Centroids(3,Geometry1%ntri),sgmas(Geometry1%ntri), rlam
     type ( TreeLRD ), pointer ::  TreeLRD_1             !! Tree where we place the centroids and sigma values at the centroids
     integer n_leaf_boxes,count1
     real ( kind = 8 ), allocatable :: centers(:,:),sgmas_2(:)
 
         allocate(FSS_1)
         n_max_leaf=1
-        call find_centroids_sigmas(Geometry1,Centroids,sgmas)   !! Find the centroids and sgmas on each centroid
+        call find_centroids_sigmas(Geometry1,Centroids,sgmas,rlam)   !! Find the centroids and sgmas on each centroid
 !!!! ESTO ESTÁ CAMBIADO adapt_flag=1
         call start_tree(FSS_1%TreeLRD_1,n_max_leaf,Centroids,sgmas,Geometry1%ntri_sk) !! Allocate centroids and sgmas on the tree
 !!!! ESTO ESTÁ CAMBIADO adapt_flag=2
@@ -136,7 +136,7 @@ implicit none
 
         !Compute the mean value of the sigmas to allow nonadaptivity
         FSS_1%sgma_mean = sum(FSS_1%TreeLRD_1%W_sgmas_mem)/Geometry1%ntri
-        FSS_1%alpha = 1.0d0/maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2/5.0d0
+        FSS_1%alpha = 1.0d0/(2.0d0*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2)
 
 
 
@@ -238,7 +238,7 @@ end subroutine function_eval_sigma
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-subroutine find_centroids_sigmas(Geometry1,Centroids,sgmas)
+subroutine find_centroids_sigmas(Geometry1,Centroids,sgmas,rlam)
 implicit none
 
     !List of calling arguments
@@ -248,10 +248,10 @@ implicit none
 
     !List of local variables
     integer count
-    real ( kind = 8 ) lambda,d1,d2,d3,dmax,sgma_mean
+    real ( kind = 8 ) lambda,d1,d2,d3,dmax,sgma_mean,rlam
     real ( kind = 8 ) P1(3),P2(3),P3(3),Pc(3),Pd1(3),Pd2(3),Pd3(3)
 
-        lambda=0.1d0   !!Mucho ojo con esto tío, antes era lambda=0.03d0
+
         sgma_mean=0.0d0
         do count=1,Geometry1%ntri
             P1=Geometry1%Points(:,Geometry1%Tri(1,count))
@@ -266,7 +266,7 @@ implicit none
             d3=sqrt(Pd3(1)**2+Pd3(2)**2+Pd3(3)**2)
             dmax=max(d1,d2,d3)
             Centroids(:,count)=Pc
-            sgmas(count)=lambda*dmax
+            sgmas(count)=dmax/rlam
         enddo
 !!        if (adapt_flag==0) then
 !!            write (*,*) 'adaptive flag = 0'
@@ -336,11 +336,17 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
   integer :: count1, count2
   double precision :: sgma_min, sgma_max
   double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
+  double precision :: dF_sigma,dD_sigma,denom
   double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
-  double precision :: alphal, alphar, alpham
-  double precision :: sigmal, sigmar, sigmam
-  double precision :: sgm_radl,sgm_radr,sgm_radm
-  double precision :: hl,hm,hr,fl,fm,fr,dl,dm,dr
+  double precision :: alpha0, alpham1
+  double precision :: sigma0, sigmam1
+  double precision :: sgm_rad0,sgm_radm1
+  double precision :: f0,fm1,d0,dm1,dd
+
+  integer nhalf,j
+  
+  double precision :: fprime, tes,tes2,resid,hstep,sigma
+
   integer :: count_max
   type ( TreeLRD ), pointer :: TreeLRD_1
 
@@ -352,7 +358,8 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
   call prin2('sgma_min=*',sgma_min,1)
   call prin2('sgma_max=*',sgma_max,1)
 
-  tol = 1.0d-10
+  tol = 1.0d-14
+  nhalf = 3
 
   count_max = (log(sgma_max-sgma_min)-log(tol))/log(2.0d0)+4
 
@@ -364,7 +371,10 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
 
   !$OMP PARALLEL DO DEFAULT(SHARED), &
   !$OMP PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
-  !$OMP PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2)
+  !$OMP PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2), &
+  !$OMP PRIVATE(alpha0,alpham1,sgm_rad0,sgm_radm1,sigma), &
+  !$OMP PRIVATE(sigmam1,sigma0,resid,tes,tes2,fprime), &
+  !$OMP PRIVATE(f0,d0,fm1,dm1,hstep,j,dF_sigma,dD_sigma,denom,dd)
   do count1 = 1,n_targ
 
     !! Esto hay que revisarlo!!!!
@@ -379,24 +389,38 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
     
     if (adapt_flag .eq. 2) then
 
+
+ !
+ !!     Get two initial guesses for secant code
+ !
+
       err=tol+1.0d0
 
-      sigmal = sgma_min
-      sigmar = sgma_max
+      alpha0 = alpha
+      alpham1 = 2.0d0*alpha
 
-      alphal = 1.0d0/(2*sigmal**2)
-      alphar = 1.0d0/(2*sigmar**2)
-
-      sgm_radl = 12.0d0/sqrt(2.0d0*alphal)
-      sgm_radr = 12.0d0/sqrt(2.0d0*alphar)
+      sgm_rad0 = 12.0d0/sqrt(2.0d0*alpha0)
+      sgm_radm1 = 12.0d0/sqrt(2.0d0*alpham1)
 
       call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
-            targ_vect(:,count1), sgm_radl, alphal, fl, dl)
+            targ_vect(:,count1), sgm_rad0, alpha0, f0, d0)
       call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
-            targ_vect(:,count1), sgm_radr, alphar, fr, dr)
+            targ_vect(:,count1), sgm_radm1, alpham1, fm1, dm1)
 
-      hl = sigmal - fl/dl
-      hr = sigmar - fr/dr
+
+!
+!!    sigma is current guess, sigmam1 is previous guess
+!
+
+      sigma = f0/d0
+      sigmam1 = fm1/dm1
+
+      alpham1 = 1/(2.0d0*sigmam1**2)
+      sgm_radm1 = 12.0d0/sqrt(2.0d0*alpham1)
+      call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+            targ_vect(:,count1), sgm_radm1, alpham1, fm1, dm1)
+
+
 
 
       !!!! call initial_guess_sgma(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad)
@@ -407,49 +431,84 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
       count2=0
 
       do count2 = 1,count_max
-        sigmam = (sigmal + sigmar)/2.0d0
-        alpham = 1.0d0/(2*sigmam**2)
+        sigma0 = sigma
 
-        sgm_radm = 12.0d0/sqrt(2.0d0*alpham)
-
+        alpha0 = 1/(2.0d0*sigma0**2)
+        sgm_rad0 = 12.0d0/sqrt(2.0d0*alpha0)
         call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
-            targ_vect(:,count1), sgm_radm, alpham, fm, dm)
-
-        hm = sigmam-fm/dm
-
-        if(hm*hl.gt.0) then
-          hl = hm
-          sigmal = sigmam
-          alphal = alpham
-          sgm_radl = sgm_radm
-        endif
+            targ_vect(:,count1), sgm_rad0, alpha0, f0, d0)
         
-        if(hm*hr.gt.0) then
-          hr = hm
-          sigmar = sigmam
-          alphar = alpham
-          sgm_radr = sgm_radm
-        endif
+        resid = f0/d0 - sigma0
+
+        tes = abs(resid)
+
+
+        if(tes.le.tol) goto 1001
+
+        fprime = (f0/d0-fm1/dm1)/(sigma0-sigmam1)
+
+        fm1 = f0
+        dm1 = d0
+        
+        sigmam1 = sigma0
+
+        hstep = -resid/(-1.0d0+fprime)
+        do j=1,nhalf
+           sigma = sigma0 + hstep
+           alpha = 1.0d0/(2.0d0*sigma**2)
+           sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
+           call fast_gaussian_box_v2(TreeLRD_1%Main_box, &
+              targ_vect(:,count1), sgm_rad, alpha, f, d)
+           
+           resid = f/d-sigma
+           tes2 = abs(resid)
+           if(tes2.le.tol) goto 1001
+           if(tes2.lt.tes) then
+             goto 1000
+           else
+             hstep = hstep*0.5d0
+           endif
+        enddo
+        print *, "Exceeding max damping steps in sigma evaluator" 
+ 1000 continue
 
       end do
+ 1001 continue      
 
-      alpha = alpham
-      sgm_rad = sgm_radm
+      
+      alpha = 1.0d0/(2*sigma**2)
+      sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
       
     endif
 
     !
     ! using the obtained value, call the fast Gauss transform
     !
-    
-    call fast_gaussian_box_grad(TreeLRD_1%Main_box, &
+  
+    call fast_gaussian_box_grad(adapt_flag,TreeLRD_1%Main_box, &
         targ_vect(:,count1),sgm_rad,alpha,F,D, &
-        dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+        dF_x,dF_y,dF_z,dD_x,dD_y,dD_z, dF_sigma, dD_sigma)
 
     sgma(count1) = F/D
+
+    if(abs(sigma-sgma(count1)).ge.tol) then
+      print *, "sigma did not converge for point=",count1
+      stop
+    endif
+
     sgma_x(count1) = (dF_x*D-F*dD_x)/D**2
     sgma_y(count1) = (dF_y*D-F*dD_y)/D**2
     sgma_z(count1) = (dF_z*D-F*dD_z)/D**2
+
+    if(adapt_flag.eq.2) then
+
+      dd = (D*dF_sigma - F*dD_sigma)/D**2/sgma(count1)**3
+      denom = 1.0d0/(1.0d0-dd)
+
+      sgma_x(count1) = sgma_x(count1)*denom
+      sgma_y(count1) = sgma_y(count1)*denom
+      sgma_z(count1) = sgma_z(count1)*denom
+    endif
   enddo
   !$omp end parallel do
 
@@ -485,6 +544,7 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
   integer count1,count2
   double precision :: d_aux,alpha,my_exp,F,D,dF_x,dF_y,dF_z
   double precision :: dD_x,dD_y,dD_z,sgm_rad,tol,pot1,pot2,err
+  double precision :: dF_sigma, dD_sigma,denom
 
   type ( TreeLRD ), pointer :: TreeLRD_1
 
@@ -494,7 +554,8 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
 
   !$OMP PARALLEL DO DEFAULT(SHARED), &
   !$OMP& PRIVATE(count1,count2,err,sgm_rad,alpha,F,D), &
-  !$OMP& PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2)
+  !$OMP& PRIVATE(dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,pot1,pot2,dF_sigma), &
+  !$OMP& PRIVATE(dD_sigma,denom)
   do count1 = 1,n_targ
 
     if (adapt_flag==2) then
@@ -531,12 +592,20 @@ subroutine fast_gaussian_global(FSS_1, targ_vect, n_targ, sgma, &
       sgm_rad = 12.0d0/sqrt(2.0d0*alpha)
     endif
 
-    call fast_gaussian_box_grad(TreeLRD_1%Main_box,targ_vect(:,count1),sgm_rad,alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+    call fast_gaussian_box_grad(adapt_flag, TreeLRD_1%Main_box,targ_vect(:,count1),&
+      sgm_rad,alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,dF_sigma, dD_sigma)
 
     sgma(count1) = F/D
     sgma_x(count1) = (dF_x*D-F*dD_x)/D**2
     sgma_y(count1) = (dF_y*D-F*dD_y)/D**2
     sgma_z(count1) = (dF_z*D-F*dD_z)/D**2
+
+    if(adapt_flag.eq.2) then
+      denom = 1.0d0/(1.0d0-(D*dF_sigma - F*dD_sigma)/D**2/sgma(count1)**3)
+      sgma_x(count1) = sgma_x(count1)*denom
+      sgma_y(count1) = sgma_y(count1)*denom
+      sgma_z(count1) = sgma_z(count1)*denom
+    endif
   enddo
   !$OMP END PARALLEL DO
 
@@ -666,8 +735,8 @@ end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
-    alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+recursive subroutine fast_gaussian_box_grad(adapt_flag,Current_box,targ,sgm_rad,&
+    alpha,F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,dF_sigma, dD_sigma)
   implicit none
   !
   !! This subroutine evals the fast gaussian recursively for one
@@ -679,17 +748,21 @@ recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
   !! the target sgm_rad: (in) radius associated with the target F, D:
   !! (inout) numerator and denominator of the solution
   !! dF_x,dF_y,dF_z,dD_x,dD_y,dD_z all the derivatives
+  !
+  !! dF_sigma,dD_sigma, are the sigma derivatives.
+  !! Note, we are missing a factor of sigma**3 in dF_sigma and dD_sigma
+  !!
 
   !List of calling arguments
   type ( Box ), pointer :: Current_box
   real ( kind = 8 ), intent(in) :: targ(3),sgm_rad,alpha
   real ( kind = 8 ), intent(inout) :: F,D,dF_x,dF_y,dF_z
-  double precision :: dD_x,dD_y,dD_z
+  double precision :: dD_x,dD_y,dD_z,dF_sigma,dD_sigma
 
   !List of local variables
-  integer  count1,count2,count3
+  integer  count1,count2,count3, adapt_flag
   real ( kind = 8 ) d_aux,my_exp
-  real ( kind = 8 ) d2
+  real ( kind = 8 ) d2, rtmp
 
   if (.not. (associated(Current_box%Parent))) then
     F=0.0d0
@@ -700,6 +773,8 @@ recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
     dD_x=0.0d0
     dD_y=0.0d0
     dD_z=0.0d0
+    dF_sigma = 0.0d0
+    dD_sigma = 0.0d0
   endif
 
   if (((Current_box%Box_center(1)+Current_box%Box_size/2.0d0) >= (targ(1)-sgm_rad)).and. &
@@ -714,9 +789,9 @@ recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
     if ((Current_box%n_points)==0) then
       do count1=1,8
         if (associated(Current_box%Children(count1)%BP)) then
-          call fast_gaussian_box_grad(&
+          call fast_gaussian_box_grad(adapt_flag,&
               Current_box%Children(count1)%BP,targ,sgm_rad,alpha,&
-              &F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z)
+              F,D,dF_x,dF_y,dF_z,dD_x,dD_y,dD_z,dF_sigma,dD_sigma)
         endif
       enddo
     else
@@ -728,14 +803,22 @@ recursive subroutine fast_gaussian_box_grad(Current_box,targ,sgm_rad,&
             +(Current_box%Points(2,count1) &
             -targ(2))**2+(Current_box%Points(3,count1)-targ(3))**2
         my_exp = exp(-alpha*d2)
-        F=F+Current_box%sgmas(count1)*my_exp
+        rtmp = my_exp*Current_box%sgmas(count1)
+
+
+        F=F+rtmp
         D=D+my_exp
-        dF_x=dF_x+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(1)-Current_box%Points(1,count1))
-        dF_y=dF_y+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(2)-Current_box%Points(2,count1))
-        dF_z=dF_z+(-2*alpha)*Current_box%sgmas(count1)*my_exp*(targ(3)-Current_box%Points(3,count1))
+        dF_x=dF_x+(-2*alpha)*rtmp*(targ(1)-Current_box%Points(1,count1))
+        dF_y=dF_y+(-2*alpha)*rtmp*(targ(2)-Current_box%Points(2,count1))
+        dF_z=dF_z+(-2*alpha)*rtmp*(targ(3)-Current_box%Points(3,count1))
         dD_x=dD_x+(-2*alpha)*my_exp*(targ(1)-Current_box%Points(1,count1))
         dD_y=dD_y+(-2*alpha)*my_exp*(targ(2)-Current_box%Points(2,count1))
         dD_z=dD_z+(-2*alpha)*my_exp*(targ(3)-Current_box%Points(3,count1))
+
+        if(adapt_flag.eq.2) then
+          dF_sigma = dF_sigma + d2*rtmp
+          dD_sigma = dD_sigma + d2*my_exp
+        endif
       enddo
     endif
   else

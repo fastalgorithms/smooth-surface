@@ -1,0 +1,199 @@
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+% TeX will automatically convert eps --> pdf in pdflatex	
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage[cmex10]{amsmath}
+\usepackage{mathrsfs,amsthm}
+\usepackage{cleveref}
+\usepackage{color}
+\def\MFIE{{\mathfrak M}}%
+\def\EFIE{{\mathfrak E}}%
+
+%\usepackage[sort&compress]{natbib}
+
+\DeclareMathOperator\erf{erf}
+\DeclareMathOperator\Ei{Ei}
+\newcommand\bbR{\mathbb R}
+\newcommand\bphi{\boldsymbol \phi}
+\newcommand\brho{\boldsymbol \rho}
+\newcommand\rect{\rm rect}
+\newcommand\bs{\boldsymbol s}
+\newcommand\bx{\boldsymbol x}
+\newcommand\bc{\boldsymbol c}
+\newcommand\by{\boldsymbol y}
+\newcommand\bE{\boldsymbol E}
+\newcommand\ds{\boldsymbol ds}
+\newcommand\bH{\boldsymbol H}
+\newcommand\bF{\boldsymbol F}
+\newcommand\bA{\boldsymbol A}
+\newcommand\bJ{\boldsymbol J}
+\newcommand\bj{\boldsymbol j}
+\newcommand\bb{\boldsymbol b}
+\newcommand\ba{\boldsymbol a}
+\newcommand\bM{\boldsymbol M}
+\newcommand\In{\operatorname{inc}}
+\newcommand\Sc{\operatorname{scat}}
+\newcommand\bn{\boldsymbol n}
+\newcommand\br{\boldsymbol r}
+\newcommand\nskel{n_{\textrm{skel}}}
+\newcommand\ndis{n_{\textrm{dis}}}
+\newcommand\eskel{\varepsilon_{\textrm{skel}}}
+\newcommand\esmooth{\varepsilon_{\textrm{smooth}}}
+
+\newcommand\bP{\boldsymbol P}
+\newcommand\bN{\boldsymbol N}
+\newcommand\bQ{\boldsymbol Q}
+\newcommand\bX{\boldsymbol X}
+\newcommand\bY{\boldsymbol Y}
+\newcommand\bV{\boldsymbol V}
+\newcommand\bu{\boldsymbol u}
+\newcommand\bv{\boldsymbol v}
+
+
+%%\newcommand\tot{\operatorname{tot}}
+\newcommand\tot{\operatorname{}}
+%\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newtheorem{definition}{Definition}
+\newtheorem{thm}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\newcommand{\Vo}{\mathcal V_0}
+\newcommand{\To}{\mathcal T_0}
+\newcommand{\Vw}{\mathcal V_\omega}
+\newcommand{\Tw}{\mathcal T_\omega}
+
+
+\title{Notes on Smooth Surfaces}
+%\author{Felipe Vico\thanks{Instituto de Telecomunicaciones y Aplicaciones Multimedia (ITEAM), 
+%Universidad Polit\` ecnica
+%de Val\` encia, 46022 Val\` encia, Spain. {{\em email}: {\sf {felipe.vico@gmail.com,
+%}}} } \and
+%Leslie Greengard, Michael O'Neil \thanks{Courant Institute of Mathematical Sciences,
+%         New York University, 
+%         251 Mercer Street,
+%         New York, NY 10012-1110.
+%{{\em email}: {\sf {greengard@cims.nyu.edu.}}}}
+%}
+
+%\date{}							% Activate to display a given date or no date
+
+
+\begin{document}
+\maketitle
+%\tableofcontents
+%\section{}
+%\subsection{}
+
+\section{Three options for $\sigma(\bx)$}
+Let $\sigma_{j} = |T_{j}|/\lambda$, 
+where $T_{j}$ is the max of the three side lengths of the skeleton triangle,
+and $\lambda$ is a constant. Let $\sigma_{0} = \max_{j} \sigma_{j}$.
+
+\begin{align}
+\sigma(\bx) &= \sum_{j=1}^{M} \sigma_{j}/M \, ,\\ 
+\sigma(\bx) &= \frac{\sum_{j=1}^{M} \sigma_{j} e^{-\| \bx -\bc_{j} \|^2/(2\sigma_{0}^2)}}
+{\sum_{j=1}^{M} e^{-\|\bx-\bc_{j}^2 \|/(2\sigma_{0}^2)}} \, ,\\ 
+\sigma(\bx) &= \frac{\sum_{j=1}^{M} \sigma_{j} e^{-\| \bx -\bc_{j} \|^2/(2\sigma(\bx)^2)}}
+{\sum_{j=1}^{M} e^{-\|\bx-\bc_{j}^2 \|/(2\sigma(\bx)^2)}} \, = \frac{\tilde{F}(\bx,\sigma(\bx))}{\tilde{D}(\bx,\sigma(\bx))} \, .
+\label{eq:adapt-flag2}
+\end{align}
+The strategies have been labeled adapt-flag = 0, 1, and 2 respectively.
+
+\section{Old code understanding}
+For adapt-flag =2, the old code ran the following iteration. Let $\alpha(\bx) = 1/(2\sigma(\bx)^2)$,
+and let 
+\begin{equation}
+F(\bx,\alpha) = \sum_{j=1}^{M} \sigma_{j} e^{-\alpha \| \bx -\bc_{j} \|^2} \, , \quad
+D(\bx,\alpha) = \sum_{j=1}^{M}  e^{-\alpha \| \bx -\bc_{j} \|^2} \, . 
+\end{equation}
+\begin{equation}
+\alpha^{n+1}(\bx) = \frac{1}{100}\cdot \frac{D(\bx,\alpha^{n}(\bx))^2}{F(\bx,\alpha^{n}(\bx))^2} \, ,
+\end{equation}
+where the iteration is stopped when
+\begin{equation}
+\left|\frac{F(\bx,\alpha^{n}(\bx))}{D(\bx,\alpha^{n}(\bx))} - 
+\frac{F(\bx,\alpha^{n+1}(\bx))}{D(\bx,\alpha^{n+1}(\bx))} \right| \leq \varepsilon \, .
+\end{equation}
+
+Thus, the iterative procedure is computing the solution to the following equation
+\begin{equation}
+\frac{1}{10\sqrt{\alpha}} = \frac{F(\bx,\alpha(\bx))}{D(\bx,\alpha(\bx))} \, ,
+\end{equation}
+which in terms of $\sigma(\bx)$ is the iteration
+\begin{equation}
+\frac{\sqrt{2}\sigma(\bx)}{10} = \frac{\tilde{F}(\bx,\sigma(\bx))}{\tilde{D}(\bx,\sigma(\bx))} \, .
+\end{equation}
+This is equivalent to rescaling $\lambda \to \sqrt{2}\lambda /10$. 
+In Felipe's code, he sets $\lambda = 10$, which in terms of~\cref{eq:adapt-flag2}
+corresponds to $\lambda = \sqrt{2}$. 
+
+
+\section{Results- Gauss identity}
+We now compute $\sigma$ by equation~\cref{eq:adapt-flag2} and
+use three different values of $\lambda=2.5,5,10$ and compute
+the flux due to a point charge on the smooth surface and the skeleton
+corresponding to a sphere discretized with 416 second order triangles ($q=2$) 
+or 834 first order triangles ($q=1$). af denotes adapt flag.
+
+The function $F$ whose level set describes the smooth surface is 
+described by a quadrature on the skeleton 
+using $\nskel$ order Vioreanu Rokhlin nodes to compute the level-set function,
+and the smooth-surface is described by a collection of $M$ patches
+where each patch is discretized using $\ndis$ order Vioreanu Rokhlin nodes.
+For fixed $\nskel$, we expect spectral convergence in $\ndis$.
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+$\nskel$ & $\ndis$ & $\lambda$ & af & q & $\eskel$ & $\esmooth$ \\ \hline
+\input{../res/res1}
+\end{tabular}
+\caption{Varying adapt-flag}
+\end{center}
+\end{table}
+
+\begin{table}[!ht]
+\begin{minipage}{.3\linewidth}
+\caption{$\lambda = 2.5$}
+\centering
+{\tiny
+\begin{tabular}{|c|c|c|c|}
+\hline
+$\nskel$ & $\ndis$ & $\eskel$ & $\esmooth$ \\ \hline
+\input{../res/res2}
+\end{tabular}
+}
+\end{minipage} \hspace{3ex} 
+\begin{minipage}{.3\linewidth}
+\caption{$\lambda = 5$}
+\centering
+{\tiny
+\begin{tabular}{|c|c|c|c|}
+\hline
+$\nskel$ & $\ndis$ & $\eskel$ & $\esmooth$ \\ \hline
+\input{../res/res3}
+\end{tabular}
+}
+\end{minipage} \hspace{3ex}
+\begin{minipage}{.3\linewidth}
+\caption{$\lambda = 10$}
+\centering
+\centering
+{\tiny
+\begin{tabular}{|c|c|c|c|}
+\hline
+$\nskel$ & $\ndis$ & $\eskel$ & $\esmooth$ \\ \hline
+\input{../res/res4}
+\end{tabular}
+}
+\end{minipage}
+\caption{Varying $\nskel$ and $\ndis$ for $q=2$, af=2.}
+\end{table}
+
+\end{document}

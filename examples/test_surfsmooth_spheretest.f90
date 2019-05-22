@@ -21,27 +21,48 @@ program smoother
   integer :: N, count,nrefine, ifplot
   integer :: adapt_flag, ifflatten
   integer :: interp_flag,fmm_flag
-  integer :: norder_skel, norder_smooth
+  integer :: norder_skel, norder_smooth,ilam
+
+  double precision :: rlam
 
   character (len=100) :: nombre, filename,name_aux
-  character (len=21) :: plot_name
+  character (len=35) :: plot_name
   character (len=8) :: istr1
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam
+  double precision :: err_skel
 
 
   call prini(6,13)
 
+  call get_command_argument(1,arg_comm)
+  read(arg_comm,*) adapt_flag
+
+  call get_command_argument(2,arg_comm)
+  read(arg_comm,*) ifflatten
+
+  call get_command_argument(3,arg_comm)
+  read(arg_comm,*) ilam
+
+  call get_command_argument(4,arg_comm)
+  read(arg_comm,*) norder_skel
+
+  call get_command_argument(5,arg_comm)
+  read(arg_comm,*) norder_smooth
+
+  print *, "adapt_flag=",adapt_flag
+  print *, "ifflatten=",ifflatten
+  print *, "ilam=",ilam
+
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 16
+!!  norder_skel = 16
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 16
+!!  norder_smooth = 16
   
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -50,17 +71,22 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 2
+!!  adapt_flag = 1
 
 
   !
   !
-  ! rlam flag decides the proportionality value for \sigma_{j}
+  ! ilam flag decides the proportionality value for \sigma_{j}
   ! in relation to triangle diameter
-  ! \sigma_{j} = D_{j}/rlam
+  ! ilam = 1, \sigma_{j} = D_{j}/2.5
+  ! ilam = 2, \sigma_{j} = D_{j}/5
+  ! ilam = 3, \sigma_{j} = D_{j}/10
   !
 
-  rlam = 10.0d0
+  if(ilam.eq.1) rlam = 2.5d0
+  if(ilam.eq.2) rlam = 5.0d0
+  if(ilam.eq.3) rlam = 10.0d0
+ 
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -103,11 +129,11 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 0
+!  ifflatten = 1
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
-  
+
   
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
@@ -152,7 +178,6 @@ program smoother
   print *, '. . . checking gauss identity on smooth surface'
   call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
-  
   !
   ! plot the smoothed surface
   !
@@ -162,11 +187,21 @@ program smoother
     print *
     print *, '. . . plotting vtk smoothed geometry'
 
-    plot_name = 'smoothed3.vtk'
+
+    write(plot_name,"(a14,i1,a2,i1,a2,i1,a3,i2.2,a3,i2.2,a4)") "res/smoothed_f", &
+       ifflatten,"_a",adapt_flag,"_l",ilam,"_ny",norder_skel,"_nx",norder_smooth,&
+       ".vtk"
     call plotsmoothgeometryvtk(Geometry1, plot_name)
     print *, '. . . finished plotting vtk smoothed geometry'
   end if
 
+  open(unit=65,file='error_sphere_study.txt',access='append')
+  
+  1100 format(5(2x,i2,','),2x,e11.5,',',2x,e11.5)
+  write(65,1100) norder_skel,norder_smooth,ilam,adapt_flag, &
+      ifflatten,err_skel,error_report(1)
+
+  close(65)
   
   
 
@@ -232,7 +267,6 @@ subroutine check_gauss_skeleton(Geometry1, x0, y0, z0,err_rel)
     nx=Geometry1%skeleton_N(1,count1)
     ny=Geometry1%skeleton_N(2,count1)
     nz=Geometry1%skeleton_N(3,count1)
-
 
     R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
 

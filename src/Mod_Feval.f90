@@ -143,7 +143,7 @@ contains
   
 
 
-  subroutine start_Feval_tree(Feval_stuff_1,Geometry1)
+  subroutine start_Feval_tree(Feval_stuff_1,Geometry1,rlam)
     implicit none
 
     !
@@ -158,9 +158,11 @@ contains
     !List of local variables
     integer count1,count,n_targets
 
+    real *8 rlam
+
     ! Allocate all arrays required
     allocate(Feval_stuff_1)
-    call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1)   !! Setup the tree structure to evaluate sgma function
+    call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1,rlam)   !! Setup the tree structure to evaluate sgma function
 
 
     return
@@ -271,7 +273,7 @@ contains
     real ( kind = 8 ), allocatable :: missed_Points(:,:)
     integer ipointer
     character (len=100) plot_name
-    double precision :: t0, t1, telap
+    double precision :: t0, t1, telap, sgma_max
     
     !$ double precision :: omp_get_wtime
 
@@ -295,10 +297,14 @@ contains
         sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     call cpu_time(t1)
     telap = t1-t0
-    !print *, 'time for eval sigma = ', telap
+    print *, 'time for eval sigma = ', telap
 
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
+    
+    sgma_max = maxval(sgma)
+    print *, 'max value of sigma=',sgma_max
+    
 
     trads=12.0d0*sgma
 

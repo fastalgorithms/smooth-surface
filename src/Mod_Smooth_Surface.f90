@@ -579,6 +579,7 @@ end subroutine My_Newton
       nx=Geometry1%N_smooth(1,count1)
       ny=Geometry1%N_smooth(2,count1)
       nz=Geometry1%N_smooth(3,count1)
+
       R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
       Ex=(x-x0)/(4*pi*R**3)
       Ey=(y-y0)/(4*pi*R**3)

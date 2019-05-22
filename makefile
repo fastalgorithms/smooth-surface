@@ -1,5 +1,7 @@
 
 #HOST = osx-gcc
+#HOST = linux-gcc
+HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
