@@ -1,8 +1,8 @@
 
-#HOST = osx-gcc
+HOST = osx-gcc
 #HOST = linux-gcc
-HOST = linux-gcc-openmp
-#HOST = osx-gcc-openmp
+#HOST = linux-gcc-openmp
+HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
@@ -23,9 +23,9 @@ ifeq ($(HOST),osx-gcc)
 endif
 
 ifeq ($(HOST),osx-gcc-openmp)
-  FC = gfortran 
+  FC = gfortran-8
   FFLAGS = -O2 -fopenmp -w 
-  FLINK = gfortran -fopenmp -w \
+  FLINK = gfortran-8 -fopenmp -w \
     -Wl,-stack_size,0x80000000 -o $(PROJECT) -framework accelerate
   export OMP_NUM_THREADS = 4
   export OMP_STACKSIZE = 2048M

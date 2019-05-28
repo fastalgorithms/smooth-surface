@@ -37,11 +37,11 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 16
+  norder_skel = 4
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 16
+  norder_smooth = 4
   
   ! Specify the numnber of refinements to do starting from 0
   ! nrefine=1  
@@ -50,7 +50,7 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 2
+  adapt_flag = 1
 
 
   !
@@ -59,8 +59,9 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-
-  rlam = 10.0d0
+  rlam = 10
+  rlam = .5d0
+  rlam = 1
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -120,7 +121,7 @@ program smoother
   call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
 
-  call start_Feval_tree(Feval_stuff_1, Geometry1,rlam)
+  call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)
 
 
