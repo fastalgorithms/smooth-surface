@@ -89,17 +89,17 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
   integer :: umio,count1,count2,flag,n_order_sf, norder_smooth
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
   integer :: ntot, ltot, npols7, info, iii, n, l, nnn, iw
-  real (kind = 8) :: us(100000), vs(100000), ws(100000), dcond
-  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
-  real (kind = 8) :: xcoefs(10000), xrhs(10000)
-  real (kind = 8) :: ycoefs(10000), yrhs(10000)
-  real (kind = 8) :: zcoefs(10000), zrhs(10000)
-  real (kind = 8) :: xval, yval, zval, pinv(1000000)
+  real (kind = 8) :: dcond
+  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10) 
+  real (kind = 8), allocatable :: us(:),vs(:),ws(:),umatr(:,:),vmatr(:,:)
+  real (kind = 8), allocatable :: xcoefs(:), xrhs(:)
+  real (kind = 8), allocatable :: ycoefs(:), yrhs(:),pols(:)
+  real (kind = 8), allocatable :: zcoefs(:), zrhs(:),pinv(:,:)
+  real (kind = 8) :: xval, yval, zval
 
   real (kind = 8), allocatable :: xyzs(:,:,:), uvs(:,:,:)
   real (kind = 8), allocatable :: pmat(:,:), triout(:,:,:)
 
-  double precision :: umatr(100000), vmatr(100000)
   integer :: itype, npols
   
   !
@@ -124,11 +124,16 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
   ! get the nodes here
   !
 
+  norder = norder_smooth
+  npols = (norder_smooth+1)*(norder_smooth+2)/2
+  k = npols
+  
+  allocate(us(k),vs(k),umatr(k,k),vmatr(k,k),ws(k))
+  allocate(xrhs(k),yrhs(k),zrhs(k),pinv(k,k))
+  allocate(xcoefs(k),ycoefs(k),zcoefs(k),pols(k))
   call ortho2siexps(itype, norder_smooth, npols, us, vs, &
       umatr, vmatr, ws)
 
-  norder = norder_smooth
-  k = npols
 
   if (n_order_sf .gt. 4**0) nover = 1
   if (n_order_sf .gt. 4**1) nover = 2
