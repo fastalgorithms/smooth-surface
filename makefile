@@ -2,7 +2,7 @@
 HOST = osx-gcc
 #HOST = linux-gcc
 #HOST = linux-gcc-openmp
-HOST = osx-gcc-openmp
+#HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
@@ -18,8 +18,11 @@ PROJECT = int2
 
 ifeq ($(HOST),osx-gcc)
   FC = gfortran-8
-  FFLAGS = -O2 -w
-  FLINK = gfortran-8 -w -o $(PROJECT) -framework accelerate
+  FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
+              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8
+  FLINK = gfortran-8 -w -fdefault-integer-8 -finteger-4-integer-8 \
+             -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 \
+             -o $(PROJECT) -framework accelerate
 endif
 
 ifeq ($(HOST),osx-gcc-openmp)

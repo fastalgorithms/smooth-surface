@@ -165,7 +165,7 @@ program smoother
     print *
     print *, '. . . plotting vtk smoothed geometry'
 
-    plot_name = 'smoothed3.vtk'
+    plot_name = 'smoothed.vtk'
     call plotsmoothgeometryvtk(Geometry1, plot_name)
     print *, '. . . finished plotting vtk smoothed geometry'
   end if
