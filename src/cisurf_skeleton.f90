@@ -62,10 +62,12 @@ subroutine funcion_skeleton(Geometry1)
   double precision, allocatable :: nP_x(:), nP_y(:), nP_z(:)
   integer count, itype, npols
 
-  double precision :: umatr(1000000), vmatr(1000000)
+  double precision, allocatable :: umatr(:,:), vmatr(:,:)
 
   norder_skel = Geometry1%norder_skel  
   nsk = (norder_skel+1)*(norder_skel+2)/2
+
+  allocate(umatr(nsk,nsk),vmatr(nsk,nsk))
   allocate( U(nsk), V(nsk), w(nsk) )
   allocate( F_x(nsk), F_y(nsk), F_z(nsk), dS(nsk) )
   allocate( nP_x(nsk), nP_y(nsk), nP_z(nsk) )

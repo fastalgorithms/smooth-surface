@@ -469,6 +469,8 @@ c      endif
 c     Memory allocation is complete. 
 c     Call main fmm routine
 c
+
+      print *, "Before entering FMM"
       time1=second()
 C$      time1=omp_get_wtime()
       call tfmm3dlrgqbxmain(ier,iprec,
@@ -585,23 +587,21 @@ c     temp variables
 
 c     PW variables
       integer ntmax, nexpmax, nlams, nmax, nthmax, nphmax,nmax2
-      parameter (ntmax = 40)
-      parameter (nexpmax = 1600)
       real *8, allocatable :: carray(:,:), dc(:,:), rdplus(:,:,:)
       real *8, allocatable :: cs(:,:),fact(:)
       real *8, allocatable :: rdminus(:,:,:), rdsq3(:,:,:)
       real *8, allocatable :: rdmsq3(:,:,:)
   
-      real *8 rlams(ntmax), whts(ntmax)
+      real *8, allocatable :: rlams(:), whts(:)
 
       real *8, allocatable :: rlsc(:,:,:)
-      integer nfourier(ntmax), nphysical(ntmax)
+      integer, allocatable :: nfourier(:), nphysical(:)
       integer nexptot, nexptotp
       complex *16, allocatable :: xshift(:,:)
       complex *16, allocatable :: yshift(:,:)
       real *8, allocatable :: zshift(:,:)
 
-      complex *16 fexpe(50000), fexpo(50000), fexpback(100000)
+      complex *16, allocatable :: fexpe(:),fexpo(:),fexpback(:)
       complex *16, allocatable :: mexp(:,:,:)
       complex *16, allocatable :: mexpf1(:),mexpf2(:)
       complex *16, allocatable :: mexpp1(:),mexpp2(:),mexppall(:,:)
@@ -630,6 +630,7 @@ c     PW variables
 
       pi = 4.0d0*datan(1.0d0)
 
+
 c     Initialize routines for plane wave mp loc translation
 
       if(isep.eq.1) then
@@ -644,6 +645,8 @@ c     Initialize routines for plane wave mp loc translation
          if(iprec.eq.3) nlams = 22
          if(iprec.eq.4) nlams = 29
       endif
+      allocate(rlams(nlams),whts(nlams))
+      allocate(nfourier(nlams),nphysical(nlams))
 
       nmax = 0
       do i=0,nlevels
@@ -688,13 +691,17 @@ c     Compute total number of plane waves
       nexptot = 0
       nthmax = 0
       nphmax = 0
+      nn = 0
       do i=1,nlams
          nexptot = nexptot + nfourier(i)
          nexptotp = nexptotp + nphysical(i)
          if(nfourier(i).gt.nthmax) nthmax = nfourier(i)
          if(nphysical(i).gt.nphmax) nphmax = nphysical(i)
+         nn = nn + nfourier(i)*nphysical(i)
       enddo
       allocate(tmp(0:nmax,-nmax:nmax))
+
+      allocate(fexpe(nn),fexpo(nn),fexpback(nn))
 
       allocate(xshift(-5:5,nexptotp))
       allocate(yshift(-5:5,nexptotp))

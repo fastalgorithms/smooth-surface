@@ -340,6 +340,7 @@ subroutine initialize_feval(eps,ns,sources,skeleton_w,rn,nt,dumtarg,norder, &
   if( iprec .eq. 5 ) epsfmm=.5d-15
   if( iprec .eq. 6 ) epsfmm=0
 
+  
 
   do i=0,nlevels
     if(isep.eq.1) call l3dterms(epsfmm,nterms(i),ier)

@@ -274,141 +274,178 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
-    implicit none
 
-    !
-    ! this is the main driver routine that 
-    !
-    double precision :: my_cross(3)
-    
-    !List of calling arguments
-    type (Geometry), intent(inout) :: Geometry1
-    type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that
-    integer, intent(in) :: adapt_flag
+  
+subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
+  implicit none
 
-    !List of local variables
-    integer :: flag,maxiter,ipoint,count,n_order_sf,itri
-    double precision :: h(Geometry1%n_Sf_points),tol,Norm_N
-    double precision :: r_t(3,Geometry1%n_Sf_points)
-    double precision :: F(Geometry1%n_Sf_points)
-    double precision :: grad_F(3,Geometry1%n_Sf_points)
-    double precision :: dVdu(3),dVdv(3),dhdu,dhdv,h_var
+  !
+  ! this is the main driver routine that finds the smooth surface via
+  ! convolution
+  !
+  double precision :: my_cross(3)
 
-    !write (*,*) 'telita2'
+  !List of calling arguments
+  type (Geometry), intent(inout) :: Geometry1
+  type ( Feval_stuff ), pointer :: Feval_stuff_1
+  integer, intent(in) :: adapt_flag
 
-
-    if (allocated(Geometry1%S_smooth)) then
-      deallocate(Geometry1%S_smooth)
-    endif
-    allocate(Geometry1%S_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%N_smooth)) then
-      deallocate(Geometry1%N_smooth)
-    endif
-    allocate(Geometry1%N_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%ru_smooth)) then
-      deallocate(Geometry1%ru_smooth)
-    endif
-    allocate(Geometry1%ru_smooth(3,Geometry1%n_Sf_points))
-    if (allocated(Geometry1%rv_smooth)) then
-      deallocate(Geometry1%rv_smooth)
-    endif
-    allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
-    if (.not.allocated(Geometry1%height)) then
-      !write (*,*) 'not allocated'
-      !            read (*,*)
-      allocate (Geometry1%height(Geometry1%n_Sf_points))
-      do count=1,Geometry1%n_Sf_points
-        Geometry1%height(count)=0.0d0
-        h(count)=0.0d0
-      enddo
-    else
-
-      !            write (*,*) 'not allocated'
-      !            read (*,*)
-      !            deallocate (Geometry1%height)
-      !            allocate (Geometry1%height(Geometry1%n_Sf_points))
-      !            do count=1,Geometry1%n_Sf_points
-      !                Geometry1%height(count)=0.0d0
-      !                h(count)=0.0d0
-      !            enddo
+  !List of local variables
+  integer :: flag,maxiter,ipoint,count,n_order_sf,itri
+  double precision :: h(Geometry1%n_Sf_points),tol
+  !double precision :: Norm_N
+  double precision :: r_t(3,Geometry1%n_Sf_points)
+  double precision :: F(Geometry1%n_Sf_points)
+  double precision :: grad_F(3,Geometry1%n_Sf_points)
+  double precision :: dVdu(3),dVdv(3),dhdu,dhdv,h_var
 
 
 
+  !
+  ! check the memory allocation
+  !
+  if (allocated(Geometry1%S_smooth)) then
+    deallocate(Geometry1%S_smooth)
+  endif
+  allocate(Geometry1%S_smooth(3,Geometry1%n_Sf_points))
 
-      write (*,*) 'yes allocated'
-      !            read (*,*)
-      do count=1,Geometry1%n_Sf_points
-        h(count)=Geometry1%height(count)
-      enddo
-    endif
-    tol=1.0d-14
-    maxiter=14
-    flag=0
-    !write (*,*) 'No llega nunca1'
+  if (allocated(Geometry1%N_smooth)) then
+    deallocate(Geometry1%N_smooth)
+  endif
+  allocate(Geometry1%N_smooth(3,Geometry1%n_Sf_points))
 
-    call My_Newton(h,tol,maxiter,Geometry1,flag,Feval_stuff_1,adapt_flag,grad_F,r_t)
+  if (allocated(Geometry1%ru_smooth)) then
+    deallocate(Geometry1%ru_smooth)
+  endif
+  allocate(Geometry1%ru_smooth(3,Geometry1%n_Sf_points))
 
-    if (flag==1) then
-      write (*,*) 'ERROR DE CONVERGENCIA NEWTON'
-    end if
-    do count=1,Geometry1%n_Sf_points
-      !            Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
-      !            &**2+Geometry1%Base_Points_N(3,count)**2)
+  if (allocated(Geometry1%rv_smooth)) then
+    deallocate(Geometry1%rv_smooth)
+  endif
+  allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
 
 
-!!!r_t(:,count)=Geometry1%Base_Points(:,count)+Geometry1%Base_Points_N(:,count)*h(count)/Norm_N
-      !            r_t(:,count)=Geometry1%Base_Points(:,count)+Geometry1%Base_Points_N(:,count)*h(count)
+  ! initalize h to be zero
+  if ( allocated(Geometry1%height) ) then
+    deallocate(Geometry1%height)
+  endif
 
-      Geometry1%S_smooth(:,count)=r_t(:,count)
-    enddo
-    !        call eval_density_grad_FMM(Geometry1,r_t,Geometry1%n_Sf_points,F,grad_F,Feval_stuff_1,adapt_flag)    !       call eval_density_grad(Geometry1,r_t(1,:),r_t(2,:),r_t(3,:),alpha,F,grad_F)
-    n_order_sf=Geometry1%n_Sf_points/Geometry1%ntri
-    do count=1,Geometry1%n_Sf_points
-      Geometry1%N_smooth(:,count)=-1.0d0*grad_F(:,count)/(sqrt(grad_F(1,count)**2+grad_F(2,count)**2+grad_F(3,count)**2))
-      itri=(count-1)/n_order_sf+1
-      Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+Geometry1%Base_Points_N(2,count)&
-          &**2+Geometry1%Base_Points_N(3,count)**2)
+  allocate(Geometry1%height(Geometry1%n_Sf_points))
 
-!!!!h_var=h(count)/Norm_N
-      h_var=h(count)
+  do count = 1,Geometry1%n_Sf_points
+    Geometry1%height(count) = 0
+    h(count) = 0
+  enddo
 
-      dVdu=Geometry1%Normal_Vert(:,Geometry1%Tri(2,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
-      dVdv=Geometry1%Normal_Vert(:,Geometry1%Tri(3,itri))-Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
-      dhdu=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdu*h_var+Geometry1%Base_Points_U(:,count))&
-          &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
-      dhdv=-1.0d0*dot_product(Geometry1%N_smooth(:,count),dVdv*h_var+Geometry1%Base_Points_V(:,count))&
-          &/dot_product(Geometry1%N_smooth(:,count),Geometry1%Base_Points_N(:,count))
-      Geometry1%ru_smooth(:,count)=dVdu*h_var+Geometry1%Base_Points_N(:,count)*dhdu+Geometry1%Base_Points_U(:,count)
-      Geometry1%rv_smooth(:,count)=dVdv*h_var+Geometry1&
-          %Base_Points_N(:,count)*dhdv+Geometry1%Base_Points_V(:&
-          ,count)
+  
+  ! if (.not.allocated(Geometry1%height)) then
+  !   allocate (Geometry1%height(Geometry1%n_Sf_points))
 
-      call crossproduct(Geometry1%ru_smooth(:,count), &
-          Geometry1%rv_smooth(:,count), my_cross)
-      
-      Geometry1%w_smooth(count)=Geometry1%w_smooth(count)*norm2(my_cross)
-      
-      Geometry1%ru_smooth(:,count)=Geometry1%ru_smooth(:,count)/norm2(Geometry1%ru_smooth(:,count))
+  !   do count=1,Geometry1%n_Sf_points
+  !     Geometry1%height(count)=0.0d0
+  !     h(count)=0.0d0
+  !   enddo
+  ! else
 
-      call crossproduct(Geometry1%N_smooth(:,count), &
-          Geometry1%ru_smooth(:,count), my_cross)
-      Geometry1%rv_smooth(:,count) = my_cross
-    enddo
+  !   do count=1,Geometry1%n_Sf_points
+  !     h(count)=Geometry1%height(count)
+  !   enddo
+  ! endif
 
-    do count=1,Geometry1%n_Sf_points
-      Geometry1%height(count)=h(count)
-    enddo
+  !
+  ! set some parameters for the newton routine for finding the surface
+  !
+  tol = 1.0d-14
+  maxiter = 14
+  flag = 0
 
-    return
-  end subroutine find_smooth_surface
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  call My_Newton(h, tol, maxiter, Geometry1, flag, Feval_stuff_1, &
+      adapt_flag, grad_F, r_t)
+
+  if (flag .ne. 0) then
+    write (*,*) 'ERROR DE CONVERGENCIA NEWTON'
+    stop
+  end if
+
+  !
+  ! copy over the points on the surface
+  !
+  do count = 1,Geometry1%n_Sf_points
+    Geometry1%S_smooth(:,count) = r_t(:,count)
+  enddo
+
+  !
+  ! compute various partial derivatives
+  !
+  n_order_sf = Geometry1%n_order_sf
+  
+  do count=1,Geometry1%n_Sf_points
+
+    Geometry1%N_smooth(:,count) = -1.0d0*grad_F(:,count) &
+        /(sqrt(grad_F(1,count)**2 + grad_F(2,count)**2 &
+        + grad_F(3,count)**2))
+
+    itri = (count-1)/n_order_sf+1
+    h_var=h(count)
+
+    dVdu = Geometry1%Normal_Vert(:,Geometry1%Tri(2,itri)) &
+        - Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
+
+    dVdv = Geometry1%Normal_Vert(:,Geometry1%Tri(3,itri)) &
+        - Geometry1%Normal_Vert(:,Geometry1%Tri(1,itri))
+
+    dhdu = -dot_product(Geometry1%N_smooth(:,count), &
+        dVdu*h_var+Geometry1%Base_Points_U(:,count)) &
+        /dot_product(Geometry1%N_smooth(:,count) &
+        ,Geometry1%Base_Points_N(:,count))
+
+    dhdv = -dot_product(Geometry1%N_smooth(:,count), &
+        dVdv*h_var+Geometry1%Base_Points_V(:,count)) &
+        /dot_product(Geometry1%N_smooth(:,count), &
+        Geometry1%Base_Points_N(:,count))
+
+    Geometry1%ru_smooth(:,count) = dVdu*h_var &
+        + Geometry1%Base_Points_N(:,count)*dhdu &
+        + Geometry1%Base_Points_U(:,count)
+
+    Geometry1%rv_smooth(:,count) = dVdv*h_var &
+        + Geometry1%Base_Points_N(:,count)*dhdv &
+        + Geometry1%Base_Points_V(:,count)
+
+    call crossproduct(Geometry1%ru_smooth(:,count), &
+        Geometry1%rv_smooth(:,count), my_cross)
+
+    Geometry1%w_smooth(count) = &
+        Geometry1%w_smooth(count)*norm2(my_cross)
+
+    Geometry1%ru_smooth(:,count) = &
+        Geometry1%ru_smooth(:,count)/norm2(Geometry1%ru_smooth(:,count))
+
+    call crossproduct(Geometry1%N_smooth(:,count), &
+        Geometry1%ru_smooth(:,count), my_cross)
+
+    Geometry1%rv_smooth(:,count) = my_cross
+
+  enddo
+
+  !
+  ! copy over the h height function
+  !
+  do count=1,Geometry1%n_Sf_points
+    Geometry1%height(count)=h(count)
+  enddo
+
+  return
+end subroutine find_smooth_surface
+
+
+
+
+
 
 subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
-    Feval_stuff_1 ,adapt_flag,grad_F,r_t)
-  !Hay que modificar esto y vectorizarlo
+    Feval_stuff_1 ,adapt_flag, grad_F, r_t)
   implicit none
 
   !List of calling arguments
@@ -423,72 +460,91 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
 
 
+  !
+  ! this routine runs a newton iteration to find the smooth surface
+  !
+  ! Input:
+  !   tol - pointwise convergence criterion for Newton
+  !   maxiter - max iteration count
+  !   Geometry1 - all the geo info
+  !   Feval_stuff_1 -
+  !   adapt_flag - determines what kind of smoothing kernel to use
+  !
+  ! Output:
+  !   x - the h function from the surface
+  !   flag - whether or not Newton succeeded
+  !   grad_F - gradient of SOMETHING
+  !   r_t - points on the smooth surface
+  !   
+  
   !List of local variables
   integer count,count2
   double precision F(Geometry1%n_Sf_points)
   double precision :: dF(Geometry1%n_Sf_points), err(Geometry1%n_Sf_points)
   integer  flag_con(Geometry1%n_Sf_points)
 
-  do count2=1,Geometry1%n_Sf_points
-    err(count2)=tol+1.0d0
-    flag_con(count2)=0
+  ! initialize the errors and convergence flags
+  do count2 = 1,Geometry1%n_Sf_points
+    err(count2) = tol+1.0d0
+    flag_con(count2) = 0
   enddo
+
   count=1
   flag=0
 
+  ! print out convergence information
   print *
   print *
   write (*,*) 'iteration  targets       err'  
-  
-  do while ((maxval(err)>tol).and.(count<maxiter))
 
-    !write (*,*) 'Number of living targets: ', &
-    !    Geometry1%n_Sf_points-sum(flag_con), sum(flag_con)
+  ! the x function has been initialized to 0
+  do while ( (maxval(err)>tol) .and. (count<maxiter) )
 
-    !write (*,*) 'Ratio of living targets: ', &
-    !    (real(Geometry1%n_Sf_points-sum(flag_con),8))&
-    !    /(real(Geometry1%n_Sf_points,8))
-
+    ! call a step of Newton
     call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
         adapt_flag, flag_con, grad_F, r_t)
 
-    count=count+1
-    do count2=1,Geometry1%n_Sf_points
-      if (flag_con(count2)==0) then
+    count = count+1
+    do count2 = 1,Geometry1%n_Sf_points
+
+      if (flag_con(count2) .eq. 0) then
+
         err(count2) = F(count2)/dF(count2)
         x(count2) = x(count2) - err(count2)
 
-        err(count2) = abs(err(count2))
+        !err(count2) = abs(err(count2))
         
-        !if (x(count2) .lt. 1.0d0) err(count2) = abs(err(count2))
-
-        !if (x(count2) .ge. 1.0d0) &
-        !    err(count2) = abs(err(count2)/x(count))
+        if ( abs(x(count2)) .lt. 1.0d0) then
+          err(count2) = abs(err(count2))
+        else
+          err(count2) = abs(err(count2)/x(count2))
+        end if
+        
         
         if (err(count2)<tol) then
           flag_con(count2)=1
         endif
+        
       endif
     enddo
+
     !       do count2=1,Geometry1%n_Sf_points
     !           write (*,*) 'Newton iteration all: ', err(count2)
     !       enddo
-    !write (*,*) 'Newton iteration: ', count, maxval(err)
+    write (*,*) 'Newton iteration: ', count, maxval(err)
 
     write (*,4999) count, &
         Geometry1%n_Sf_points-sum(flag_con), maxval(err)
- 4999   format(i10,i9,e10.2)
+ 4999 format(i10,i9,e10.2)
         
-    
-
   end do
 
-  print *
 
   
-  if (maxval(err)>tol) then
+  if ( maxval(err)>tol ) then
     flag=1
-    !       write (*,*) 'contador máximo Newton', count, err
+    print *, 'in My_Newton, failed to converge'
+    stop
   endif
 
   return
@@ -523,6 +579,7 @@ end subroutine My_Newton
       nx=Geometry1%N_smooth(1,count1)
       ny=Geometry1%N_smooth(2,count1)
       nz=Geometry1%N_smooth(3,count1)
+
       R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
       Ex=(x-x0)/(4*pi*R**3)
       Ey=(y-y0)/(4*pi*R**3)
@@ -541,8 +598,9 @@ end subroutine My_Newton
 
 
   
-  subroutine fun_roots_derivative(h,Geometry1,F,dF,Feval_stuff_1, &
-      adapt_flag,flag_con,grad_F,r_t)
+  subroutine fun_roots_derivative(h, Geometry1, F, dF, &
+      Feval_stuff_1, &
+      adapt_flag, flag_con, grad_F, r_t)
     implicit none
 
     !List of calling arguments
@@ -560,8 +618,8 @@ end subroutine My_Newton
 
 
     !List of local variables
-    double precision Norm_N
-    integer count,ipointer
+    !double precision Norm_N
+    integer :: count, ipointer, ntarg
     double precision, allocatable :: r_t2(:,:),v_norm(:,:),grad_F2(:,:),F2(:)
 
     allocate(r_t2(3,Geometry1%n_Sf_points-sum(flag_con)))
@@ -569,42 +627,51 @@ end subroutine My_Newton
     allocate(grad_F2(3,Geometry1%n_Sf_points-sum(flag_con)))
     allocate(F2(Geometry1%n_Sf_points-sum(flag_con)))
 
-    !write (*,*) 'a punto'
+
     ipointer=1
     do count=1,Geometry1%n_Sf_points
-      Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
-          &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
+
+      !Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
+      !    &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
 
       !r_t(:,count)=Geometry1%Base_Points(:,count) &
       !    +Geometry1%Base_Points_N(:,count)*h(count)/Norm_N
-      r_t(:,count)=Geometry1%Base_Points(:,count) &
-          +Geometry1%Base_Points_N(:,count)*h(count)
 
-      if (flag_con(count).eq.0) then
-        r_t2(:,ipointer)=r_t(:,count)
-        v_norm(:,ipointer)=Geometry1%Base_Points_N(:,count)
-        ipointer=ipointer+1
+      ! compute the current estimate for the point on the surface
+      r_t(:,count) = Geometry1%Base_Points(:,count) &
+          + Geometry1%Base_Points_N(:,count)*h(count)
+
+      ! if not converged, add it to the list of targets
+      if (flag_con(count) .eq. 0) then
+        r_t2(:,ipointer) = r_t(:,count)
+        v_norm(:,ipointer) = Geometry1%Base_Points_N(:,count)
+        ipointer = ipointer+1
       endif
     enddo
 
-    call eval_density_grad_FMM(Geometry1,r_t2,v_norm, &
-        Geometry1%n_Sf_points-sum(flag_con),F2,grad_F2, &
-        Feval_stuff_1,adapt_flag)
+    !
+    ! get values and gradients
+    !
+    ntarg = Geometry1%n_Sf_points-sum(flag_con)
+    call eval_density_grad_FMM(Geometry1, r_t2, v_norm, &
+        ntarg, F2, grad_F2, Feval_stuff_1, adapt_flag)
 
+    !
+    ! update the points
+    !
     ipointer=1
     do count=1,Geometry1%n_Sf_points
 
-      if (flag_con(count).eq.0) then
-        Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
-            &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
+      if ( flag_con(count) .eq. 0) then
 
-!!!!dF(count)=(grad_F(1,count)*Geometry1%Base_Points_N(1,count)+grad_F(2,count)*Geometry1%Base_Points_N(2,count)&
-!!!!&+grad_F(3,count)*Geometry1%Base_Points_N(3,count))/Norm_N
+        !Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
+        !    &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
+
         dF(count)=(grad_F2(1,ipointer)*Geometry1%Base_Points_N(1,count)+grad_F2(2,ipointer)*&
             &Geometry1%Base_Points_N(2,count)+grad_F2(3,ipointer)*Geometry1%Base_Points_N(3,count))
         F(count)=F2(ipointer)
-        r_t(:,count)=r_t2(:,ipointer)
-        grad_F(:,count)=grad_F2(:,ipointer)
+        r_t(:,count) = r_t2(:,ipointer)
+        grad_F(:,count) = grad_F2(:,ipointer)
         ipointer=ipointer+1
       endif
 

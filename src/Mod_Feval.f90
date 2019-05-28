@@ -143,7 +143,7 @@ contains
   
 
 
-  subroutine start_Feval_tree(Feval_stuff_1,Geometry1)
+  subroutine start_Feval_tree(Feval_stuff_1,Geometry1,rlam)
     implicit none
 
     !
@@ -158,9 +158,11 @@ contains
     !List of local variables
     integer count1,count,n_targets
 
+    real *8 rlam
+
     ! Allocate all arrays required
     allocate(Feval_stuff_1)
-    call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1)   !! Setup the tree structure to evaluate sgma function
+    call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1,rlam)   !! Setup the tree structure to evaluate sgma function
 
 
     return
@@ -241,6 +243,7 @@ contains
   subroutine eval_density_grad_FMM(Geometry1, targets, v_norm, &
       n_targets, F,grad_F,Fev_stf_1,adapt_flag)
     implicit none
+    !
     ! This function evaluates the F function (and gradient) using the FMM and the sgma evaluator
     !! Flags to select the different versions of F
     !integer, intent(in) :: adapt_flag,n_targets
@@ -248,25 +251,30 @@ contains
     integer  :: n_targets
 
     !List of calling arguments
-    type ( Geometry ), intent(in) :: Geometry1                   !! data type that contains all the information about the geometry
-    real ( kind = 8 ) , intent(in) :: targets(3,n_targets)       !! Targets where F is evaluated
-    real ( kind = 8 ) , intent(in) :: v_norm(3,n_targets)       !! Targets where F is evaluated
-    real ( kind = 8 ), intent(out) ::  F(n_targets), grad_F(3,n_targets)    !! result of F and gradient
-    type ( Feval_stuff ), pointer :: Fev_stf_1                          !! all the information required to evaluate F (trees..)
+    type ( Geometry ), intent(in) :: Geometry1
+    real ( kind = 8 ) , intent(in) :: targets(3,n_targets)
+    real ( kind = 8 ) , intent(in) :: v_norm(3,n_targets)
+    real ( kind = 8 ), intent(out) ::  F(n_targets), grad_F(3,n_targets)
+
+    !! all the information required to evaluate F (trees..)
+    type ( Feval_stuff ), pointer :: Fev_stf_1    
 
 
     !List of local variables
-    integer ier, iprec,ifcharge,ifdipole,ifpottarg,iffldtarg   !! Different flags to run appropriately the FMM
+    !! Different flags to run appropriately the FMM
+    integer ier, iprec,ifcharge,ifdipole,ifpottarg,iffldtarg   
     integer count,count2,count1
     integer n_sources
     real ( kind = 8 ) tfmm
-    double complex, allocatable :: sigma(:),mu(:),pottarg(:),fldtarg(:,:)
+    double complex, allocatable :: sigma(:),mu(:),pottarg(:), &
+        fldtarg(:,:)
     real ( kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:),trads(:)
     integer , allocatable :: flag_error(:)
     real ( kind = 8 ), allocatable :: missed_Points(:,:)
     integer ipointer
     character (len=100) plot_name
-    double precision :: t0, t1, telap
+    double precision :: t0, t1, telap, sgma_max
+    
     !$ double precision :: omp_get_wtime
 
     allocate(sgma(n_targets))
@@ -278,17 +286,25 @@ contains
     allocate(fldtarg(3,n_targets))
     allocate(flag_error(n_targets))
 
-    !! obtain the value of sgma at the target points, needed to make the FMM call
+    !
+    ! obtain the value of sgma at the target points, needed to make
+    ! the FMM call
+    !
     !write (*,*) 'START eval sigma',n_targets
+
     call cpu_time(t0)
     call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
-        &sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
+        sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     call cpu_time(t1)
     telap = t1-t0
-    !print *, 'time for eval sigma = ', telap
+    print *, 'time for eval sigma = ', telap
 
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
+    
+    sgma_max = maxval(sgma)
+    print *, 'max value of sigma=',sgma_max
+    
 
     trads=12.0d0*sgma
 
@@ -300,66 +316,94 @@ contains
     ier=0
     n_sources=Geometry1%n_Sk_points
 
-
+    !
     !! Initialize the sources to evaluate the Double layer
-
-    !! Warning! the value of mu, sigma is changed inside the FMM subroutine tfmm3dwrap,
-    !!  therefore, we have to initialize the values every time. Do not move this to start_Feval!!
+    !
+    !! Warning! the value of mu, sigma is changed inside the FMM
+    !!  subroutine tfmm3dwrap, therefore, we have to initialize the
+    !!  values every time. Do not move this to start_Feval!!
+    !
     do count1=1,n_sources
       sigma(count1)=0.0d0
       mu(count1)=1.0d0
     enddo
 
+    
     !! FMM call (this includes the target dependent local corrections with the erf function)
     !    write (*,*) 'target: ',targets(:,1)
 
+    !! Warning! notice that the fmm uses complex sources and returns
+    !! complex potential and gradient. We have to do the data type
+    !! change
+
     if (associated(Fev_stf_1%Tree_local)) then
-      call feval_local_vect(targets,v_norm,Geometry1,Fev_stf_1,n_targets,F,grad_F,adapt_flag)
+
+      print *, '. . . calling feval_local_vect'
+      
+      call feval_local_vect(targets,v_norm,Geometry1,Fev_stf_1, &
+          n_targets,F,grad_F,adapt_flag)
       write (*,*) 'trying'
+
     else
-      if (.not.allocated(Fev_stf_1%treecenters)) then
-        !write (*,*) 'start fmm ', 'n_sources: ',n_sources,'n_targets: ',n_targets
+
+      if (.not. allocated(Fev_stf_1%treecenters)) then
+
         call cpu_time(t0)
         !$ t0 = omp_get_wtime()
-        call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,Geometry1%skeleton_N,n_sources,&
-            &Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
-            &n_targets,trads,sgma,sgma_grad,ifpottarg,&
-            &pottarg,iffldtarg,fldtarg,tfmm)
+        call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,&
+            Geometry1%skeleton_N,n_sources,&
+            Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
+            n_targets,trads,sgma,sgma_grad,ifpottarg,&
+            pottarg,iffldtarg,fldtarg,tfmm)
         call cpu_time(t1)
         !$ t1 = omp_get_wtime()
         telap = t1-t0
+
         print *, 'time for fmm = ', telap
-        !write (*,*) 'out of fmm'
+
+        !
+        ! compute the error in the levelset function
+        !
         do count2=1,n_targets
           pottarg(count2)=pottarg(count2)-0.5d0
         enddo
+
         !! Asign the output variables with the correct data type
-        F=real(pottarg)
-        grad_F=-1.0d0*real(fldtarg)
+        F = real(pottarg)
+        grad_F = -1.0d0*real(fldtarg)
+
       else
+
         write (*,*) 'start interpolation'
-        call f_eval(int(n_targets),targets,Fev_stf_1%norder,Fev_stf_1%itree,&
-            &Fev_stf_1%ltree,Fev_stf_1%nlevels,Fev_stf_1%nboxes,Fev_stf_1%iptr,&
-            &Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,Fev_stf_1%fcoeffs,Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,&
-            &Fev_stf_1%fcoeffsz, F, grad_F(1,:), grad_F(2,:), grad_F(3,:),flag_error)
+        print *, 'this should not be called, stopping'
+        stop
+        
+        call f_eval(int(n_targets), targets, Fev_stf_1%norder,&
+            Fev_stf_1%itree,&
+            Fev_stf_1%ltree,Fev_stf_1%nlevels,Fev_stf_1%nboxes,&
+            Fev_stf_1%iptr,&
+            Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,&
+            Fev_stf_1%fcoeffs,Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,&
+            Fev_stf_1%fcoeffsz, F, grad_F(1,:), grad_F(2,:), &
+            grad_F(3,:),flag_error)
 
         do count2=1,n_targets
           F(count2)=F(count2)-0.5d0
           grad_F(:,count2)=-grad_F(:,count2)
         enddo
 
-        write (*,*) 'ratio: ', sum(flag_error),n_targets,(1.0d0*sum(flag_error))/(n_targets*1.0d0)
+        write (*,*) 'ratio: ', sum(flag_error),n_targets,&
+            (1.0d0*sum(flag_error))/(n_targets*1.0d0)
         write (*,*) 'reported'
         !    read (*,*)
         if (sum(flag_error).gt.0) then
-          call f_eval_slow(n_targets,targets,flag_error,int(Geometry1%n_Sk_points),Geometry1%skeleton_Points,&
-              &Geometry1%skeleton_w,Geometry1%skeleton_N,sgma,sgma_grad,F,grad_F)
+          call f_eval_slow(n_targets,targets,flag_error,&
+              int(Geometry1%n_Sk_points),Geometry1%skeleton_Points,&
+              &Geometry1%skeleton_w,Geometry1%skeleton_N,sgma,&
+              sgma_grad,F,grad_F)
         endif
       endif
     endif
-    !        write (*,*) 'iteracion terminada', F(1),grad_F(:,1)
-    !        read (*,*)
-    !! Warning! notice that the fmm uses complex sources and returns complex potential and gradient. We have to do the data type change
 
     deallocate(sgma)
     deallocate(trads)
@@ -375,6 +419,9 @@ contains
   end subroutine eval_density_grad_FMM
 
 
+
+
+  
   subroutine generate_dummy_targets(Geometry1,Fev_stf_1,adapt_flag)
     implicit none
     ! This is to generate the dummy targets
