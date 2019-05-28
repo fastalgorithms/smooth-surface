@@ -44,6 +44,8 @@ program smoother
   norder_smooth = 4
   
   ! Specify the numnber of refinements to do starting from 0
+
+  nrefine = 0
   ! nrefine=1  
 
   ! this is to enable adaptativity (otherwise sigma is constant)
