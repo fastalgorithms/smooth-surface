@@ -133,6 +133,45 @@ This is equivalent to rescaling $\lambda \to \sqrt{2}\lambda /10$.
 In Felipe's code, he sets $\lambda = 10$, which in terms of~\cref{eq:adapt-flag2}
 corresponds to $\lambda = \sqrt{2}$. 
 
+\section{New code}
+The new code runs a damped secant iteration for each $\bx$ to determine 
+$\sigma(\bx)$.
+Let the iterates for $\sigma(\bx)$ be denoted by
+$\sigma_{0}, \sigma_{1}, \ldots \sigma_{n} \ldots$.
+Some more simplifying notation. 
+Let $\tilde{F}(\bx,\sigma(\bx))/\tilde{D}(\bx,\sigma(\bx)) = H(\bx,\sigma(\bx))$.
+
+Recall that we wish to compute the solution $\sigma(\bx)$ to
+$H(\bx,\sigma(\bx)) - \sigma(\bx) = 0$
+The two initial guesses for the secant iteration are generated as follows.
+Let $s = \max_{j} \sigma_{j}$, then
+$\sigma_{0} = H(\bx,s)$, and
+$\sigma_{1} = H(\bx,s/2)$.
+
+Then we run the following secant iteration to determine
+$\sigma_{n+1}$, given $\sigma_{n}, \sigma_{n-1}$.
+\begin{equation}
+\sigma_{n+1} = \sigma_{n} + d \, , 
+\end{equation}
+where $d$ is given by
+\begin{equation}
+d = -\frac{H(\bx,\sigma_{n}) - \sigma_{n}}{\left(-1 + \frac{H(\bx,\sigma_{n}) - H(\bx,\sigma_{n-1})}{\sigma_{n}-\sigma_{n-1}} \right)}  \, ,
+\end{equation}
+
+If $|H(\bx,\sigma_{n+1}) - \sigma_{n+1})| \geq |H(\bx,\sigma_{n}) - \sigma_{n}|$, 
+then we set 
+$\sigma_{n+1} = \sigma_{n} + d/2$.
+We repeat until $\sigma_{n+1} = \sigma_{n} + d/8$, and move to the next
+iterate whenever
+$|H(\bx,\sigma_{n+1}) - \sigma_{n+1}| < |H(\bx,\sigma_{n}) - \sigma_{n}|$.
+If the condition is not satisfied by adding d/8, we declare that the secant
+iteration did not converge.
+We run the secant iteration until $|H(\bx,\sigma_{n}) - \sigma_{n}| \leq 10^{-14}$,
+or a maximum of 100 iterations.
+
+\begin{remark}
+The new code breaks for adapt flag=1, currently under investigation
+\end{remark}
 
 \section{Results- Gauss identity}
 We now compute $\sigma$ by equation~\cref{eq:adapt-flag2} and
