@@ -52,7 +52,7 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 1
+  adapt_flag = 2
 
 
   !
@@ -64,6 +64,7 @@ program smoother
   rlam = 10
   rlam = .5d0
   rlam = 1
+  rlam = 2
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)

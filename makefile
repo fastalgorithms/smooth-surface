@@ -17,10 +17,10 @@ PROJECT = int2
 
 
 ifeq ($(HOST),osx-gcc)
-  FC = gfortran-8
+  FC = gfortran
   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
               -fdefault-double-8 -fdefault-real-8 -freal-4-real-8
-  FLINK = gfortran-8 -w -fdefault-integer-8 -finteger-4-integer-8 \
+  FLINK = gfortran -w -fdefault-integer-8 -finteger-4-integer-8 \
              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 \
              -o $(PROJECT) -framework accelerate
 endif
