@@ -490,10 +490,11 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
         dF_x,dF_y,dF_z,dD_x,dD_y,dD_z, dF_sigma, dD_sigma)
 
     sgma(count1) = F/D
-
-    if(abs(sigma-sgma(count1)).ge.tol) then
-      print *, "sigma did not converge for point=",count1
-      stop
+    if(adapt_flag.eq.2) then
+      if(abs(sigma-sgma(count1)).ge.tol) then
+        print *, "sigma did not converge for point=",count1
+        stop
+      endif
     endif
 
     sgma_x(count1) = (dF_x*D-F*dD_x)/D**2
