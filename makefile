@@ -1,9 +1,9 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = linux-gcc
-#HOST = linux-gcc-openmp
+HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
-HOST = osx-intel
+#HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
 #HOST = linux-gfortran-openmp
@@ -18,17 +18,10 @@ PROJECT = int2
 GFORT = gfortran-9
 
 ifeq ($(HOST),osx-gcc)
-<<<<<<< HEAD
-  FC = gfortran
-  FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
-              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8
-  FLINK = gfortran -w -fdefault-integer-8 -finteger-4-integer-8 \
-=======
   FC = $(GFORT)
   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
               -fdefault-double-8 -fdefault-real-8 -freal-4-real-8
   FLINK = $(GFORT) -w -fdefault-integer-8 -finteger-4-integer-8 \
->>>>>>> 94b9d40f230f1cc834065e72f046921eaa7058b8
              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 \
              -o $(PROJECT) -framework accelerate
 endif
@@ -125,7 +118,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/ftophys.f \
  $(TFMM3D)/phystof2.f \
  $(TFMM3D)/legeexps.f \
- $(TFMM3D)/d3hplratree.f \
+ $(TFMM3D)/tree_lr_3d.f \
  $(TFMM3D)/rotgen.f \
  $(TFMM3D)/numthetafour.f \
  $(TFMM3D)/numthetahalf2.f \
