@@ -1,7 +1,7 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = linux-gcc
-#HOST = linux-gcc-openmp
+HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
@@ -133,8 +133,6 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/chebexps.f
 
 
-
-#TFMM3DLIB = ../lib/tfmm3dlr/tfmm3dlib.a
 
 MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))

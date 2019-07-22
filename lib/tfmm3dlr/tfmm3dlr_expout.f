@@ -470,7 +470,7 @@ c     Memory allocation is complete.
 c     Call main fmm routine
 c
 
-      print *, "Before entering FMM"
+cc      print *, "Before entering FMM"
       time1=second()
 C$      time1=omp_get_wtime()
       call tfmm3dlrgqbxmain(ier,iprec,
@@ -799,6 +799,7 @@ c    initialize nterms_eval
      1           nterms_eval(itype,ilev),ier)
          enddo
       enddo
+
        
 c
 c
@@ -1209,7 +1210,7 @@ C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox)
 C$OMP END PARALLEL DO         
       enddo
 
-
+      print *, "Entering near field eval"
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 8 (direct) =====*',i,0)
       call cpu_time(time1)
@@ -1219,6 +1220,7 @@ C$        time1=omp_get_wtime()
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,nlist1,i,jbox)
 C$OMP$PRIVATE(jstart,jend,nnbors,nchild)
+C$OMP$SCHEDULE(DYNAMIC)
          do ibox = laddr(1,ilev),laddr(2,ilev)
             istartt = itree(ipointer(14)+ibox-1)
             iendt = itree(ipointer(15)+ibox-1)

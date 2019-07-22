@@ -29,7 +29,7 @@ program smoother
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam
+  double precision :: err_skel,rlam,t1,t2,omp_get_wtime
 
 
   call prini(6,13)
@@ -37,7 +37,7 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 8
+  norder_skel = 12
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
@@ -45,14 +45,14 @@ program smoother
   
   ! Specify the numnber of refinements to do starting from 0
 
-  nrefine = 1
+  nrefine = 2
   ! nrefine=1  
 
   ! this is to enable adaptativity (otherwise sigma is constant)
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 2
+  adapt_flag = 1
 
 
   !
@@ -185,9 +185,30 @@ program smoother
   
    do count=1,nrefine
   !   write (*,*) 'Refinement num: ',count
+
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
      call refine_geometry_smart(Geometry1)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+
+     call prin2("Refine geometry time=*",t2-t1,1)
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
      call funcion_Base_Points(Geometry1)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+     call prin2("funcion base time=*",t2-t1,1)
+
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
      call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+     call prin2("find smooth surface time=*",t2-t1,1)
      !write (*,*) 'SAVING .GOV FILE'
      !write(istr1,"(I2.2)") count
      !name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'

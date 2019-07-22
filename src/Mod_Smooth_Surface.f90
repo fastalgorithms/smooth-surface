@@ -331,31 +331,31 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
 
   ! initalize h to be zero
-  if ( allocated(Geometry1%height) ) then
-    deallocate(Geometry1%height)
-  endif
-
-  allocate(Geometry1%height(Geometry1%n_Sf_points))
-
-  do count = 1,Geometry1%n_Sf_points
-    Geometry1%height(count) = 0
-    h(count) = 0
-  enddo
+!  if ( allocated(Geometry1%height) ) then
+!    deallocate(Geometry1%height)
+!  endif
+!
+!  allocate(Geometry1%height(Geometry1%n_Sf_points))
+!
+!  do count = 1,Geometry1%n_Sf_points
+!    Geometry1%height(count) = 0
+!    h(count) = 0
+!  enddo
 
   
-  ! if (.not.allocated(Geometry1%height)) then
-  !   allocate (Geometry1%height(Geometry1%n_Sf_points))
+   if (.not.allocated(Geometry1%height)) then
+     allocate (Geometry1%height(Geometry1%n_Sf_points))
 
-  !   do count=1,Geometry1%n_Sf_points
-  !     Geometry1%height(count)=0.0d0
-  !     h(count)=0.0d0
-  !   enddo
-  ! else
+     do count=1,Geometry1%n_Sf_points
+       Geometry1%height(count)=0.0d0
+       h(count)=0.0d0
+     enddo
+   else
 
-  !   do count=1,Geometry1%n_Sf_points
-  !     h(count)=Geometry1%height(count)
-  !   enddo
-  ! endif
+     do count=1,Geometry1%n_Sf_points
+       h(count)=Geometry1%height(count)
+     enddo
+   endif
 
   !
   ! set some parameters for the newton routine for finding the surface
@@ -364,7 +364,7 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   maxiter = 14
   flag = 0
 
-
+  print *, "Enterint My_Newton"
   call My_Newton(h, tol, maxiter, Geometry1, flag, Feval_stuff_1, &
       adapt_flag, grad_F, r_t)
 
@@ -506,6 +506,9 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   do while ( (maxval(err)>tol) .and. (count<maxiter) )
 
     ! call a step of Newton
+
+    print *, "Entering fun_roots_derivative"
+
     call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
         adapt_flag, flag_con, grad_F, r_t)
 
@@ -658,6 +661,8 @@ end subroutine My_Newton
     ! get values and gradients
     !
     ntarg = Geometry1%n_Sf_points-sum(flag_con)
+
+    print *, "Entering eval_density_grad_FMM"
     call eval_density_grad_FMM(Geometry1, r_t2, v_norm, &
         ntarg, F2, grad_F2, Feval_stuff_1, adapt_flag)
 

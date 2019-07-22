@@ -293,9 +293,11 @@ contains
     !write (*,*) 'START eval sigma',n_targets
 
     call cpu_time(t0)
+!$   t0 = omp_get_wtime()    
     call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
         sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     call cpu_time(t1)
+!$   t1 = omp_get_wtime()    
     telap = t1-t0
     print *, 'time for eval sigma = ', telap
 
@@ -303,7 +305,6 @@ contains
     !write (*,*) 'STOP eval sigma'
     
     sgma_max = maxval(sgma)
-    print *, 'max value of sigma=',sgma_max
     
 
     trads=12.0d0*sgma
@@ -350,6 +351,8 @@ contains
 
         call cpu_time(t0)
         !$ t0 = omp_get_wtime()
+
+        print *, "Entering FMM"
         call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,&
             Geometry1%skeleton_N,n_sources,&
             Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&

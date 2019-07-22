@@ -355,15 +355,15 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
   sgma_min = minval(TreeLRD_1%W_sgmas_mem)
   sgma_max = maxval(TreeLRD_1%W_sgmas_mem)
 
-  call prin2('sgma_min=*',sgma_min,1)
-  call prin2('sgma_max=*',sgma_max,1)
+!  call prin2('sgma_min=*',sgma_min,1)
+!  call prin2('sgma_max=*',sgma_max,1)
 
   tol = 1.0d-14
   nhalf = 3
 
   count_max = (log(sgma_max-sgma_min)-log(tol))/log(2.0d0)+4
 
-  call prinf('count_max=*',count_max,1)
+!  call prinf('count_max=*',count_max,1)
   
 
 
