@@ -193,6 +193,7 @@ contains
 
     !List of local variables
     double precision U(Geometry1%n_order_sf),V(Geometry1%n_order_sf),w(Geometry1%n_order_sf)
+    double precision UV(2,Geometry1%n_order_sf)
     double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3),N1(3),N2(3),N3(3)
     double precision F_x(Geometry1%n_order_sf),F_y(Geometry1%n_order_sf)
     double precision F_z(Geometry1%n_order_sf),dS(Geometry1%n_order_sf)
@@ -211,8 +212,12 @@ contains
     !
     ! get the smooth nodes and quadrature weights
     !
-    call ortho2siexps(itype, norder_smooth, npols, U, V, &
-        umatr, vmatr, w)
+!    call ortho2siexps(itype, norder_smooth, npols, U, V, &
+!        umatr, vmatr, w)
+
+     call vioreanu_simplex_quad(norder_smooth,npols,UV,umatr,vmatr,w)
+     U = UV(1,:)
+     V = UV(2,:)
     
     
 
@@ -700,10 +705,9 @@ end subroutine My_Newton
     integer count,contador_indices
     double precision, allocatable :: Points(:,:), Normal_Vert(:,:)
     integer, allocatable :: Tri(:,:)
-    double precision, allocatable :: h_new(:)
-    double precision h_tri(Geometry1%n_order_sf)
-    double precision h_1(Geometry1%n_order_sf),h_2(Geometry1%n_order_sf)
-    double precision h_3(Geometry1%n_order_sf),h_4(Geometry1%n_order_sf)
+    double precision, allocatable :: h_new(:),h_tri(:),h_1(:),h_2(:),h_3(:)
+    double precision, allocatable :: h_4(:)
+
     double precision P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
     double precision Pa(3),Pb(3),Pc(3),Pd(3),Pe(3),Pf(3),Pg(3),Ph(3),Pi(3)
     double precision Nor1(3),Nor2(3),Nor3(3),Nor4(3),Nor5(3),Nor6(3)
@@ -712,13 +716,24 @@ end subroutine My_Newton
     double precision F_x(9),F_y(9),F_z(9),dS(9)
     double precision nP_x(9),nP_y(9),nP_z(9)
     double precision U_x(9),U_y(9),U_z(9),V_x(9),V_y(9),V_z(9)
-    integer m,N,n_order_aux,n_order_sf
-    double precision U45(45),V45(45),w45(45)
-    double precision coef_h(45)
+    double precision, allocatable :: ximat(:,:)
+    integer m,N,n_order_aux,n_order_sf,istart
+    integer nover,norder
 
     n_order_sf=Geometry1%n_order_sf
 
-    call GaussTri45(U45,V45,w45)
+    allocate(h_tri(n_order_sf))
+    allocate(h_1(n_order_sf))
+    allocate(h_2(n_order_sf))
+    allocate(h_3(n_order_sf))
+    allocate(h_4(n_order_sf))
+
+    nover = n_order_sf*4
+    allocate(ximat(nover,n_order_sf))
+
+    norder = Geometry1%norder_smooth
+
+    call get_refine_interp_mat(norder,n_order_sf,nover,ximat)
 
     allocate(Points(3,Geometry1%ntri*15))
     allocate(Normal_Vert(3,Geometry1%ntri*15))
@@ -801,41 +816,12 @@ end subroutine My_Newton
       Tri(:,(count-1)*4+4)=contador_indices*[1, 1, 1, 1, 1, 1]+[9, 11, 14, 10, 13, 12]
 
       h_tri=Geometry1%height((count-1)*n_order_sf+1:(count)*n_order_sf)
-      !           write (*,*) h_tri
-      !           read (*,*)
-      !            get coefs from h_tri
-      !evaluate the new height on each of the 4 triangles
 
+      istart = (count-1)*nover+1
+      call dmatvec(nover,n_order_sf,ximat,h_tri,h_new(istart))
 
-
-!!!            call pol_val_2D_45_fast2(U45/2.0d0,V45/2.0d0,45,coef_h,h_1)
-!!!            call pol_val_2D_45_fast2(0.5d0-U45/2.0d0,0.5d0-V45/2.0d0,45,coef_h,h_2)
-!!!            call pol_val_2D_45_fast2(0.5d0+U45/2.0d0,V45/2.0d0,45,coef_h,h_3)
-!!!            call pol_val_2D_45_fast2(U45/2.0d0,0.5d0+V45/2.0d0,45,coef_h,h_4)
-
-
-      call refine_tri45(h_tri,h_1,h_2,h_3,h_4)
-
-      h_new((count-1)*n_order_sf*4+1:(count-1)*n_order_sf*4+n_order_sf)=h_1
-      h_new((count-1)*n_order_sf*4+n_order_sf+1:(count-1)*n_order_sf*4+2*n_order_sf)=h_2
-      h_new((count-1)*n_order_sf*4+2*n_order_sf+1:(count-1)*n_order_sf*4+3*n_order_sf)=h_3
-      h_new((count-1)*n_order_sf*4+3*n_order_sf+1:(count-1)*n_order_sf*4+4*n_order_sf)=h_4
 
       contador_indices=contador_indices+15
-
-      !plot_name='./plot_tools/h_tri'
-      !call plot_curve_3D(U45,V45,h_tri,n_order_sf,plot_name)
-      !plot_name='./plot_tools/h_1'
-      !call plot_curve_3D(U45/2.0d0,V45/2.0d0,h_1,n_order_sf,plot_name)
-      !plot_name='./plot_tools/h_2'
-      !call plot_curve_3D(0.5d0-U45/2.0d0,0.5d0-V45/2.0d0,h_2,n_order_sf,plot_name)
-      !plot_name='./plot_tools/h_3'
-      !call plot_curve_3D(0.5d0+U45/2.0d0,V45/2.0d0,h_3,n_order_sf,plot_name)
-      !plot_name='./plot_tools/h_4'
-      !call plot_curve_3D(U45/2.0d0,0.5d0+V45/2.0d0,h_4,n_order_sf,plot_name)
-      !write (*,*) 'DONE'
-      !read (*,*)
-
 
     enddo
 

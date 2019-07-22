@@ -56,7 +56,7 @@ subroutine funcion_skeleton(Geometry1)
 
 
   !List of local variables
-  double precision, allocatable :: U(:),V(:),w(:)
+  double precision, allocatable :: UV(:,:),w(:),U(:),V(:)
   double precision :: P1(3),P2(3),P3(3),P4(3),P5(3),P6(3)
   double precision, allocatable :: F_x(:), F_y(:), F_z(:), dS(:)
   double precision, allocatable :: nP_x(:), nP_y(:), nP_z(:)
@@ -68,15 +68,20 @@ subroutine funcion_skeleton(Geometry1)
   nsk = (norder_skel+1)*(norder_skel+2)/2
 
   allocate(umatr(nsk,nsk),vmatr(nsk,nsk))
-  allocate( U(nsk), V(nsk), w(nsk) )
+  allocate( UV(2,nsk), w(nsk) )
   allocate( F_x(nsk), F_y(nsk), F_z(nsk), dS(nsk) )
   allocate( nP_x(nsk), nP_y(nsk), nP_z(nsk) )
   
   ! get the specified quadrature nodes and weights on the simplex of
   ! order norder_skel
-  call ortho2siexps(itype, norder_skel, npols, U, V, &
-      umatr, vmatr, w)
   
+  
+  call vioreanu_simplex_quad(norder_skel,npols, UV, umatr,vmatr,w)
+  U = UV(1,:)
+  V = UV(2,:)
+   
+!  call ortho2siexps(itype, norder_skel, npols, U, V, &
+!      umatr, vmatr, w)
 
   
   if (allocated(Geometry1%skeleton_Points)) then

@@ -20,6 +20,7 @@
 !!!  7-refine_tri78               !! Split a triangle in 4. Input and output are samples of the function on 78 Gauss nodes
 !!!  8-M_interp_45                !! Load the precomputed interpolation matrix from function samples on 45 Gauss nodes to coefficients
 !!!  9-M_interp_78                !! Load the precomputed interpolation matrix from function samples on 78 Gauss nodes to coefficients
+!!!  get_refine_interp_mat        !! Generates the interpolation matrix to the children
 !!!
 !!! Private:
 !!!
@@ -9139,6 +9140,44 @@ return
 end
 
 
+
+
+subroutine get_refine_interp_mat(norder,n,nfine,ximat)
+  implicit none
+  integer norder,nfine,n,npols,i,j
+  real *8 ximat(nfine,n)
+  real *8, allocatable :: uv(:,:),umatr(:,:),vmatr(:,:),w(:),uvfine(:,:)
+  real *8, allocatable :: pmat(:,:),pols(:)
+  
+  allocate(uv(2,n),umatr(n,n),vmatr(n,n),w(n),uvfine(2,nfine))
+  allocate(pmat(nfine,n),pols(n))
+  call vioreanu_simplex_quad(norder,npols,uv,umatr,vmatr,w)
+
+  do i=1,n
+    uvfine(1,i) = uv(1,i)/2
+    uvfine(2,i) = uv(2,i)/2
+
+    uvfine(1,n+i) = 0.5 - uv(1,i)/2
+    uvfine(2,n+i) = 0.5 - uv(2,i)/2
+
+    uvfine(1,2*n+i) = uv(1,i)/2 + 0.5d0
+    uvfine(2,2*n+i) = uv(2,i)/2 
+
+    uvfine(1,3*n+i) = uv(1,i)/2 
+    uvfine(2,3*n+i) = uv(2,i)/2 + 0.5d0
+  enddo
+
+  do i=1,nfine
+    call koorn_pols(uvfine(1,i),norder,npols,pols)
+    do j=1,n
+      pmat(i,j) = pols(j)
+    enddo
+  enddo
+
+  call dmatmat(nfine,n,pmat,n,umatr,ximat)  
+
+return
+end
 
 
 

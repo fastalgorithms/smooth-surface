@@ -63,7 +63,7 @@ c
 c
         subroutine ortho2smexps(itype,norder,npols,xsout,ysout,
      1     umatr,vmatr,wsout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs0(1),ys0(1),ws0(1)
         dimension xs1(3),ys1(3),ws1(3)
         dimension xs2(6),ys2(6),ws2(6)
@@ -3832,7 +3832,7 @@ c
 c
         subroutine ortho2sfexps(itype,norder,npols,xsout,ysout,
      1     umatr,vmatr,wsout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs0(1),ys0(1),ws0(1)
         dimension xs1(3),ys1(3),ws1(3)
         dimension xs2(6),ys2(6),ws2(6)
@@ -9546,7 +9546,7 @@ c
 c
         subroutine ortho2smexps_old(itype,norder,npols,xsout,ysout,
      1     umatr,vmatr,wsout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs0(1),ys0(1),ws0(1)
         dimension xs1(3),ys1(3),ws1(3)
         dimension xs2(6),ys2(6),ws2(6)
@@ -10021,7 +10021,7 @@ c
 c
         subroutine ortho2sfexps_old(itype,norder,npols,xsout,ysout,
      1     umatr,vmatr,wsout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs0(1),ys0(1),ws0(1)
         dimension xs1(3),ys1(3),ws1(3)
         dimension xs2(6),ys2(6),ws2(6)
@@ -10367,7 +10367,7 @@ c
 c
 c
         subroutine ortho2intpmatr(norder,xs,ys,npols,umatr,vmatr)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs(1),ys(1),umatr(npols,npols),vmatr(npols,npols)
         dimension z(2),work(80 000)
 c
@@ -10409,7 +10409,7 @@ c
 c
         subroutine ortho2diffmatr(norder,xs,ys,npols,umatr,vmatr,
      $     dxmatr,dymatr)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xs(1),ys(1),umatr(npols,npols),vmatr(npols,npols),
      $     dxmatr(npols,npols),dymatr(npols,npols)
         dimension z(2),work(10 000),work2(10 000)
@@ -10470,7 +10470,7 @@ c
 c
         subroutine ortho2siexps(itype,norder,npols,xsout,ysout,
      1     umatr,vmatr,wsout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension xsout(1),ysout(1),wsout(1),umatr(1),vmatr(1)
 c
 c       This subroutine constructs the interpolation nodes for the
@@ -10537,7 +10537,7 @@ c
 c
 c
         subroutine ortho2sipols(u,v,norder,pols)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension pols(1),vert1(2),vert2(2),vert3(2)
         dimension z(2),work(10 000)
 c        data ifinit/0/
@@ -10574,7 +10574,7 @@ c
 c
 c       
         subroutine ortho2sipolders(u,v,norder,pols,dersu,dersv)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension pols(1),dersu(1),dersv(1)
         dimension vert1(2),vert2(2),vert3(2),z(2),
      $     dersx(10 000),dersy(10 000),work(10 000)
@@ -10624,7 +10624,7 @@ c
 c
 c       
         subroutine ortho2siexevc(u,v,cval,norder,npols,coefs)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension vert1(2),vert2(2),vert3(2),z(2)
         dimension work(10 000),pols(10 000)
         complex *16 coefs(1),cval
@@ -10668,7 +10668,7 @@ c
 c
 c
         subroutine ortho2triangle(itype,vert1,vert2,vert3)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension vert1(2),vert2(2),vert3(2)
 c
 c
@@ -10714,7 +10714,7 @@ c
 c
 c
         subroutine ortho2arrmove(x,y,n)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension x(1),y(1)
 c
         do 1200 i=1,n
@@ -10728,7 +10728,7 @@ c
 c
 c
         subroutine ortho2matmul(a,b,c,n)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension a(n,n),b(n,n),c(n,n)
 c
         do 2000 i=1,n
@@ -10765,7 +10765,7 @@ c
 c
 c
         subroutine ortho2_stdtosimplex(x,y,uout,vout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
 c
 c       map the standard triangle to the simplex
 c
@@ -10781,7 +10781,7 @@ c
 c
 c
         subroutine ortho2_simplextostd(u,v,xout,yout)
-        implicit double precision (a-h,o-z)
+        implicit real *8 (a-h,o-z)
         dimension vert1(2),vert2(2),vert3(2)
 c        data ifinit/0/
 c        save
