@@ -355,15 +355,15 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
   sgma_min = minval(TreeLRD_1%W_sgmas_mem)
   sgma_max = maxval(TreeLRD_1%W_sgmas_mem)
 
-  call prin2('sgma_min=*',sgma_min,1)
-  call prin2('sgma_max=*',sgma_max,1)
+!  call prin2('sgma_min=*',sgma_min,1)
+!  call prin2('sgma_max=*',sgma_max,1)
 
   tol = 1.0d-14
   nhalf = 3
 
   count_max = (log(sgma_max-sgma_min)-log(tol))/log(2.0d0)+4
 
-  call prinf('count_max=*',count_max,1)
+!  call prinf('count_max=*',count_max,1)
   
 
 
@@ -490,10 +490,11 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
         dF_x,dF_y,dF_z,dD_x,dD_y,dD_z, dF_sigma, dD_sigma)
 
     sgma(count1) = F/D
-
-    if(abs(sigma-sgma(count1)).ge.tol) then
-      print *, "sigma did not converge for point=",count1
-      stop
+    if(adapt_flag.eq.2) then
+      if(abs(sigma-sgma(count1)).ge.tol) then
+        print *, "sigma did not converge for point=",count1
+        stop
+      endif
     endif
 
     sgma_x(count1) = (dF_x*D-F*dD_x)/D**2

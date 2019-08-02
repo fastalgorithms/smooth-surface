@@ -46,8 +46,8 @@
 
 subroutine vioreanu_simplex_quad(norder, npols, xys, &
     umatr, vmatr, whts)
-  implicit double precision (a-h,o-z)
-  double precision :: xys(2,*), whts(*)
+  implicit real *8 (a-h,o-z)
+  real *8 :: xys(2,*), whts(*)
   dimension xsout(10000), ysout(10000), umatr(1),vmatr(1)
   !
   ! This subroutine constructs the Vioreanu-Rokhlin quadrature nodes
@@ -87,6 +87,9 @@ subroutine vioreanu_simplex_quad(norder, npols, xys, &
   call ortho2smexps(itype,norder,npols,xsout,ysout, &
       umatr,vmatr,whts)
 
+!  print *, "constructed vioreanu quad, umatr and vmatr are wrong!!"
+!  print *, "please update using koorn_pols"
+  
   !
   ! ... and convert them into simplex coordinates
   !
@@ -96,6 +99,15 @@ subroutine vioreanu_simplex_quad(norder, npols, xys, &
     whts(i) = whts(i)*0.5d0
   end do
 
+
+  !
+  !!  temp fix to umatr and matr via calling vals2coefs and coefs2vals
+  !
+
+  call koorn_vals2coefs(norder, npols, xys, umatr)
+  call koorn_coefs2vals(norder, npols, xys, vmatr)
+
+
   return
 end subroutine vioreanu_simplex_quad
 
@@ -103,10 +115,10 @@ end subroutine vioreanu_simplex_quad
 
 
 subroutine koorn_pols(uv, nmax, npols, pols)
-  implicit double precision (a-h,o-z)
-  double precision :: uv(2), pols(*)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2), pols(*)
 
-  double precision :: legpols(0:100), jacpols(0:100,0:100)
+  real *8 :: legpols(0:100), jacpols(0:100,0:100)
 
   !
   ! This subroutine evalutes a bunch of orthogonal polynomials on the
@@ -143,7 +155,8 @@ subroutine koorn_pols(uv, nmax, npols, pols)
   !
   done = 1
   if (nmax .ge. 100) then
-    call prinf('nmax too large, nmax = *', nmax, 1)
+    !!!!call prinf('nmax too large, nmax = *', nmax, 1)
+    print *, "nmax too large, nmae = ", nmax
     stop
   end if
   
@@ -215,13 +228,13 @@ end subroutine koorn_pols
 
 
 subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
-  implicit double precision (a-h,o-z)
-  double precision :: uv(2), pols(*), ders(2,*), der2s(3,*)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2), pols(*), ders(2,*), der2s(3,*)
 
-  double precision :: legpols(0:100), jacpols(0:100,0:100)
-  double precision :: legu(0:100), legv(0:100), leguu(0:100)
-  double precision :: leguv(0:100), legvv(0:100)
-  double precision :: jacv(0:100,0:100), jacvv(0:100,0:100)
+  real *8 :: legpols(0:100), jacpols(0:100,0:100)
+  real *8 :: legu(0:100), legv(0:100), leguu(0:100)
+  real *8 :: leguv(0:100), legvv(0:100)
+  real *8 :: jacv(0:100,0:100), jacvv(0:100,0:100)
   
   
   !
@@ -264,7 +277,8 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
 
   done = 1
   if (nmax .ge. 100) then
-    call prinf('nmax too large, nmax = *', nmax, 1)
+    print *, "nmax too large, nmae = ", nmax
+    !!!!call prinf('nmax too large, nmax = *', nmax, 1)
     stop
   end if
   
@@ -421,10 +435,10 @@ end subroutine koorn_ders
 
 
 subroutine koorn_vals2coefs(nmax, npols, uvs, amat)
-  implicit double precision (a-h,o-z)
-  double precision :: uvs(2,npols), amat(npols,npols)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uvs(2,npols), amat(npols,npols)
 
-  double precision, allocatable :: bmat(:,:)
+  real *8, allocatable :: bmat(:,:)
   
   !
   ! This routine returns a square matrix that maps point values of a
@@ -447,6 +461,7 @@ subroutine koorn_vals2coefs(nmax, npols, uvs, amat)
 
   allocate(bmat(npols,npols))
   call koorn_coefs2vals(nmax, npols, uvs, bmat)
+
   
   !
   ! now construct its inverse
@@ -461,10 +476,10 @@ end subroutine koorn_vals2coefs
 
 
 subroutine koorn_coefs2vals(nmax, npols, uvs, amat)
-  implicit double precision (a-h,o-z)
-  double precision :: uvs(2,npols), amat(npols,npols)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uvs(2,npols), amat(npols,npols)
 
-  double precision :: pols(2000)
+  real *8 :: pols(2000)
   
   !
   ! This routine returns a square matrix that maps coefficients in an
@@ -498,12 +513,93 @@ end subroutine koorn_coefs2vals
 
 
 
+subroutine koorn_vals2coefs_coefs2vals(korder,kpols,umatr,vmatr)
+  !
+  !!   compute vals2coefs and coefs2vals matrix 
+  !
+  !    input
+  !    korder     in: integer
+  !                 order of rokhlin vioreanu (rv) nodes at which function is
+  !                 sampled
+  !    kpols      in: integer
+  !                 number of nodes corresponding to korder rv nodes
+  !
+  !    output
+  !    umatr      out: real *8 (kpols,kpols)
+  !               vals2coefs matrix
+  ! 
+  !    vmatr      out: real *8 (kpols,kpols)
+  !               coefs2vals matrix
+  implicit real *8 (a-h,o-z)
+  integer korder
+  real *8 umatr(kpols,kpols)
+  real *8 vmatr(kpols,kpols)
+  real *8 xys(2,kpols)
+  real *8 wts(kpols)
+
+  call vioreanu_simplex_quad(korder, kpols, xys, umatr,vmatr,wts)
+  call koorn_coefs2vals(korder,kpols,xys,vmatr)
+  call dinverse(kpols, vmatr, info, umatr)
+
+
+  return
+end subroutine koorn_vals2coefs_coefs2vals
+
+
+
+
+subroutine koorn_oversamp_mat(korder,kpols,norder,npols,interpmat)
+  !
+  !!   compute ovesampling matrix
+  !
+  !    input
+  !    korder     in: integer
+  !                 order of rokhlin vioreanu (rv) nodes at which function is
+  !                 sampled
+  !    kpols      in: integer
+  !                 number of nodes corresponding to korder rv nodes
+  !    norder     in: integer
+  !                 order of oversampled rv nodes at which function is
+  !                 to be oversampled
+  !    npols      in: integer
+  !                 number of nodes corresponding to norder rv nodes
+  !
+  !    output
+  !    interpmat   out: real *8(npols,kpols)
+  !                  upsampling matrix from order korder rv nodes
+  !                  to order norder rv nodes
+  !    
+
+  implicit real *8 (a-h,o-z)
+  integer korder,kpols,norder,npols
+  real *8 interpmat(npols,kpols)
+  real *8 umat(kpols,kpols), vmat(kpols,kpols)
+  real *8 xys(2,npols),wts(npols),umato(npols,npols),vmato(npols,npols)
+  real *8 pmat(npols,kpols),pols(kpols)
+
+  call koorn_vals2coefs_coefs2vals(korder,kpols,umat,vmat)
+  call vioreanu_simplex_quad(norder,npols,xys,umato,vmato,wts)
+  
+  do i=1,npols
+     call koorn_pols(xys(1,i),korder,kpols,pols)
+     do j=1,kpols
+        pmat(i,j) = pols(j)
+     enddo
+  enddo
+
+  call dmatmat(npols,kpols,pmat,kpols,umat,interpmat)
+  
+  return
+end subroutine koorn_oversamp_mat
+
+
+
 
 subroutine koorn_evalexp(nmax, npols, uv, coefs, val)
-  implicit double precision (a-h,o-z)
-  double precision :: uv(2), coefs(npols)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2), coefs(npols)
 
-  double precision :: pols(2000)
+  real *8 :: pols(2000)
 
   !
   ! Evaluate the orthgonal polynomial expansion with given
@@ -535,10 +631,10 @@ end subroutine koorn_evalexp
 
 
 subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der, der2)
-  implicit double precision (a-h,o-z)
-  double precision :: uv(2), coefs(npols), der(2), der2(3)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2), coefs(npols), der(2), der2(3)
 
-  double precision :: pols(2000), ders(2,2000), der2s(3,2000)
+  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
 
   !
   ! Evaluate the orthgonal polynomial expansion with given
@@ -587,12 +683,12 @@ end subroutine koorn_evalexp2
 
 
 subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der, der2)
-  implicit double precision (a-h,o-z)
-  double precision :: uv(2)
-  double complex :: coefs(npols), val, der(2), der2(3)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2)
+  complex *16 :: coefs(npols), val, der(2), der2(3)
 
-  double precision :: pols(2000), ders(2,2000), der2s(3,2000)
-  double complex :: du, dv, duu, duv, dvv
+  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
+  complex *16 :: du, dv, duu, duv, dvv
 
   !
   ! Evaluate the orthgonal polynomial expansion with given

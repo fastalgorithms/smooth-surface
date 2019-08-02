@@ -29,7 +29,7 @@ program smoother
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam
+  double precision :: err_skel,rlam,t1,t2,omp_get_wtime
 
 
   call prini(6,13)
@@ -37,14 +37,13 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 4
+  norder_skel = 12
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
   norder_smooth = 4
 
-  ! Specify the numnber of refinements to do starting from 0
-  nrefine = 0
+  nrefine = 2
   ! nrefine=1  
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -63,6 +62,7 @@ program smoother
   rlam = 10
   rlam = .5d0
   rlam = 1
+  rlam = 2.5d0
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
@@ -83,7 +83,7 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere416.gidmsh'
+  nombre='./geometries/sphere128.gidmsh'
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
@@ -177,17 +177,43 @@ program smoother
   ! do some refinement and experiment
   !
   
-  ! do count=1,nrefine
+   do count=1,nrefine
   !   write (*,*) 'Refinement num: ',count
-  !   call refine_geometry_smart(Geometry1)
-  !   call funcion_Base_Points(Geometry1)
-  !   call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
-  !   !write (*,*) 'SAVING .GOV FILE'
-  !   !write(istr1,"(I2.2)") count
-  !   !name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'
-  !   !call record_Geometry(Geometry1,name_aux)
-  !   call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
-  ! enddo
+
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
+     call refine_geometry_smart(Geometry1)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+
+     call prin2("Refine geometry time=*",t2-t1,1)
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
+     call funcion_Base_Points(Geometry1)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+     call prin2("funcion base time=*",t2-t1,1)
+
+
+     t1 = second()
+!$    t1 = omp_get_wtime()     
+     call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+     t2 = second()
+!$    t2 = omp_get_wtime()    
+     call prin2("find smooth surface time=*",t2-t1,1)
+     !write (*,*) 'SAVING .GOV FILE'
+     !write(istr1,"(I2.2)") count
+     !name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'
+     !call record_Geometry(Geometry1,name_aux)
+     
+     plot_name = 'smoothed1.vtk'
+     call plotsmoothgeometryvtk(Geometry1, plot_name)
+     call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
+   enddo
+
+   call prin2('error_report=*',error_report,nrefine+1)
 
 
   ! write (*,*) 'FINAL REPORT'

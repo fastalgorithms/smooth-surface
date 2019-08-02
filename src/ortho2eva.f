@@ -170,7 +170,7 @@ c
          par1=2*m+1
          call kjacopols(y,par1,zero,(mmax-m),f2(1+m*(mmax+1)))
  1200 continue
-	
+
       kk=0
       do 2200 m=0,mmax
          do 2000 n=0,m
@@ -185,7 +185,7 @@ c
          scale=dsqrt((1.0d0+(m-n)+n)*(1.0d0+(m-n)+(m-n))/sqrt3) 
 cccc         scale=1
          pols(kk)=pols(kk)*scale
- 2000	 continue
+ 2000    continue
  2200 continue
       return
       end
@@ -410,7 +410,7 @@ c
          pols(kk)=pols(kk)*scale
          dersx(kk)=dersx(kk)*scale
          dersy(kk)=dersy(kk)*scale
- 2000	 continue
+ 2000   continue
  2200 continue
 
 

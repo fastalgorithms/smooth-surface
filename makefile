@@ -1,7 +1,7 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = linux-gcc
-#HOST = linux-gcc-openmp
+HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
@@ -15,20 +15,21 @@ HOST = osx-gcc
 
 PROJECT = int2
 
+GFORT = gfortran-9
 
 ifeq ($(HOST),osx-gcc)
-  FC = gfortran-8
+  FC = $(GFORT)
   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
               -fdefault-double-8 -fdefault-real-8 -freal-4-real-8
-  FLINK = gfortran-8 -w -fdefault-integer-8 -finteger-4-integer-8 \
+  FLINK = $(GFORT) -w -fdefault-integer-8 -finteger-4-integer-8 \
              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 \
              -o $(PROJECT) -framework accelerate
 endif
 
 ifeq ($(HOST),osx-gcc-openmp)
-  FC = gfortran-8
+  FC = $(GFORT)
   FFLAGS = -O2 -fopenmp -w 
-  FLINK = gfortran-8 -fopenmp -w \
+  FLINK = $(GFORT) -fopenmp -w \
     -Wl,-stack_size,0x80000000 -o $(PROJECT) -framework accelerate
   export OMP_NUM_THREADS = 4
   export OMP_STACKSIZE = 2048M
@@ -117,7 +118,7 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/ftophys.f \
  $(TFMM3D)/phystof2.f \
  $(TFMM3D)/legeexps.f \
- $(TFMM3D)/d3hplratree.f \
+ $(TFMM3D)/tree_lr_3d.f \
  $(TFMM3D)/rotgen.f \
  $(TFMM3D)/numthetafour.f \
  $(TFMM3D)/numthetahalf2.f \
@@ -132,8 +133,6 @@ SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(TFMM3D)/chebexps.f
 
 
-
-#TFMM3DLIB = ../lib/tfmm3dlr/tfmm3dlib.a
 
 MOD_OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(MOD_SOURCES)))
 OBJECTS = $(patsubst %.f,%.o,$(patsubst %.f90,%.o,$(SOURCES)))
