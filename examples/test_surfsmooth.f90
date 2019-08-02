@@ -181,26 +181,26 @@ program smoother
   !   write (*,*) 'Refinement num: ',count
 
 
-     t1 = second()
+     call cpu_time(t1)
 !$    t1 = omp_get_wtime()     
      call refine_geometry_smart(Geometry1)
-     t2 = second()
+     call cpu_time(t2)
 !$    t2 = omp_get_wtime()    
 
      call prin2("Refine geometry time=*",t2-t1,1)
 
-     t1 = second()
+     call cpu_time(t1)
 !$    t1 = omp_get_wtime()     
      call funcion_Base_Points(Geometry1)
-     t2 = second()
+     call cpu_time(t2)
 !$    t2 = omp_get_wtime()    
      call prin2("funcion base time=*",t2-t1,1)
 
 
-     t1 = second()
+     call cpu_time(t1)
 !$    t1 = omp_get_wtime()     
      call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
-     t2 = second()
+     call cpu_time(t2)
 !$    t2 = omp_get_wtime()    
      call prin2("find smooth surface time=*",t2-t1,1)
      !write (*,*) 'SAVING .GOV FILE'
