@@ -516,7 +516,7 @@ c
      $     ifpottarg,pottarg,ifgradtarg,gradtarg)
       implicit none
 
-      integer ier,iprec
+      integer ier,iprec, ntemp
       integer nsource,ntarget
       integer ndiv,nlevels
 
@@ -583,6 +583,7 @@ c     temp variables
 
       integer ifhesstarg
       real *8 d,time1,time2,second,omp_get_wtime
+      double precision :: time11, time22
       complex *16 pottmp,gradtmp(3),hesstmp(3)
 
 c     PW variables
@@ -800,6 +801,8 @@ c    initialize nterms_eval
          enddo
       enddo
 
+      call cpu_time(time11)
+C$        time11=omp_get_wtime()
        
 c
 c
@@ -1210,6 +1213,11 @@ C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox)
 C$OMP END PARALLEL DO         
       enddo
 
+      call cpu_time(time22)
+C$        time22=omp_get_wtime()
+
+      print *, 'time spent not in farfield = ', time22-time11
+      
       print *, "Entering near field eval"
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 8 (direct) =====*',i,0)
@@ -1217,11 +1225,16 @@ C$OMP END PARALLEL DO
 C$        time1=omp_get_wtime()
 
       do ilev=0,nlevels
+
+ccc        print *, 'processing ilev = ', ilev
+ccc        ntemp = laddr(2,ilev) - laddr(1,ilev)
+ccc        print *, 'number of boxes to process = ', ntemp
+        
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,nlist1,i,jbox)
 C$OMP$PRIVATE(jstart,jend,nnbors,nchild)
 C$OMP$SCHEDULE(DYNAMIC)
-         do ibox = laddr(1,ilev),laddr(2,ilev)
+        do ibox = laddr(1,ilev),laddr(2,ilev)
             istartt = itree(ipointer(14)+ibox-1)
             iendt = itree(ipointer(15)+ibox-1)
 
@@ -1232,6 +1245,9 @@ c
 cc            loop over neighbors first
 c
             nnbors = itree(ipointer(18)+ibox-1)
+ccc            print *, 'processing ibox = ', ibox
+ccc            print *, 'nnbors = ', nnbors
+
             do i=1,nnbors
                jbox = itree(ipointer(19)+mnbors*(ibox-1)+i-1)
                jstart = itree(ipointer(10)+jbox-1)
@@ -1261,7 +1277,7 @@ C$OMP END PARALLEL DO
       call cpu_time(time2)
 C$        time2=omp_get_wtime()
       print *, 'time in nearfield = ', time2-time1
-
+      
       timeinfo(8) = time2-time1
       if(ifprint.ge.1) call prin2('timeinfo=*',timeinfo,8)
       d = 0
@@ -1273,6 +1289,11 @@ C$        time2=omp_get_wtime()
 
       return
       end
+
+
+
+
+
 c------------------------------------------------
 c
       subroutine tfmm3dparttarg_direct_newtree(istart,iend,jstart,jend,
