@@ -60,9 +60,9 @@ program smoother
   ! \sigma_{j} = D_{j}/rlam
   !
   rlam = 10
-  rlam = .5d0
-  rlam = 1
-  rlam = 2.5d0
+  !rlam = .5d0
+  !rlam = 1
+  !rlam = 2.5d0
 
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
