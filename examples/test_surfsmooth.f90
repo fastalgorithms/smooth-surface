@@ -87,6 +87,9 @@ program smoother
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
+  print *, 'loading file: ', trim(nombre)
+
+  
   ! point inside to check Gauss integral
   x0 = 4.5d0
   y0 = 4.5d0
@@ -110,7 +113,7 @@ program smoother
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
-
+  print *, 'skeleton mesh plotted to: ', trim(plot_name)
   
   !call refineskeleton(Geometry1, nrefine)
   
@@ -122,7 +125,7 @@ program smoother
   call funcion_Base_Points(Geometry1)
 
 
-  !! Esto es para el modo sin FMM
+  ! make sure code is running with FMM acceleration
   if (fmm_flag .eq. 0) then
     print *, 'do not run with fmm_flag = 0 !!!'
     stop
@@ -135,21 +138,19 @@ program smoother
   ! skeleton mesh
   !
   print *
+  print *
   print *, '. . . checking gauss identity on skeleton'
   call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
 
   
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
-  !print *
-  !name_aux=trim(filename)// '_r00.gov'
-  !print *, '. . . saving *.gov file: ', trim(name_aux)
-  !call record_Geometry(Geometry1,name_aux)
-
+  print *
   print *
   print *, '. . . checking gauss identity on smooth surface'
-  call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
+  call check_Gauss(Geometry1, x0, y0, z0, error_report(1))
 
+  stop
   
   !
   ! plot the smoothed surface

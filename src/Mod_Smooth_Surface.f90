@@ -364,7 +364,10 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   maxiter = 14
   flag = 0
 
-  print *, "Enterint My_Newton"
+  print *
+  print *
+  print *, ". . . . entering My_Newton . . . ."
+
   call My_Newton(h, tol, maxiter, Geometry1, flag, Feval_stuff_1, &
       adapt_flag, grad_F, r_t)
 
@@ -469,6 +472,7 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   ! this routine runs a newton iteration to find the smooth surface
   !
   ! Input:
+  !   x - initial guess at the h function
   !   tol - pointwise convergence criterion for Newton
   !   maxiter - max iteration count
   !   Geometry1 - all the geo info
@@ -500,14 +504,14 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   ! print out convergence information
   print *
   print *
-  write (*,*) 'iteration  targets       err'  
+  write (*,*) 'iteration  #   targets       err'  
 
   ! the x function has been initialized to 0
   do while ( (maxval(err)>tol) .and. (count<maxiter) )
 
     ! call a step of Newton
 
-    print *, "Entering fun_roots_derivative"
+    !print *, "Entering fun_roots_derivative"
 
     call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
         adapt_flag, flag_con, grad_F, r_t)
@@ -536,6 +540,7 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
       endif
     enddo
 
+
     !       do count2=1,Geometry1%n_Sf_points
     !           write (*,*) 'Newton iteration all: ', err(count2)
     !       enddo
@@ -547,6 +552,7 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
         
   end do
 
+  stop
 
   
   if ( maxval(err)>tol ) then
@@ -662,7 +668,7 @@ end subroutine My_Newton
     !
     ntarg = Geometry1%n_Sf_points-sum(flag_con)
 
-    print *, "Entering eval_density_grad_FMM"
+    !print *, "Entering eval_density_grad_FMM"
     call eval_density_grad_FMM(Geometry1, r_t2, v_norm, &
         ntarg, F2, grad_F2, Feval_stuff_1, adapt_flag)
 

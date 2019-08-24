@@ -299,7 +299,7 @@ contains
     call cpu_time(t1)
 !$   t1 = omp_get_wtime()    
     telap = t1-t0
-    print *, 'time for eval sigma = ', telap
+    !print *, 'time for eval sigma = ', telap
 
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
@@ -352,7 +352,7 @@ contains
         call cpu_time(t0)
         !$ t0 = omp_get_wtime()
 
-        print *, "Entering FMM"
+        !print *, "Entering FMM"
         call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,&
             Geometry1%skeleton_N,n_sources,&
             Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&

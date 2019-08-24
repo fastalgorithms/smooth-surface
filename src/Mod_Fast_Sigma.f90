@@ -141,7 +141,7 @@ implicit none
         !Compute the mean value of the sigmas to allow nonadaptivity
         FSS_1%sgma_mean = sum(FSS_1%TreeLRD_1%W_sgmas_mem)/Geometry1%ntri
         !FSS_1%alpha = 1.0d0/(2.0d0*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2)
-        FSS_1%alpha=1.0d0/maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2/5.0d0
+        !FSS_1%alpha=1.0d0/maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2/5.0d0
         !print *, 'FSS alpha = ', FSS_1%alpha
         
         sigma0 = sqrt(5/2.0d0)*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)

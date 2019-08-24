@@ -1216,9 +1216,9 @@ C$OMP END PARALLEL DO
       call cpu_time(time22)
 C$        time22=omp_get_wtime()
 
-      print *, 'time spent not in farfield = ', time22-time11
+      !print *, 'time spent not in farfield = ', time22-time11
       
-      print *, "Entering near field eval"
+      !print *, "Entering near field eval"
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 8 (direct) =====*',i,0)
       call cpu_time(time1)
@@ -1230,9 +1230,9 @@ c       parallelizes over sources/or targets
 c
       do ilev=0,1
 
-        print *, 'processing ilev = ', ilev
+        !print *, 'processing ilev = ', ilev
         ntemp = laddr(2,ilev) - laddr(1,ilev)
-        print *, 'number of boxes to process = ', ntemp+1
+        !print *, 'number of boxes to process = ', ntemp+1
 
         do ibox = laddr(1,ilev),laddr(2,ilev)
             istartt = itree(ipointer(14)+ibox-1)
@@ -1279,9 +1279,9 @@ c       ilev is larger, switch to other parallelization
 c
       do ilev=2,nlevels
 
-        print *, 'processing ilev = ', ilev
+        !print *, 'processing ilev = ', ilev
         ntemp = laddr(2,ilev) - laddr(1,ilev)
-        print *, 'number of boxes to process = ', ntemp+1
+        !print *, 'number of boxes to process = ', ntemp+1
 
         
 C$OMP PARALLEL DO DEFAULT(SHARED)     
@@ -1331,7 +1331,7 @@ C$OMP END PARALLEL DO
 
       call cpu_time(time2)
 C$        time2=omp_get_wtime()
-      print *, 'time in nearfield = ', time2-time1
+      !print *, 'time in nearfield = ', time2-time1
 
 cccc      stop
       
