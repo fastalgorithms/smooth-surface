@@ -37,13 +37,13 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 6
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 12
+  norder_smooth = 4
 
-  nrefine = 2
+  nrefine = 3
   ! nrefine=1  
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -76,7 +76,7 @@ program smoother
 
 
   allocate(Geometry1)
-  allocate(error_report(nrefine+100))
+  allocate(error_report(nrefine+1))
 
   !
   ! specify the msh file to read in
@@ -87,9 +87,6 @@ program smoother
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
-  print *, 'loading file: ', trim(nombre)
-
-  
   ! point inside to check Gauss integral
   x0 = 4.5d0
   y0 = 4.5d0
@@ -98,6 +95,66 @@ program smoother
   x0 = .1d0
   y0 = 0d0
   z0 = 0
+
+
+
+!    nombre='./geometries/msh_files/Round_1.msh'
+!    filename='./plot_tools/Round_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
+    filename='./plot_tools/simplest_cube_quadratic'
+!!!  point inside to check Gauss integral
+    x0=0.0d0
+    y0=0.0d0
+    z0=1.5d0
+
+!    nombre='./geometries/msh_files/Round_1.msh'
+!    filename='./plot_tools/Round_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+!    nombre='./geometries/msh_files/Round_2.msh'
+!    filename='./plot_tools/Round_2'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+!    nombre='./geometries/msh_files/Cube_substraction.msh'
+!    filename='./plot_tools/Cube_substraction'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+!    nombre='./geometries/msh_files/Multiscale_1.msh'
+!    filename='./plot_tools/Multiscale_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+!    nombre='./geometries/msh_files/Multiscale_2.msh'
+!    filename='./plot_tools/Multiscale_2'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+!    nombre='./geometries/msh_files/A380_Final.msh'
+!    filename='./plot_tools/A380_Final'
+!!!  point inside to check Gauss integral
+!    x0=4.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+
 
 
   ! load in the msh file
@@ -113,7 +170,7 @@ program smoother
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
-  print *, 'skeleton mesh plotted to: ', trim(plot_name)
+
   
   !call refineskeleton(Geometry1, nrefine)
   
@@ -125,7 +182,7 @@ program smoother
   call funcion_Base_Points(Geometry1)
 
 
-  ! make sure code is running with FMM acceleration
+  !! Esto es para el modo sin FMM
   if (fmm_flag .eq. 0) then
     print *, 'do not run with fmm_flag = 0 !!!'
     stop
@@ -137,20 +194,23 @@ program smoother
   ! before finding smooth surface, compute the Gauss integral on the
   ! skeleton mesh
   !
-  print *
-  print *
-  print *, '. . . checking gauss identity on skeleton'
-  call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
+
+!  print *
+!  print *, '. . . checking gauss identity on skeleton'
+!  call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
 
   
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
-  print *
+  !print *
+  !name_aux=trim(filename)// '_r00.gov'
+  !print *, '. . . saving *.gov file: ', trim(name_aux)
+  !call record_Geometry(Geometry1,name_aux)
+
   print *
   print *, '. . . checking gauss identity on smooth surface'
-  call check_Gauss(Geometry1, x0, y0, z0, error_report(1))
+  call check_Gauss(Geometry1,x0,y0,z0,error_report(1))
 
-  stop
   
   !
   ! plot the smoothed surface
@@ -166,9 +226,10 @@ program smoother
     print *, '. . . finished plotting vtk smoothed geometry'
   end if
 
+!  write (*,*) 'Empezando la parte critica de refinar'
+!  read (*,*)
   
-  
-  stop
+!  stop
 
 
   
@@ -182,8 +243,8 @@ program smoother
   !
   
    do count=1,nrefine
-  !   write (*,*) 'Refinement num: ',count
-
+!     write (*,*) 'Refinement num: ',count
+!     read (*,*)
 
      call cpu_time(t1)
 !$    t1 = omp_get_wtime()     
@@ -215,9 +276,18 @@ program smoother
      plot_name = 'smoothed1.vtk'
      call plotsmoothgeometryvtk(Geometry1, plot_name)
      call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
+     write (*,*) 'error_report: ',error_report(count+1)
    enddo
 
    call prin2('error_report=*',error_report,nrefine+1)
+   write (*,*) 'error_report final: ',error_report
+
+
+    write (*,*) 'FINAL REPORT'
+    do count=0,nrefine
+        write (*,*) 'Refinement nº: ',int(count,4), '  Error: ', &
+        &real(error_report(count+1),4)!, '  Time: ',real(time_report(count+1),4),'sec'
+    enddo
 
 
   ! write (*,*) 'FINAL REPORT'
@@ -249,7 +319,8 @@ subroutine check_gauss_skeleton(Geometry1, x0, y0, z0,err_rel)
   pi = 4*atan(done)
 
   F = 0
-
+  write (*,*) 'Num Smooth points',Geometry1%n_Sk_points
+  read (*,*)
   do count1=1,Geometry1%n_Sk_points
 
     x=Geometry1%skeleton_Points(1,count1)
