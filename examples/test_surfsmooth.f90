@@ -15,8 +15,8 @@ program smoother
 
   implicit none
 
-  type ( Geometry ), pointer :: Geometry1
-  type ( Feval_stuff ), pointer :: Feval_stuff_1
+  type ( Geometry ), pointer :: Geometry1 => null ()
+  type ( Feval_stuff ), pointer :: Feval_stuff_1 => null ()
 
   integer :: N, count,nrefine, ifplot
   integer :: adapt_flag, ifflatten
