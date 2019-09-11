@@ -362,7 +362,7 @@ contains
         !$ t1 = omp_get_wtime()
         telap = t1-t0
 
-        print *, 'time for fmm = ', telap
+        !print *, 'time for fmm = ', telap
 
         !
         ! compute the error in the levelset function

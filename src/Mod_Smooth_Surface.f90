@@ -360,8 +360,8 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   !
   ! set some parameters for the newton routine for finding the surface
   !
-  tol = 1.0d-14
-  maxiter = 14
+  tol = 1.0d-12
+  maxiter = 20
   flag = 0
 
   print *
@@ -498,13 +498,13 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     flag_con(count2) = 0
   enddo
 
-  count=1
+  count=0
   flag=0
 
   ! print out convergence information
   print *
   print *
-  write (*,*) 'iteration  #   targets       err'  
+  write (*,*) 'iteration    # targ         err'  
 
   ! the x function has been initialized to 0
   do while ( (maxval(err)>tol) .and. (count<maxiter) )
@@ -544,12 +544,15 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     !       do count2=1,Geometry1%n_Sf_points
     !           write (*,*) 'Newton iteration all: ', err(count2)
     !       enddo
-    write (*,*) 'Newton iteration: ', count, maxval(err)
+    !write (*,*) 'Newton iteration: ', count, maxval(err)
 
+    
     write (*,4999) count, &
         Geometry1%n_Sf_points-sum(flag_con), maxval(err)
- 4999 format(i10,i9,e10.2)
-        
+ 4999 format(i10,i10,e12.3)
+
+
+    
   end do
 
   stop
