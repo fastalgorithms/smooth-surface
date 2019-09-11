@@ -135,6 +135,10 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
       umatr, vmatr, ws)
 
 
+  !print *, 'n_order_sf = ', n_order_sf
+  !print *, 'norder_smooth = ', norder_smooth
+  !stop
+  
   if (n_order_sf .gt. 4**0) nover = 1
   if (n_order_sf .gt. 4**1) nover = 2
   if (n_order_sf .gt. 4**2) nover = 3

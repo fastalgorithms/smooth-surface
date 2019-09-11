@@ -41,7 +41,7 @@ program smoother
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 4
+  norder_smooth = 2
 
   nrefine = 3
   ! nrefine=1  
@@ -83,7 +83,8 @@ program smoother
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere128.gidmsh'
+  !nombre='./geometries/sphere128.gidmsh'
+  nombre='./geometries/rcube_refined.gidmsh'
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
@@ -92,9 +93,9 @@ program smoother
   y0 = 4.5d0
   z0 = 5
 
-  x0 = .1d0
-  y0 = 0d0
-  z0 = 0
+  !x0 = .1d0
+  !y0 = 0d0
+  !z0 = 0
 
 
 
@@ -105,12 +106,12 @@ program smoother
 !    y0=0.0d0
 !    z0=0.0d0
 
-    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
-    filename='./plot_tools/simplest_cube_quadratic'
+!    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
+!    filename='./plot_tools/simplest_cube_quadratic'
 !!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=1.5d0
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.5d0
 
 !    nombre='./geometries/msh_files/Round_1.msh'
 !    filename='./plot_tools/Round_1'
@@ -229,7 +230,7 @@ program smoother
 !  write (*,*) 'Empezando la parte critica de refinar'
 !  read (*,*)
   
-!  stop
+  stop
 
 
   

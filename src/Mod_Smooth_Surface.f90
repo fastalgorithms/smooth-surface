@@ -555,7 +555,6 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     
   end do
 
-  stop
 
   
   if ( maxval(err)>tol ) then
