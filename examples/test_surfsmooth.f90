@@ -41,7 +41,7 @@ program smoother
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 2
+  norder_smooth = 4
 
   nrefine = 3
   ! nrefine=1  
@@ -60,6 +60,7 @@ program smoother
   ! \sigma_{j} = D_{j}/rlam
   !
   rlam = 10
+  rlam = 2.5d0
   !rlam = .5d0
   !rlam = 1
   !rlam = 2.5d0
@@ -85,6 +86,7 @@ program smoother
   !nombre='./geometries/sphere.msh'
   !nombre='./geometries/sphere128.gidmsh'
   nombre='./geometries/rcube_refined.gidmsh'
+  !nombre='./geometries/rcube.gidmsh'
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
@@ -162,7 +164,7 @@ program smoother
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
-  ifflatten = 0
+  ifflatten = 1
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
