@@ -467,6 +467,7 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points)
   double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
 
+  double precision :: t0, t1
 
   !
   ! this routine runs a newton iteration to find the smooth surface
@@ -487,11 +488,12 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   !   
   
   !List of local variables
-  integer count,count2
+  integer count,count2, nprev
   double precision F(Geometry1%n_Sf_points)
   double precision :: dF(Geometry1%n_Sf_points), err(Geometry1%n_Sf_points)
   integer  flag_con(Geometry1%n_Sf_points)
-
+  double precision :: omp_get_wtime
+  
   ! initialize the errors and convergence flags
   do count2 = 1,Geometry1%n_Sf_points
     err(count2) = tol+1.0d0
@@ -504,8 +506,10 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   ! print out convergence information
   print *
   print *
-  write (*,*) 'iteration    # targ         err'  
+  write (*,*) 'iteration    # targ         err      telaps'  
 
+  nprev = 0
+  
   ! the x function has been initialized to 0
   do while ( (maxval(err)>tol) .and. (count<maxiter) )
 
@@ -513,9 +517,15 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
 
     !print *, "Entering fun_roots_derivative"
 
+
+     call cpu_time(t0)
+!$    t0 = omp_get_wtime()     
     call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
         adapt_flag, flag_con, grad_F, r_t)
+     call cpu_time(t1)
+!$    t1 = omp_get_wtime()     
 
+     
     count = count+1
     do count2 = 1,Geometry1%n_Sf_points
 
@@ -524,13 +534,13 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
         err(count2) = F(count2)/dF(count2)
         x(count2) = x(count2) - err(count2)
 
-        !err(count2) = abs(err(count2))
+        err(count2) = abs(err(count2))
         
-        if ( abs(x(count2)) .lt. 1.0d0) then
-          err(count2) = abs(err(count2))
-        else
-          err(count2) = abs(err(count2)/x(count2))
-        end if
+        !if ( abs(x(count2)) .lt. 1.0d0) then
+        !  err(count2) = abs(err(count2))
+        !else
+        !  err(count2) = abs(err(count2)/x(count2))
+        !end if
         
         
         if (err(count2)<tol) then
@@ -548,9 +558,10 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
 
     
     write (*,4999) count, &
-        Geometry1%n_Sf_points-sum(flag_con), maxval(err)
- 4999 format(i10,i10,e12.3)
+        Geometry1%n_Sf_points-nprev, maxval(err), t1-t0
+ 4999 format(i10,i10,e12.3, e12.3 )
 
+    nprev = sum(flag_con)
 
     
   end do
@@ -583,10 +594,13 @@ end subroutine My_Newton
     !List of local variables
     integer umio,count1,count2,flag,n_order_sf
     double precision  F,Ex,Ey,Ez,R,x,y,z,pi,w,nx,ny,nz
+    double precision avg, stdev, tmp
 
     pi=3.141592653589793238462643383d0
     F=0.0d0
 
+    avg = 0
+    
     do count1=1,Geometry1%n_Sf_points
       x=Geometry1%S_smooth(1,count1)
       y=Geometry1%S_smooth(2,count1)
@@ -597,6 +611,9 @@ end subroutine My_Newton
       nz=Geometry1%N_smooth(3,count1)
 
       R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
+
+      avg = avg + R**2
+      
       Ex=(x-x0)/(4*pi*R**3)
       Ey=(y-y0)/(4*pi*R**3)
       Ez=(z-z0)/(4*pi*R**3)
@@ -605,6 +622,24 @@ end subroutine My_Newton
     err_rel=abs(F-1)
     call prin2('value of integral = *', F, 1)
     call prin2('relative error = *', err_rel, 1)
+
+
+    avg = avg/Geometry1%n_Sf_points
+    call prin2('average of norm of x = *', avg, 1)
+
+    stdev = 0
+    do count1=1,Geometry1%n_Sf_points
+      x=Geometry1%S_smooth(1,count1)
+      y=Geometry1%S_smooth(2,count1)
+      z=Geometry1%S_smooth(3,count1)
+      tmp = sqrt(x**2 + y**2 + z**2)
+
+      stdev = stdev + (tmp-avg)**2
+    end do
+
+    stdev = sqrt(stdev/Geometry1%n_Sf_points)
+    call prin2('stdev of norm of x = *', stdev, 1)
+    
     
     return
   end subroutine check_Gauss
