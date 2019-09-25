@@ -23,7 +23,7 @@ program smoother
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
-  character (len=100) :: nombre, filename,name_aux
+  character (len=100) :: nombre, filename,name_aux, output
   character (len=21) :: plot_name
   character (len=8) :: istr1
   character (len=2) :: arg_comm
@@ -59,12 +59,14 @@ program smoother
   ! \sigma_{j} = D_{j}/rlam
   !
   rlam = 10
-  !rlam = 5d0
+  !rlam = 7.5d0
   !rlam = 2.5d0
   !rlam = .5d0
   !rlam = 1
   !rlam = 2.5d0
 
+  call prin2('rlam = *', rlam, 1)
+  
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
   !fmm_flag=1      
@@ -164,7 +166,9 @@ program smoother
 !    y0=0.0d0
 !    z0=1.0d0
 
-    nombre='./geometries/msh_files/A380_Final.msh'
+  nombre='./geometries/msh_files/A380_Final.msh'
+  !  nombre = 'geometries/a380-fine-2.gidmsh'
+  !  nombre = 'geometries/a380_engines.msh'
 !    filename='./plot_tools/A380_Final'
 !!!  point inside to check Gauss integral
     x0=4.0d0
@@ -195,6 +199,10 @@ program smoother
   call funcion_normal_vert(Geometry1)
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
 
+  !output = 'A380_Final_2.msh'
+  !call writemsh(Geometry1, output)
+  !stop
+  
   !call refine_geometry_smart(Geometry1)
   call funcion_Base_Points(Geometry1)
 
@@ -248,8 +256,6 @@ program smoother
 !  read (*,*)
   
 
-  !stop
-  
 
   
 
@@ -278,12 +284,21 @@ program smoother
      call plotskeletonvtk(Geometry1, plot_name)
      call prinf('after refinement, ntri = *', Geometry1%ntri, 1)
 
+     !
+     ! output this new refined mesh to gidmsh format
+     !
+     !output = 'A380_Final_refined.msh'
+     !call writemsh(Geometry1, output)
+     !stop
+     
 
      
      call cpu_time(t2)
 !$    t2 = omp_get_wtime()    
 
      call prin2("Refine geometry time=*",t2-t1,1)
+
+
 
      call cpu_time(t1)
 !$    t1 = omp_get_wtime()     
@@ -314,7 +329,7 @@ program smoother
    enddo
 
    call prin2('error_report=*',error_report,nrefine+1)
-   write (*,*) 'error_report final: ',error_report
+   write (*,*) 'error_report final: ',error_report(1:nrefine)
 
 
     write (*,*) 'FINAL REPORT'
