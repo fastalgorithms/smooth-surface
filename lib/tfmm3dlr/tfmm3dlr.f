@@ -28,7 +28,11 @@ c
 c       
 c       FMM in R^3 for Surface Smoothing kernel 
 c
+c ---------------------------
+c
 c       erf(|x-y|/(sqrt(2)*stdev(x)))/(4* pi * |x-y|)
+c
+c------------------------
 c       where y is a source point and x is a target.
 c
 c       On input, trads(j) for target x_j ix assumed to be 
@@ -1362,7 +1366,8 @@ c
         do j=jstart,jend
               do i=istart,iend
                  if((targ(1,j)-source(1,i))**2 +
-     1              (targ(2,j)-source(2,i))**2.gt.1.0d-28) then
+     1              (targ(2,j)-source(2,i))**2 + 
+     2              (targ(3,j)-source(3,i))**2.gt.1.0d-28) then
                     if(ifcharge.eq.1) then
                        call lpotfld3d(ifgradtarg,
      1                 source(1,i),
