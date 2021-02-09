@@ -8,6 +8,26 @@
 ! *.gov file
 !
 
+subroutine writemsh(Geometry1, filename)
+  use ModType_Smooth_Surface
+  implicit double precision (a-h,o-z)
+  type (Geometry) :: Geometry1
+  character(len=100) :: filename
+  !
+  ! this routine writes the skeleton geometry stored in GEometry1 to
+  ! a file, useful for after a refinement has been processed
+  !
+
+  
+  
+
+  return
+end subroutine writemsh
+
+
+
+
+
 subroutine readgeometry(Geometry1, filename, norder_skel, &
     norder_smooth)
   use ModType_Smooth_Surface

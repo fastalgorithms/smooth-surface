@@ -1,0 +1,37 @@
+BeginZE /Users/fevibon/Downloads/iA380-1/Interesantes/A380_antennas_notail4.gid/A380_antennas_notail4.vv
+   x -12.1733722686767578 23.0174503326416016
+   y 10.0601863861083984 -10.0601863861083984
+   z -31.1321010589599609 18.8583774566650391
+   e 8.33174610137939453
+   v -0.181364818498458369 0.219380451805446242 0.187678301315039819
+   r -0.940082875638807547
+   m 0.833298146724700928 0.273290514945983887 -0.480548083782196045 0 -0.43244209885597229 0.863767325878143311 -0.258650004863739014 0 0.34439513087272644 0.423341810703277588 0.837958037853240967 0 0 0 0 1
+   c 5.42203855514526367 0 6.13686227798461914
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /Users/fevibon/Downloads/iA380-1/Interesantes/A380_antennas_notail4.gid/A380_antennas_notail4.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

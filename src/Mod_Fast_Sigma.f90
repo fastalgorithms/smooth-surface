@@ -101,8 +101,12 @@ implicit none
 
     !List of local variables
     integer n_max_leaf
-    real ( kind = 8 ) Centroids(3,Geometry1%ntri),sgmas(Geometry1%ntri), rlam
-    type ( TreeLRD ), pointer ::  TreeLRD_1             !! Tree where we place the centroids and sigma values at the centroids
+    double precision :: Centroids(3,Geometry1%ntri)
+    double precision :: sgmas(Geometry1%ntri), rlam, sigma0
+
+    !! Tree where we place the centroids and sigma values at the
+    !! centroids
+    type ( TreeLRD ), pointer ::  TreeLRD_1             
     integer n_leaf_boxes,count1
     real ( kind = 8 ), allocatable :: centers(:,:),sgmas_2(:)
 
@@ -136,9 +140,16 @@ implicit none
 
         !Compute the mean value of the sigmas to allow nonadaptivity
         FSS_1%sgma_mean = sum(FSS_1%TreeLRD_1%W_sgmas_mem)/Geometry1%ntri
-        FSS_1%alpha = 1.0d0/(2.0d0*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2)
+        !FSS_1%alpha = 1.0d0/(2.0d0*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2)
+        !FSS_1%alpha=1.0d0/maxval(FSS_1%TreeLRD_1%W_sgmas_mem)**2/5.0d0
+        !print *, 'FSS alpha = ', FSS_1%alpha
+        
+        sigma0 = sqrt(5/2.0d0)*maxval(FSS_1%TreeLRD_1%W_sgmas_mem)
+        !print *, 'sigma0 = ', sigma0
 
-
+        FSS_1%alpha = 1/sigma0**2/2
+        !print *, 'using sigma0, FSS alpha = ', FSS_1%alpha
+        !stop
 
 !        n_leaf_boxes=total_number_leaf_boxes(FSS_1%TreeLRD_1%Main_box)
 !        allocate(centers(3,n_leaf_boxes))
@@ -355,15 +366,15 @@ subroutine fast_gaussian_global_new(FSS_1, targ_vect, n_targ, sgma, &
   sgma_min = minval(TreeLRD_1%W_sgmas_mem)
   sgma_max = maxval(TreeLRD_1%W_sgmas_mem)
 
-  call prin2('sgma_min=*',sgma_min,1)
-  call prin2('sgma_max=*',sgma_max,1)
+!  call prin2('sgma_min=*',sgma_min,1)
+!  call prin2('sgma_max=*',sgma_max,1)
 
   tol = 1.0d-14
   nhalf = 3
 
   count_max = (log(sgma_max-sgma_min)-log(tol))/log(2.0d0)+4
 
-  call prinf('count_max=*',count_max,1)
+!  call prinf('count_max=*',count_max,1)
   
 
 

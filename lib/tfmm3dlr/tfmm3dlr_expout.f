@@ -470,7 +470,7 @@ c     Memory allocation is complete.
 c     Call main fmm routine
 c
 
-      print *, "Before entering FMM"
+cc      print *, "Before entering FMM"
       time1=second()
 C$      time1=omp_get_wtime()
       call tfmm3dlrgqbxmain(ier,iprec,
@@ -516,7 +516,7 @@ c
      $     ifpottarg,pottarg,ifgradtarg,gradtarg)
       implicit none
 
-      integer ier,iprec
+      integer ier,iprec, ntemp
       integer nsource,ntarget
       integer ndiv,nlevels
 
@@ -583,6 +583,7 @@ c     temp variables
 
       integer ifhesstarg
       real *8 d,time1,time2,second,omp_get_wtime
+      double precision :: time11, time22
       complex *16 pottmp,gradtmp(3),hesstmp(3)
 
 c     PW variables
@@ -799,6 +800,9 @@ c    initialize nterms_eval
      1           nterms_eval(itype,ilev),ier)
          enddo
       enddo
+
+      call cpu_time(time11)
+C$        time11=omp_get_wtime()
        
 c
 c
@@ -1209,17 +1213,82 @@ C$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(ibox)
 C$OMP END PARALLEL DO         
       enddo
 
+      call cpu_time(time22)
+C$        time22=omp_get_wtime()
 
+      !print *, 'time spent not in farfield = ', time22-time11
+      
+      !print *, "Entering near field eval"
       if(ifprint .ge. 1)
      $     call prinf('=== STEP 8 (direct) =====*',i,0)
       call cpu_time(time1)
 C$        time1=omp_get_wtime()
 
-      do ilev=0,nlevels
+c        
+c       if ilev = 0  1 then call alternative routine which
+c       parallelizes over sources/or targets
+c
+      do ilev=0,1
+
+        !print *, 'processing ilev = ', ilev
+        ntemp = laddr(2,ilev) - laddr(1,ilev)
+        !print *, 'number of boxes to process = ', ntemp+1
+
+        do ibox = laddr(1,ilev),laddr(2,ilev)
+            istartt = itree(ipointer(14)+ibox-1)
+            iendt = itree(ipointer(15)+ibox-1)
+
+            nchild = itree(ipointer(3)+ibox-1)
+            if(nchild.eq.0) iendt = itree(ipointer(17)+ibox-1)
+
+c
+c            loop over neighbors first
+c
+            nnbors = itree(ipointer(18)+ibox-1)
+            do i=1,nnbors
+               jbox = itree(ipointer(19)+mnbors*(ibox-1)+i-1)
+               jstart = itree(ipointer(10)+jbox-1)
+               jend = itree(ipointer(11)+jbox-1)
+
+               call tfmm3dparttarg_direct_newtree_omp(jstart,jend,
+     1           istartt,iendt,sourcesort,ifcharge,chargesort,ifdipole,
+     2           dipstrsort,dipvecsort,targetsort,stdevsort,
+     3           stdev_gradsort,ifpottarg,pottarg,ifgradtarg,gradtarg)
+            enddo
+
+            nlist1 = itree(ipointer(20)+ibox-1)
+            do i =1,nlist1
+               jbox = itree(ipointer(21)+mnlist1*(ibox-1)+i-1)
+               if(ilevel(ibox).gt.ilevel(jbox)) then
+                  jstart = itree(ipointer(10)+jbox-1)
+                  jend = itree(ipointer(11)+jbox-1)
+                  call tfmm3dparttarg_direct_newtree_omp(jstart,jend,
+     1             istartt,iendt,sourcesort,ifcharge,chargesort,
+     2             ifdipole,dipstrsort,dipvecsort,targetsort,stdevsort,
+     3           stdev_gradsort,ifpottarg,pottarg,ifgradtarg,gradtarg)
+               endif
+            enddo   
+         enddo
+      enddo
+
+
+
+
+c
+c       ilev is larger, switch to other parallelization
+c
+      do ilev=2,nlevels
+
+        !print *, 'processing ilev = ', ilev
+        ntemp = laddr(2,ilev) - laddr(1,ilev)
+        !print *, 'number of boxes to process = ', ntemp+1
+
+        
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,nlist1,i,jbox)
 C$OMP$PRIVATE(jstart,jend,nnbors,nchild)
-         do ibox = laddr(1,ilev),laddr(2,ilev)
+C$OMP$SCHEDULE(DYNAMIC)
+        do ibox = laddr(1,ilev),laddr(2,ilev)
             istartt = itree(ipointer(14)+ibox-1)
             iendt = itree(ipointer(15)+ibox-1)
 
@@ -1230,13 +1299,16 @@ c
 cc            loop over neighbors first
 c
             nnbors = itree(ipointer(18)+ibox-1)
+ccc            print *, 'processing ibox = ', ibox
+ccc            print *, 'nnbors = ', nnbors
+
             do i=1,nnbors
                jbox = itree(ipointer(19)+mnbors*(ibox-1)+i-1)
                jstart = itree(ipointer(10)+jbox-1)
                jend = itree(ipointer(11)+jbox-1)
 
-               call tfmm3dparttarg_direct_newtree(jstart,jend,istartt,
-     1           iendt,sourcesort,ifcharge,chargesort,ifdipole,
+               call tfmm3dparttarg_direct_newtree(jstart,jend,
+     1           istartt,iendt,sourcesort,ifcharge,chargesort,ifdipole,
      2           dipstrsort,dipvecsort,targetsort,stdevsort,
      3           stdev_gradsort,ifpottarg,pottarg,ifgradtarg,gradtarg)
             enddo
@@ -1254,12 +1326,15 @@ c
                endif
             enddo   
          enddo
-C$OMP END PARALLEL DO      
+C$OMP END PARALLEL DO
       enddo
+
       call cpu_time(time2)
 C$        time2=omp_get_wtime()
-      print *, 'time in nearfield = ', time2-time1
+      !print *, 'time in nearfield = ', time2-time1
 
+cccc      stop
+      
       timeinfo(8) = time2-time1
       if(ifprint.ge.1) call prin2('timeinfo=*',timeinfo,8)
       d = 0
@@ -1271,6 +1346,11 @@ C$        time2=omp_get_wtime()
 
       return
       end
+
+
+
+
+
 c------------------------------------------------
 c
       subroutine tfmm3dparttarg_direct_newtree(istart,iend,jstart,jend,
@@ -1401,7 +1481,90 @@ c
 c
         return
         end
-c-----------------------------------------------------        
+
+
+
+
+
+        subroutine tfmm3dparttarg_direct_newtree_omp(istart,iend,
+     $     jstart,jend,
+     $     source,ifcharge,charge,ifdipole,dipstr,dipvec,
+     $     targ,stdev,stdev_grad,ifpottarg,pottarg,
+     $     ifgradtarg,gradtarg)
+c--------------------------------------------------------------------
+c     This subroutine is the same as tfmm3dparttarg_direct_newtree,
+c     but includes parallelization. See above for documentation.
+c
+c------------------------------------------------------------
+        implicit none
+c
+        integer istart,iend,jstart,jend,ns,j,i
+        integer ifcharge,ifdipole
+
+        real *8 source(3,*)
+        complex *16 charge(*),dipstr(*)
+        real *8 dipvec(3,*)
+        real *8 stdev(*)
+        real *8 stdev_grad(3,*)
+        real *8 qwt
+
+        integer ifpottarg,ifgradtarg
+        real *8 targ(3,*)
+c
+        complex *16 pottarg(*)
+        complex *16 gradtarg(3,*)
+
+        real *8 pottmp,gradtmp(3)
+
+c
+        ns = iend - istart + 1
+
+C$OMP PARALLEL DO DEFAULT(SHARED)     
+C$OMP$PRIVATE(pottmp,gradtmp, qwt, i)
+C$OMP$SCHEDULE(DYNAMIC)        
+        do j=jstart,jend
+          do i=istart,iend
+                 if((targ(1,j)-source(1,i))**2 +
+     1              (targ(2,j)-source(2,i))**2 +
+     2              (targ(3,j)-source(3,i))**2.gt.1.0d-28) then
+                    if(ifcharge.eq.1) then
+                       call lpotfld3d(ifgradtarg,
+     1                 source(1,i),
+     1                 charge(i),targ(1,j),pottmp,gradtmp)
+                       if(ifpottarg.eq.1) pottarg(j) = pottarg(j)+
+     1                                    pottmp
+                       if(ifgradtarg.eq.1) then
+                          gradtarg(1,j) = gradtarg(1,j)+gradtmp(1)
+                          gradtarg(2,j) = gradtarg(2,j)+gradtmp(2)
+                          gradtarg(3,j) = gradtarg(3,j)+gradtmp(3)
+                       endif
+                    endif
+                    if(ifdipole.eq.1) then
+                       qwt =  dreal(dipstr(i))
+                       call tpotfld3d_dp(ifgradtarg,
+     1                  source(1,i),qwt,dipvec(1,i),targ(1,j),
+     2                  stdev(j),stdev_grad(1,j),pottmp,gradtmp)
+                       if(ifpottarg.eq.1) pottarg(j) = pottarg(j)+
+     1                                    pottmp
+                       if(ifgradtarg.eq.1) then
+                          gradtarg(1,j) = gradtarg(1,j)+gradtmp(1)
+                          gradtarg(2,j) = gradtarg(2,j)+gradtmp(2)
+                          gradtarg(3,j) = gradtarg(3,j)+gradtmp(3)
+                       endif
+                    endif
+                 endif
+              enddo
+        enddo
+C$OMP END PARALLEL DO
+c
+        return
+        end
+
+
+
+
+
+c-----------------------------------------------------
  
       subroutine l3dreorderint(n,arr,isort,arrsort)
 c    This subroutine reorders the array of integers

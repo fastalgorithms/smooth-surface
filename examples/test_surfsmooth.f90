@@ -15,21 +15,21 @@ program smoother
 
   implicit none
 
-  type ( Geometry ), pointer :: Geometry1
-  type ( Feval_stuff ), pointer :: Feval_stuff_1
+  type ( Geometry ), pointer :: Geometry1 => null ()
+  type ( Feval_stuff ), pointer :: Feval_stuff_1 => null ()
 
   integer :: N, count,nrefine, ifplot
   integer :: adapt_flag, ifflatten
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
-  character (len=100) :: nombre, filename,name_aux
+  character (len=100) :: nombre, filename,name_aux, output
   character (len=21) :: plot_name
   character (len=8) :: istr1
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam
+  double precision :: err_skel,rlam,t1,t2,omp_get_wtime
 
 
   call prini(6,13)
@@ -37,22 +37,19 @@ program smoother
   
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 8
+  norder_skel = 4
+  
   
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
   norder_smooth = 4
-  
-  ! Specify the numnber of refinements to do starting from 0
 
-  nrefine = 1
-  ! nrefine=1  
 
   ! this is to enable adaptativity (otherwise sigma is constant)
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 2
+  adapt_flag = 1
 
 
   !
@@ -62,45 +59,123 @@ program smoother
   ! \sigma_{j} = D_{j}/rlam
   !
   rlam = 10
-  rlam = .5d0
-  rlam = 1
-  rlam = 2.5d0
+  !rlam = 7.5d0
+  !rlam = 2.5d0
+  !rlam = .5d0
+  !rlam = 1
+  !rlam = 2.5d0
 
+  call prin2('rlam = *', rlam, 1)
+  
   ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
   ! identity (local surface integral + contour integral)
-  fmm_flag=1      
+  !fmm_flag=1      
 
   call prinf('. . . printing flags and options*', norder_skel, 0)
+  print *
   call prinf('norder_skel = *', norder_skel, 1)
+  call prinf('points per skel = *', &
+      (norder_skel+1)*(norder_skel+2)/2, 1)
+  print *
   call prinf('norder_smooth = *', norder_smooth, 1)
-  ! call prinf('nrefine = *', nrefine, 1)
+  call prinf('points per smooth = *', &
+      (norder_smooth+1)*(norder_smooth+2)/2, 1)
+
+  print *  
   call prinf('adapt_flag = *', adapt_flag, 1)
 
 
   allocate(Geometry1)
-  allocate(error_report(nrefine+100))
+  allocate(error_report(1000))
 
   !
   ! specify the msh file to read in
   !
 
   !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere128.gidmsh'
+  !nombre='./geometries/sphere128.gidmsh'
+  !nombre='./geometries/sphere416.gidmsh'
+  !nombre='./geometries/torus_384.gidmsh'
+  !nombre='./geometries/rcube_refined.gidmsh'
+  !nombre='./geometries/rcube.gidmsh'
+  !nombre='./geometries/prism_3368.gidmsh'
+  !nombre='./geometries/prism_50.gidmsh'
   !nombre='./geometries/prism_3368.gidmsh'
   !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
-  x0 = 4.5d0
-  y0 = 4.5d0
-  z0 = 5
+  !x0 = 4.5d0
+  !y0 = 4.5d0
+  !z0 = 5
 
-  !x0 = 2.0d0
+  !x0 = 2.1d0
   !y0 = 0d0
-  !z0 = 0
+  !z0 = .2d0
 
-  x0 = .1d0
-  y0 = 0d0
-  z0 = 0
+  !x0 = 0
+  !y0 = 0
+  !z0 = 2
+
+
+!    nombre='./geometries/msh_files/Round_1.msh'
+!    filename='./plot_tools/Round_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+!    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
+!    filename='./plot_tools/simplest_cube_quadratic'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.5d0
+
+!    nombre='./geometries/msh_files/Round_1.msh'
+!    filename='./plot_tools/Round_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+!    nombre='./geometries/msh_files/Round_2.msh'
+!    filename='./plot_tools/Round_2'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=0.0d0
+
+!    nombre='./geometries/msh_files/Cube_substraction.msh'
+!    filename='./plot_tools/Cube_substraction'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+!    nombre='./geometries/msh_files/Multiscale_1.msh'
+!    filename='./plot_tools/Multiscale_1'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+!    nombre='./geometries/msh_files/Multiscale_2.msh'
+!    filename='./plot_tools/Multiscale_2'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.0d0
+
+  nombre='./geometries/msh_files/A380_Final.msh'
+  !  nombre = 'geometries/a380-fine-2.gidmsh'
+  !  nombre = 'geometries/a380_engines.msh'
+!    filename='./plot_tools/A380_Final'
+!!!  point inside to check Gauss integral
+    x0=4.0d0
+    y0=0.0d0
+    z0=0.0d0
+
+
 
 
   ! load in the msh file
@@ -118,32 +193,38 @@ program smoother
   call plotskeletonvtk(Geometry1, plot_name)
 
   
-  !call refineskeleton(Geometry1, nrefine)
   
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1)
   call funcion_normal_vert(Geometry1)
-
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
+
+  !output = 'A380_Final_2.msh'
+  !call writemsh(Geometry1, output)
+  !stop
+  
+  !call refine_geometry_smart(Geometry1)
   call funcion_Base_Points(Geometry1)
 
+  
 
   !! Esto es para el modo sin FMM
-  if (fmm_flag .eq. 0) then
-    print *, 'do not run with fmm_flag = 0 !!!'
-    stop
-    call start_Feval_local(Feval_stuff_1,Geometry1)
-  endif
+  !if (fmm_flag .eq. 0) then
+  !  print *, 'do not run with fmm_flag = 0 !!!'
+  !  stop
+  !  call start_Feval_local(Feval_stuff_1,Geometry1)
+  !endif
 
 
   !
   ! before finding smooth surface, compute the Gauss integral on the
   ! skeleton mesh
   !
-  print *
-  print *, '. . . checking gauss identity on skeleton'
-  call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
-
+  !print *
+  !print *, '. . . checking gauss identity on skeleton'
+  !call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
+  !call prin2('on skeleton, gauss integral = *', err_skel, 1)  
+  !stop
   
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
@@ -171,34 +252,91 @@ program smoother
     print *, '. . . finished plotting vtk smoothed geometry'
   end if
 
-  
+!  write (*,*) 'Empezando la parte critica de refinar'
+!  read (*,*)
   
 
-  !
-  ! refinement not working properly, must rewrite
-  !
+
   
 
   !
   ! do some refinement and experiment
   !
-  
-   do count=1,nrefine
-  !   write (*,*) 'Refinement num: ',count
+  print *
+  print *
+  print *, 'starting the refinement procedure ...'
+  nrefine = 1
+  call prinf('nrefine = *', nrefine, 1)
+
+
+  do count=1,nrefine
+    !     write (*,*) 'Refinement num: ',count
+    !     read (*,*)
+
+     call cpu_time(t1)
+     !$    t1 = omp_get_wtime()
+     !rlam = 2.5d0
+     !call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
+     call prinf('before refinement, ntri = *', Geometry1%ntri, 1)
      call refine_geometry_smart(Geometry1)
+
+     plot_name = 'skeleton1.vtk'
+     call plotskeletonvtk(Geometry1, plot_name)
+     call prinf('after refinement, ntri = *', Geometry1%ntri, 1)
+
+     !
+     ! output this new refined mesh to gidmsh format
+     !
+     !output = 'A380_Final_refined.msh'
+     !call writemsh(Geometry1, output)
+     !stop
+     
+
+     
+     call cpu_time(t2)
+!$    t2 = omp_get_wtime()    
+
+     call prin2("Refine geometry time=*",t2-t1,1)
+
+
+
+     call cpu_time(t1)
+!$    t1 = omp_get_wtime()     
      call funcion_Base_Points(Geometry1)
+     call cpu_time(t2)
+!$    t2 = omp_get_wtime()    
+     call prin2("funcion base time=*",t2-t1,1)
+
+
+     call cpu_time(t1)
+!$    t1 = omp_get_wtime()     
      call find_smooth_surface(Geometry1,Feval_stuff_1,adapt_flag)
+     call cpu_time(t2)
+!$    t2 = omp_get_wtime()    
+     call prin2("find smooth surface time=*",t2-t1,1)
      !write (*,*) 'SAVING .GOV FILE'
      !write(istr1,"(I2.2)") count
      !name_aux = trim(filename)// '_r'//trim(istr1)//'.gov'
      !call record_Geometry(Geometry1,name_aux)
      
-     plot_name = 'smoothed1.vtk'
-     call plotsmoothgeometryvtk(Geometry1, plot_name)
+     if (ifplot .eq. 1) then
+       plot_name = 'smoothed1.vtk'
+       call plotsmoothgeometryvtk(Geometry1, plot_name)
+     end if
+     
      call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
+     write (*,*) 'error_report: ',error_report(count+1)
    enddo
 
    call prin2('error_report=*',error_report,nrefine+1)
+   write (*,*) 'error_report final: ',error_report(1:nrefine)
+
+
+    write (*,*) 'FINAL REPORT'
+    do count=0,nrefine
+        write (*,*) 'Refinement nº: ',int(count,4), '  Error: ', &
+        &real(error_report(count+1),4)!, '  Time: ',real(time_report(count+1),4),'sec'
+    enddo
 
 
   ! write (*,*) 'FINAL REPORT'
@@ -230,7 +368,8 @@ subroutine check_gauss_skeleton(Geometry1, x0, y0, z0,err_rel)
   pi = 4*atan(done)
 
   F = 0
-
+  write (*,*) 'Num Smooth points',Geometry1%n_Sk_points
+  read (*,*)
   do count1=1,Geometry1%n_Sk_points
 
     x=Geometry1%skeleton_Points(1,count1)

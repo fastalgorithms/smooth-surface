@@ -45,7 +45,7 @@ subroutine tpotfld3d_dp(iffld,source,qwt,dipvec,targ,sigma, &
   double precision, intent(out) ::  pot,fld(3)
 
   !List of local variables
-  double precision R, H, HH, HHH, prod
+  double precision :: R, H, HH, HHH, prod
 
   R=sqrt((source(1)-targ(1))**2+(source(2)-targ(2))**2 &
       +(source(3)-targ(3))**2)
