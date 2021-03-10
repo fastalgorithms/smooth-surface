@@ -161,9 +161,10 @@ contains
     real *8 rlam
 
     ! Allocate all arrays required
-    allocate(Feval_stuff_1)
-    call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1,rlam)   !! Setup the tree structure to evaluate sgma function
-
+    if (.not.(associated(Feval_stuff_1))) then
+      allocate(Feval_stuff_1)
+      call setup_tree_sigma_geometry(Feval_stuff_1%FSS_1,Geometry1,rlam)   !! Setup the tree structure to evaluate sgma function
+    endif
 
     return
   end subroutine start_Feval_tree
@@ -285,7 +286,6 @@ contains
     allocate(pottarg(n_targets))
     allocate(fldtarg(3,n_targets))
     allocate(flag_error(n_targets))
-
     !
     ! obtain the value of sgma at the target points, needed to make
     ! the FMM call
@@ -297,7 +297,7 @@ contains
     call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
         sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
     call cpu_time(t1)
-!$   t1 = omp_get_wtime()    
+!$   t1 = omp_get_wtime()
     telap = t1-t0
     !print *, 'time for eval sigma = ', telap
 
@@ -329,7 +329,6 @@ contains
       mu(count1)=1.0d0
     enddo
 
-    
     !! FMM call (this includes the target dependent local corrections with the erf function)
     !    write (*,*) 'target: ',targets(:,1)
 
@@ -348,21 +347,24 @@ contains
     else
 
       if (.not. allocated(Fev_stf_1%treecenters)) then
-
+        write (*,*) 'point 333.555'
         call cpu_time(t0)
         !$ t0 = omp_get_wtime()
 
         !print *, "Entering FMM"
+
         call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,&
             Geometry1%skeleton_N,n_sources,&
             Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
             n_targets,trads,sgma,sgma_grad,ifpottarg,&
             pottarg,iffldtarg,fldtarg,tfmm)
         call cpu_time(t1)
+    write (*,*) 'point 333.666'
+
         !$ t1 = omp_get_wtime()
         telap = t1-t0
 
-        !print *, 'time for fmm = ', telap
+        print *, 'time for fmm = ', telap
 
         !
         ! compute the error in the levelset function
@@ -407,7 +409,7 @@ contains
         endif
       endif
     endif
-
+write (*,*) 'point 444'
     deallocate(sgma)
     deallocate(trads)
     deallocate(sgma_grad)

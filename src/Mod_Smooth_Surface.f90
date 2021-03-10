@@ -309,6 +309,22 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   !
   ! check the memory allocation
   !
+  
+  if (allocated(Geometry1%du_smooth)) then
+	deallocate(Geometry1%du_smooth)
+  endif
+  allocate(Geometry1%du_smooth(3,Geometry1%n_Sf_points))
+        
+  if (allocated(Geometry1%dv_smooth)) then
+	deallocate(Geometry1%dv_smooth)
+  endif
+  allocate(Geometry1%dv_smooth(3,Geometry1%n_Sf_points))
+        
+  if (allocated(Geometry1%ds_smooth)) then
+	deallocate(Geometry1%ds_smooth)
+  endif
+  allocate(Geometry1%ds_smooth(Geometry1%n_Sf_points))
+
   if (allocated(Geometry1%S_smooth)) then
     deallocate(Geometry1%S_smooth)
   endif
@@ -342,7 +358,6 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 !    h(count) = 0
 !  enddo
 
-  
    if (.not.allocated(Geometry1%height)) then
      allocate (Geometry1%height(Geometry1%n_Sf_points))
 
@@ -360,8 +375,8 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   !
   ! set some parameters for the newton routine for finding the surface
   !
-  tol = 1.0d-12
-  maxiter = 20
+  tol = 1.0d-10
+  maxiter = 14
   flag = 0
 
   print *
@@ -421,6 +436,12 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
         + Geometry1%Base_Points_N(:,count)*dhdv &
         + Geometry1%Base_Points_V(:,count)
 
+	Geometry1%du_smooth(:,count)=Geometry1%ru_smooth(:,count)
+	Geometry1%dv_smooth(:,count)=Geometry1%rv_smooth(:,count)
+	call crossproduct(Geometry1%ru_smooth(:,count)&
+	 &,Geometry1%rv_smooth(:,count),my_cross)
+	Geometry1%ds_smooth(count)=norm2(my_cross)
+
     call crossproduct(Geometry1%ru_smooth(:,count), &
         Geometry1%rv_smooth(:,count), my_cross)
 
@@ -467,7 +488,6 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   double precision, intent(inout) :: r_t(3,Geometry1%n_Sf_points)
   double precision, intent(inout) :: grad_F(3,Geometry1%n_Sf_points)
 
-  double precision :: t0, t1
 
   !
   ! this routine runs a newton iteration to find the smooth surface
@@ -488,28 +508,25 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
   !   
   
   !List of local variables
-  integer count,count2, nprev
+  integer count,count2
   double precision F(Geometry1%n_Sf_points)
   double precision :: dF(Geometry1%n_Sf_points), err(Geometry1%n_Sf_points)
   integer  flag_con(Geometry1%n_Sf_points)
-  double precision :: omp_get_wtime
-  
+
   ! initialize the errors and convergence flags
   do count2 = 1,Geometry1%n_Sf_points
     err(count2) = tol+1.0d0
     flag_con(count2) = 0
   enddo
 
-  count=0
+  count=1
   flag=0
 
   ! print out convergence information
   print *
   print *
-  write (*,*) 'iteration    # targ         err      telaps'  
+  write (*,*) 'iteration  #   targets       err'  
 
-  nprev = 0
-  
   ! the x function has been initialized to 0
   do while ( (maxval(err)>tol) .and. (count<maxiter) )
 
@@ -517,36 +534,31 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
 
     !print *, "Entering fun_roots_derivative"
 
-
-     call cpu_time(t0)
-!$    t0 = omp_get_wtime()     
     call fun_roots_derivative(x, Geometry1, F, dF, Feval_stuff_1, &
         adapt_flag, flag_con, grad_F, r_t)
-     call cpu_time(t1)
-!$    t1 = omp_get_wtime()     
 
-     
     count = count+1
     do count2 = 1,Geometry1%n_Sf_points
 
       if (flag_con(count2) .eq. 0) then
 
         err(count2) = F(count2)/dF(count2)
-        x(count2) = x(count2) - err(count2)
+        x(count2) = x(count2) - err(count2)!    Mucho ojo con esto
 
         err(count2) = abs(err(count2))
         
-        !if ( abs(x(count2)) .lt. 1.0d0) then
-        !  err(count2) = abs(err(count2))
-        !else
-        !  err(count2) = abs(err(count2)/x(count2))
-        !end if
+        if ( abs(x(count2)) .lt. 1.0d0) then
+          err(count2) = abs(err(count2))
+        else
+          err(count2) = abs(err(count2)/x(count2))
+        end if
         
         
-        if (err(count2)<tol) then
+        if (abs(err(count2))<tol) then
           flag_con(count2)=1
+		 !  else
+		 !	x(count2) = x(count2) - err(count2)
         endif
-        
       endif
     enddo
 
@@ -554,18 +566,15 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
     !       do count2=1,Geometry1%n_Sf_points
     !           write (*,*) 'Newton iteration all: ', err(count2)
     !       enddo
-    !write (*,*) 'Newton iteration: ', count, maxval(err)
+    write (*,*) 'Newton iteration: ', count, maxval(err)
 
-    
     write (*,4999) count, &
-        Geometry1%n_Sf_points-nprev, maxval(err), t1-t0
- 4999 format(i10,i10,e12.3, e12.3 )
-
-    nprev = sum(flag_con)
-
-    
+        Geometry1%n_Sf_points-sum(flag_con), maxval(err)
+ 4999 format(i10,i9,e10.2)
+        
   end do
 
+!  stop
 
   
   if ( maxval(err)>tol ) then
@@ -594,13 +603,10 @@ end subroutine My_Newton
     !List of local variables
     integer umio,count1,count2,flag,n_order_sf
     double precision  F,Ex,Ey,Ez,R,x,y,z,pi,w,nx,ny,nz
-    double precision avg, stdev, tmp
 
     pi=3.141592653589793238462643383d0
     F=0.0d0
 
-    avg = 0
-    
     do count1=1,Geometry1%n_Sf_points
       x=Geometry1%S_smooth(1,count1)
       y=Geometry1%S_smooth(2,count1)
@@ -611,9 +617,6 @@ end subroutine My_Newton
       nz=Geometry1%N_smooth(3,count1)
 
       R=sqrt((x-x0)**2+(y-y0)**2+(z-z0)**2)
-
-      avg = avg + R**2
-      
       Ex=(x-x0)/(4*pi*R**3)
       Ey=(y-y0)/(4*pi*R**3)
       Ez=(z-z0)/(4*pi*R**3)
@@ -622,24 +625,6 @@ end subroutine My_Newton
     err_rel=abs(F-1)
     call prin2('value of integral = *', F, 1)
     call prin2('relative error = *', err_rel, 1)
-
-
-    avg = avg/Geometry1%n_Sf_points
-    call prin2('average of norm of x = *', avg, 1)
-
-    stdev = 0
-    do count1=1,Geometry1%n_Sf_points
-      x=Geometry1%S_smooth(1,count1)
-      y=Geometry1%S_smooth(2,count1)
-      z=Geometry1%S_smooth(3,count1)
-      tmp = sqrt(x**2 + y**2 + z**2)
-
-      stdev = stdev + (tmp-avg)**2
-    end do
-
-    stdev = sqrt(stdev/Geometry1%n_Sf_points)
-    call prin2('stdev of norm of x = *', stdev, 1)
-    
     
     return
   end subroutine check_Gauss
@@ -729,6 +714,7 @@ end subroutine My_Newton
       endif
 
     enddo
+
     deallocate(r_t2)
     deallocate(v_norm)
     deallocate(grad_F2)

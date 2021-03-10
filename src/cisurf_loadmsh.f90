@@ -8,26 +8,6 @@
 ! *.gov file
 !
 
-subroutine writemsh(Geometry1, filename)
-  use ModType_Smooth_Surface
-  implicit double precision (a-h,o-z)
-  type (Geometry) :: Geometry1
-  character(len=100) :: filename
-  !
-  ! this routine writes the skeleton geometry stored in GEometry1 to
-  ! a file, useful for after a refinement has been processed
-  !
-
-  
-  
-
-  return
-end subroutine writemsh
-
-
-
-
-
 subroutine readgeometry(Geometry1, filename, norder_skel, &
     norder_smooth)
   use ModType_Smooth_Surface
@@ -476,15 +456,15 @@ subroutine record_Geometry(Geometry1,filename)
   character (len=100) filename
 
   !List of local variables
-  integer umio,count1,count2,flag,n_order_sf
+  integer umio,count1,count2,flag,norder_smooth
   integer :: ierror
 
   open(8, FILE=filename,STATUS='REPLACE')
-  n_order_sf = Geometry1%n_order_sf
+  norder_smooth = Geometry1%norder_smooth
   
-  write(8,*) n_order_sf
+  write(8,*) norder_smooth
   write(8,*) Geometry1%ntri
-  write(8,*) Geometry1%n_Sf_points
+!  write(8,*) Geometry1%n_Sf_points
   do count1=1,Geometry1%n_Sf_points
     write(8,*) Geometry1%S_smooth(1,count1)
   enddo
@@ -496,23 +476,23 @@ subroutine record_Geometry(Geometry1,filename)
   enddo
 
   do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%ru_smooth(1,count1)
+	write(8,*) Geometry1%du_smooth(1,count1)
   enddo
   do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%ru_smooth(2,count1)
+	write(8,*) Geometry1%du_smooth(2,count1)
   enddo
   do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%ru_smooth(3,count1)
+	write(8,*) Geometry1%du_smooth(3,count1)
   enddo
-
+  
   do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%rv_smooth(1,count1)
-  enddo
-  do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%rv_smooth(2,count1)
+	write(8,*) Geometry1%dv_smooth(1,count1)
   enddo
   do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%rv_smooth(3,count1)
+	write(8,*) Geometry1%dv_smooth(2,count1)
+  enddo
+  do count1=1,Geometry1%n_Sf_points
+	write(8,*) Geometry1%dv_smooth(3,count1)
   enddo
 
   do count1=1,Geometry1%n_Sf_points
@@ -525,9 +505,6 @@ subroutine record_Geometry(Geometry1,filename)
     write(8,*) Geometry1%N_smooth(3,count1)
   enddo
 
-  do count1=1,Geometry1%n_Sf_points
-    write(8,*) Geometry1%w_smooth(count1)
-  enddo
   close (8)
 
   return

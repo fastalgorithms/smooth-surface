@@ -23,7 +23,7 @@ program smoother
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
-  character (len=100) :: nombre, filename,name_aux
+  character (len=300) :: nombre, filename,name_aux
   character (len=21) :: plot_name
   character (len=8) :: istr1,istr2
   character (len=2) :: arg_comm
@@ -42,7 +42,7 @@ program smoother
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
   norder_smooth = 8
-  nrefine = 3
+  nrefine = 1
   ! nrefine=1
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -108,7 +108,7 @@ program smoother
 
 
     nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
-    filename='./geometries_go3/simplest_cube_borrame'
+    filename='./../Geometries_go3/simplest_cube_borrame'
 !!!  point inside to check Gauss integral
     x0=0.0d0
     y0=0.0d0
@@ -259,10 +259,13 @@ program smoother
 !    y0=-.5d0
 !    z0=.5d0
 
-
+    call read_input_variables(norder_skel,norder_smooth,nrefine,&
+	 &adapt_flag,rlam,filename,nombre)
+    write (*,*) 'a punto de cascar',nombre,norder_skel,norder_smooth
   ! load in the msh file
   call readgeometry(Geometry1, nombre, norder_skel, &
       norder_smooth)
+    write (*,*) 'a punto de cascar'
 
   ifflatten = 0
   if (ifflatten .eq. 1) then
@@ -466,4 +469,51 @@ end subroutine check_gauss_skeleton
 
 
 
+
+
+subroutine read_input_variables(norder_skel,norder_smooth,nrefine,&
+&adapt_flag,rlam,filename1,filename2)
+  implicit none
+
+  !List of calling arguments
+!  double precision, intent(out) :: x0,y0,z0
+  integer, intent(out) :: norder_skel,norder_smooth,nrefine,adapt_flag
+  real ( kind = 8 ), intent(out) :: rlam
+  character (len=300), intent(out) :: filename1,filename2
+!  character (len=300) filename1,filename2
+  character (len=300) filename
+  integer :: ierror
+
+  
+  !List of local variables
+  integer :: umio
+
+      filename='auxfile_inout_matlab_fortran.txt'
+	  open(UNIT=16, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+	  read(16,*) norder_skel
+	  write (*,*) norder_skel
+	  read(16,*) norder_smooth
+	  write (*,*) norder_smooth
+	  read(16,*) adapt_flag
+	  write (*,*) adapt_flag
+	  read(16,*) nrefine
+	  write (*,*) nrefine
+
+	  read(16,"(A300)") filename1
+	  filename1=trim(adjustl(filename1))
+	  write (*,*) trim(adjustl(filename1))
+	  
+	  read(16,*) rlam
+	  write (*,*) rlam
+	  
+	  read(16,"(A300)") filename2
+      filename2=trim(adjustl(filename2))
+	  write (*,*) filename2
+      
+!	  write (*,*) trim(adjustl(aux_char))
+      close(16)
+
+
+return
+end subroutine read_input_variables
 

@@ -1,7 +1,8 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = linux-gcc
-#HOST = linux-gcc-openmp
+HOST = macos-gfortran-openmp
+#HOST = ubuntu-gfortran-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
@@ -22,7 +23,7 @@ ifeq ($(HOST),osx-gcc)
   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
               -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy
   FLINK = $(GFORT) -w -fdefault-integer-8 -finteger-4-integer-8 \
-             -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy \
+             -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy\
              -o $(PROJECT) -framework accelerate
 endif
 
@@ -66,21 +67,25 @@ ifeq ($(HOST),linux-gcc)
        -o $(PROJECT) -llapack -lblas
 endif
 
-ifeq ($(HOST),linux-gcc-openmp)
+ifeq ($(HOST),macos-gfortran-openmp)
    FC = gfortran 
-   FFLAGS = -O2  -w --openmp -fdefault-integer-8 -finteger-4-integer-8
-   FLINK = gfortran --openmp -fdefault-integer-8 -finteger-4-integer-8 \
+   FFLAGS = -O2  -w --openmp -std=legacy -fdefault-integer-8 -finteger-4-integer-8
+   FLINK = gfortran --openmp -std=legacy -fdefault-integer-8 -finteger-4-integer-8 \
        -w -o $(PROJECT) -llapack -lblas
 endif
 
-
+ifeq ($(HOST),ubuntu-gfortran-openmp)
+   FC = gfortran -c -w --openmp
+   FFLAGS = -O3 -fdefault-integer-8 -finteger-4-integer-8
+   FLINK = gfortran --openmp -w -o $(PROJECT) -llapack -lblas
+endif
 
 
 .PHONY: all clean list
 
-TFMM3D = lib/tfmm3dlr
-SRC = src
-EXM = examples
+TFMM3D = ../lib/tfmm3dlr
+SRC = ../src
+EXM = ../examples
 
 MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/ModType_Smooth_Surface.f90 \
@@ -90,7 +95,7 @@ MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
 
-SOURCES =  $(EXM)/test_surfsmooth.f90 \
+SOURCES =  $(EXM)/test_surfsmooth_matlab.f90 \
  $(SRC)/koornexps.f90 \
  $(SRC)/ortho2eva.f \
  $(SRC)/ortho2eva_new.f90 \

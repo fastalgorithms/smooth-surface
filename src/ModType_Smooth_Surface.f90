@@ -44,6 +44,9 @@ type, public :: Geometry
     real ( kind = 8 ), allocatable :: skeleton_N(:,:)           !Normal Vector on the skeleton at the nodes (to compute the double layer)
     real ( kind = 8 ), allocatable :: ru_smooth(:,:)            !u vectro on the real smooth surface
     real ( kind = 8 ), allocatable :: rv_smooth(:,:)            !v vectro on the real smooth surface
+	real ( kind = 8 ), allocatable :: du_smooth(:,:)            !u vectro on the real smooth surface
+    real ( kind = 8 ), allocatable :: dv_smooth(:,:)            !v vectro on the real smooth surface
+    real ( kind = 8 ), allocatable :: ds_smooth(:)            !u vectro on the real smooth surface
     real ( kind = 8 ), allocatable :: w_smooth(:)               !Integration weigths on the real smooth surface
 !
 
