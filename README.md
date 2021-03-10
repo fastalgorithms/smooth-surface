@@ -24,3 +24,6 @@ Note that when switching from running the code in
 matlab to fortran or vice vrsa, it is essential to run make clean in the
 parent directory before the switch.
 
+Tutorials:
+* [Smoothing anv visualizing multi-component geometries](https://media.upv.es/#/portal/video/a34cf630-7dd8-11eb-8282-fdfd21383b49)
+
