@@ -43,9 +43,9 @@ ifeq ($(HOST),osx-intel-openmp)
 endif
 
 ifeq ($(HOST),linux-gfortran)
-  FC = gfortran -c -w
-  FFLAGS = -O2 -mcmodel=medium 
-  FLINK = gfortran -w -mcmodel=medium -o $(PROJECT) -llapack -lblas
+  FC = gfortran -c -fopenmp -w
+  FFLAGS = -O2 
+  FLINK = gfortran -w -fopenmp -o $(PROJECT) -llapack -lblas
 endif
 
 ifeq ($(HOST),amd-gfortran)
@@ -83,7 +83,7 @@ endif
 
 SOURCES =  tfmm3dlrwrap.f tfmm3dlr.f l3dzero.f\
 	treeplot.f prini.f l3dterms.f laprouts3d.f\
-	Near_Interaction_code.f90 \
+	nearfield.f90 \
 	l3dmpmpfinal4.f l3dloclocfinal4.f l3dmplocfinal4.f\
 	prinm.f yrecursion.f ftophys.f phystof2.f\
 	legeexps.f d3hplratree.f rotgen.f numthetafour.f numthetahalf2.f\

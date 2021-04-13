@@ -606,7 +606,8 @@ c     PW variables
       complex *16, allocatable :: yshift(:,:)
       real *8, allocatable :: zshift(:,:)
 
-      complex *16 fexpe(50000), fexpo(50000), fexpback(100000)
+      complex *16, allocatable :: fexpe(:),fexpo(:),fexpback(:)
+
       complex *16, allocatable :: mexp(:,:,:)
       complex *16, allocatable :: mexpf1(:),mexpf2(:)
       complex *16, allocatable :: mexpp1(:),mexpp2(:),mexppall(:,:)
@@ -634,6 +635,7 @@ c     PW variables
       data ima/(0.0d0,1.0d0)/
 
       pi = 4.0d0*datan(1.0d0)
+      allocate(fexpe(50000), fexpo(50000), fexpback(100000))
 
 c     Initialize routines for plane wave mp loc translation
 
@@ -717,6 +719,7 @@ c     physical domain
 c     Precompute table of exponentials for mapping from
 c     fourier to physical domain
       call mkfexp2(nlams,nfourier,nphysical,fexpe,fexpo,fexpback)
+
       
 c
 cc    compute array of factorials
@@ -743,6 +746,7 @@ cc    compute array of factorials
 
       enddo
       enddo
+
 
 
 

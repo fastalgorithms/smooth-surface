@@ -4,8 +4,10 @@ c     O(N^2) direct method
 c
 c
         implicit real *8 (a-h,o-z)
+        real *8, allocatable :: w(:)
         parameter(lw=15 000 000)
-        dimension w(lw)
+
+        allocate(w(lw))
 c
         call test_part(w,lw)
 c
@@ -20,31 +22,19 @@ c0,0, 0.25
         implicit real *8 (a-h,o-z)
 
         real *8 expc(3,1)
-        complex *16 texps(10000)
+        complex *16, allocatable :: texps(:)
         real *8 scales
         integer ntj
 
-        real *8 rad(1 000 000)
-        real *8 source(3,1 000 000)
-        complex *16 charge(1 000 000)
-        complex *16 dipstr(1 000 000)
-        real *8 wts(1 000 000)
-        real *8 dipvec(3,1 000 000)
-
-        real *8 trads(1 000 000)
-        real *8 stdev(1 000 000)
-        real *8 stdev_grad(3,1 000 000)
-        complex *16 pot(1 000 000)
-        complex *16 fld(3,1 000 000)
-c
-        complex *16 pot2(1 000 000)
-        complex *16 fld2(3,1 000 000)
-c
-        dimension targets(3,2 000 000)
-        complex *16 pottarg(2 000 000)
-        complex *16 fldtarg(3,2 000 000)
-
-        integer flags(2 000 000)
+        real *8, allocatable :: rad(:),source(:,:)
+        complex *16, allocatable :: charge(:),dipstr(:)
+        real *8, allocatable :: wts(:),dipvec(:,:)
+        real *8, allocatable :: trads(:),stdev(:),stdev_grad(:,:)
+        complex *16, allocatable :: pot(:),fld(:,:),pot2(:)
+        complex *16, allocatable :: fld2(:,:)
+        real *8, allocatable :: targets(:,:)
+        complex *16, allocatable :: pottarg(:),fldtarg(:,:)
+        integer, allocatable :: flags(:)
 
 c       Tree variables
         integer idivflag,ndiv,isep,nlmax,nlevels,nboxes,mhung,ltree
@@ -69,6 +59,28 @@ c
 c
         done=1
         pi=4*atan(done)
+        allocate(rad(1 000 000))
+        allocate(source(3,1 000 000))
+        allocate(charge(1 000 000))
+        allocate(dipstr(1 000 000))
+        allocate(wts(1 000 000))
+        allocate(dipvec(3,1 000 000))
+
+        allocate(trads(1 000 000))
+        allocate(stdev(1 000 000))
+        allocate(stdev_grad(3,1 000 000))
+        allocate(pot(1 000 000))
+        allocate(fld(3,1 000 000))
+c
+        allocate(pot2(1 000 000))
+        allocate(fld2(3,1 000 000))
+c
+        allocate(targets(3,2 000 000))
+        allocate(pottarg(2 000 000))
+        allocate(fldtarg(3,2 000 000))
+
+        allocate(flags(2 000 000))
+
 c
 c
 c       SET ALL PARAMETERS
