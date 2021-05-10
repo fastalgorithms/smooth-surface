@@ -88,7 +88,7 @@ MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
 
-SOURCES =  $(EXM)/test_surfsmooth.f90 \
+SOURCES =  $(EXM)/test_surfsmooth_gmsh.f90 \
  $(SRC)/koornexps.f90 \
  $(SRC)/ortho2eva.f \
  $(SRC)/ortho2eva_new.f90 \

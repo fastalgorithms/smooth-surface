@@ -29,7 +29,8 @@ program smoother
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam,t1,t2,omp_get_wtime
+  double precision :: err_skel,rlam,t1,t2,omp_get_wtime,ra
+  integer i
 
 
   call prini(6,13)
@@ -41,7 +42,7 @@ program smoother
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 8
+  norder_smooth = 4
 
   ! Define number of refinements of smooth surface to be output in
   ! the go3 format
@@ -88,10 +89,6 @@ program smoother
   ! specify the msh file to read in
   !
 
-  !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere128.gidmsh'
-  !nombre='./geometries/prism_3368.gidmsh'
-  !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
   x0 = 4.5d0
@@ -104,169 +101,12 @@ program smoother
 
 
 
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1_borrame'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
-    filename='./geometries_go3/simplest_cube_borrame'
-!!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=1.5d0
-
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-
-!    nombre='./geometries/msh_files/Round_2.msh'
-!    filename='./../Geometries_go3/Round_2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Genus_10.msh'
-!    filename='./../Geometries_go3/Genus_10'
-!!!  point inside to check Gauss integral
-!    x0=0.5d0
-!    y0=0.5d0
-!    z0=0.5d0
-
-
-!    nombre='./geometries/msh_files/Cube_substraction.msh'
-!    filename='./../Geometries_go3/Cube_substraction'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='./geometries/msh_files/antenna_plane_2_v2.msh'
-!    filename='./../Geometries_go3/antenna_plane_2_v2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Multiscale_1.msh'
-!    filename='./../Geometries_go3/Multiscale_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-!!    nombre='./geometries/msh_files/Multiscale_2.msh'
-!!    filename='./../../Geometries_go3/Multiscale_2'
-!!!  point inside to check Gauss integral
-!!    x0=0.0d0
-!!    y0=0.0d0
-!!    z0=1.0d0
-
-!    nombre='./geometries/msh_files/A380_Final.msh'
-!    filename='./../Geometries_go3/A380_Final'
-!!!  point inside to check Gauss integral
-!    x0=4.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='./geometries/msh_files/capsule_multiscale.msh'
-!    filename='./../Geometries_go3/capsule_multiscale'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.1d0
-!    z0=.2d0
-
-
-
-!    nombre='./geometries/msh_files/genus_1.msh'
-!    filename='./../Geometries_go3/genus_1'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-
-!    nombre='./geometries/msh_files/genus_2.msh'
-!    filename='./../Geometries_go3/genus_2'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-!    nombre='./geometries/msh_files/Capacitor_3_ASCII.msh'
-!    filename='./../Geometries_go3/Capacitor_3'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=1.5d0
-!    z0=7.0d0
-
-!    nombre='./geometries/msh_files/Horn2_ASCII.msh'
-!    filename='./../Geometries_go3/Horn2'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.5d0
-
-!    nombre='./geometries/msh_files/Ship6_ASCII.msh'
-!    filename='./../Geometries_go3/Ship6'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-1.5d0
-
-
-!    nombre='./geometries/msh_files/fresnel_small_2_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-0.5d0
-
-!    nombre='./geometries/msh_files/fresnel_slim_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens_large'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.3d0
-
-
-!    nombre='./geometries/msh_files/Manas_genus_shorter_6_ASCII.msh'
-!    filename='./../Geometries_go3/Manas_genus_50'
-!!!  point inside to check Gauss integral
-!    x0=21.470d0
-!    y0=1.1250d0
-!    z0=-2.55d0/2.0d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_2_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus_2'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
+    nombre='./geometries/lens_r00.msh'
+    filename='./geometries_go3/lens'
 
 
   ! load in the msh file
-  call readgeometry(Geometry1, nombre, norder_skel, &
+  call read_q_gmsh(Geometry1, nombre, norder_skel, &
       norder_smooth)
 
   ifflatten = 0
@@ -284,6 +124,29 @@ program smoother
 
   ! dump out discretization points on the skeleton mesh
   call funcion_skeleton(Geometry1)
+
+
+  ! Compute the centroid and use it as an interior point
+  ! for now
+
+  x0 = 0
+  y0 = 0
+  z0 = 0
+  ra = 0
+  do i=1,Geometry1%n_Sk_points
+    x0 = x0 + Geometry1%skeleton_Points(1,i)*Geometry1%skeleton_w(i)
+    y0 = y0 + Geometry1%skeleton_Points(2,i)*Geometry1%skeleton_w(i)
+    z0 = z0 + Geometry1%skeleton_Points(3,i)*Geometry1%skeleton_w(i)
+    ra = ra + Geometry1%skeleton_w(i)
+  enddo
+  x0 = x0/ra
+  y0 = y0/ra
+  z0 = z0/ra
+  call prin2('x0=*',x0,1)
+  call prin2('y0=*',y0,1)
+  call prin2('z0=*',z0,1)
+  call prin2('ra=*',ra,1)
+
   call funcion_normal_vert(Geometry1)
 
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)

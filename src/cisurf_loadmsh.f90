@@ -363,6 +363,189 @@ end subroutine readgidmsh
 
 
 
+
+
+
+subroutine read_q_gmsh(Geometry1, filename, norder_skel, norder_smooth)
+  use ModType_Smooth_Surface
+  implicit none
+
+  !! This subroutine opens a v2 gmsh file and load the information in a
+  !! variable of type Geometry
+
+  !
+  ! Input
+  !   filename - the file to read
+  !   norder_skel - order to discretize the skeleton patches
+  !   norder_smooth - order to discretize the smoothed patches
+  !
+  ! Output
+  !   Geometry1 - data structure for geometry
+  !
+
+  !List of calling arguments
+  type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
+  character(len=100), intent(in) :: filename         !! name of the msh file
+  character(len=100) :: tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7
+  character(len=1000) :: cline
+  integer :: n_order_sf, nsk, nsf
+  integer  :: norder_skel, norder_smooth
+  
+  integer :: umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
+  integer :: node, nnodes, maxnodes
+  integer, allocatable :: elements(:,:), element(:)
+  integer :: ielem, nelems, maxelems
+  double precision :: x, y, z, d, dmin
+  double precision, allocatable :: xs(:), ys(:), zs(:)
+  integer :: ierror,iunit,korder,kpols,itype
+  integer :: io,numnodes,ind,numelem,nel,ntri,ntag,lll
+
+
+  Geometry1%ifflat = 0
+
+  iunit = 899
+
+  open(UNIT=iunit, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+
+  write (6,*) 'loading file ', trim(filename)
+  write (13,*) 'loading file ', trim(filename)
+  print *
+
+  korder = 2
+  kpols = (korder+1)*(korder+2)/2
+
+  itype = -1
+  if (korder .eq. 1) itype = 2
+  if (korder .eq. 2) itype = 9
+  if (korder .eq. 3) itype = 21
+  if (korder .eq. 4) itype = 23
+  if (korder .eq. 5) itype = 25
+  if (korder .eq. 6) itype = -1
+
+
+
+  
+  
+
+  do
+    read(iunit, *, iostat=io) cline
+
+    if (io .ne. 0) exit
+
+    if (trim(cline) .eq. '$Nodes') then
+      print *, 'Reading nodes . . . '
+      read(iunit,*) numnodes
+      print *, 'Number of nodes = ', numnodes
+      print *
+      
+      allocate(xs(numnodes),ys(numnodes),zs(numnodes))
+      do i = 1,numnodes
+        read (iunit,*) ind, x, y, z
+        xs(i) = x
+        ys(i) = y
+        zs(i) = z
+      end do
+
+    end if
+
+    if (trim(cline) .eq. '$Elements') then
+      print *, 'Reading elements . . . '
+      read(iunit,*) numelem
+      print *, 'Number of elements = ', numelem
+      print *
+
+      nel = (korder+1)*(korder+2)/2
+      allocate(elements(nel,numelem))
+
+      ntri = 0
+      do i = 1,numelem
+        
+        read(iunit, '(a)', iostat=io) cline
+        read (cline,*) ind, ielem, ntag
+
+        if (ielem .eq. itype) then
+
+          ntri = ntri + 1
+
+          lll= 1+1+1+ntag+nel
+          allocate(element(lll))
+          read(cline,*) element
+
+          do j = 1,kpols
+            elements(j,ntri) = element(j+3+ntag)
+          end do
+          deallocate(element)
+
+        end if
+        
+      end do
+
+    end if
+    
+  end do
+
+
+  
+  n = ntri
+  call prinf('ntri = *', n, 1)
+
+  nsk = (norder_skel+1)*(norder_skel+2)/2
+
+  call prinf('num points on skeleton mesh = *', nsk*n, 1)
+  
+  Geometry1%norder_skel = norder_skel
+  Geometry1%nskel = nsk
+
+
+  Geometry1%norder_smooth = norder_smooth
+  nsf = (norder_smooth+1)*(norder_smooth+2)/2
+  Geometry1%nsmooth = nsf
+
+  call prinf('num points on smooth mesh = *', nsf*n, 1)
+  
+  Geometry1%n_order_sf = nsf
+
+  m = numnodes
+  Geometry1%npoints=m
+  Geometry1%ntri=N
+  Geometry1%ntri_sk=N
+  Geometry1%n_Sf_points=N*nsf
+  Geometry1%n_Sk_points=N*nsk
+
+  if (allocated(Geometry1%Points)) then
+    deallocate(Geometry1%Points)
+  endif
+  if (allocated(Geometry1%Tri)) then
+    deallocate(Geometry1%Tri)
+  endif
+
+  allocate(Geometry1%Points(3,m))
+  allocate(Geometry1%Tri(6,N))
+
+  do j=1,m
+    Geometry1%Points(1,j) = xs(j)
+    Geometry1%Points(2,j) = ys(j)
+    Geometry1%Points(3,j) = zs(j)
+  enddo
+
+  do j=1,N
+    do i = 1,6
+      Geometry1%Tri(i,j) = elements(i,j)
+    end do  
+  enddo
+
+  
+  close(iunit)
+
+  return
+end subroutine read_q_gmsh
+
+
+
+
+
+
+
 subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
   use ModType_Smooth_Surface
   implicit none
