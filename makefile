@@ -10,7 +10,7 @@ HOST = osx-gcc
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel
-#HOST = linux-intel-openmp
+HOST = linux-intel-openmp
 
 
 PROJECT = int2
