@@ -141,7 +141,7 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
   if (n_order_sf .gt. 4**3) nover = 4
   if (n_order_sf .gt. 4**4) nover = 5
 
-  nover = nover + 1
+  nover = nover
   nsub = 4**nover
 
   !
@@ -376,14 +376,14 @@ subroutine xtri_vtk_flat(ntri, xtri1s, title, filename)
   end do
 
 
-  write(iunit1,'(a,i8,i8)') "CELLS ", ntri, ntri*4
+  write(iunit1,'(a,i9,i9)') "CELLS ", ntri, ntri*4
 
   do i = 1,ntri
     i1 = 3*(i-1) + 1
-    write(iunit1,'(a,i8,i8,i8)') "3 ", i1-1, i1, i1+1
+    write(iunit1,'(a,i9,i9,i9)') "3 ", i1-1, i1, i1+1
   end do
 
-  write(iunit1,'(a,i8)') "CELL_TYPES ", ntri
+  write(iunit1,'(a,i9)') "CELL_TYPES ", ntri
   do i = 1,ntri
     write(iunit1,'(a)') "5"
   end do
@@ -401,7 +401,7 @@ subroutine xtri_vtk_flat(ntri, xtri1s, title, filename)
 
   write(iunit1,'(a)') ""
   write(iunit1,'(a)') ""
-  write(iunit1,'(a,i8)') "CELL_DATA ", ntri
+  write(iunit1,'(a,i9)') "CELL_DATA ", ntri
   write(iunit1,'(a)') "SCALARS scalars float 1"
   write(iunit1,'(a)') "LOOKUP_TABLE default"
   do i = 1,ntri

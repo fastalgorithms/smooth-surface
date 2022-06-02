@@ -37,17 +37,17 @@ program smoother
 
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 4
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 8
+  norder_smooth = 2
 
   ! Define number of refinements of smooth surface to be output in
   ! the go3 format
   ! 
   !
-  nrefine = 1
+  nrefine = 0
   ! nrefine=1
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -112,8 +112,15 @@ program smoother
 !    z0=0.0d0
 
 
-    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
-    filename='./geometries_go3/simplest_cube_borrame'
+!    nombre='./geometries/gridFin.tri'
+!    filename='./geometries_go3/gridFin_smooth'
+!!!  point inside to check Gauss integral
+!    x0=0.0d0
+!    y0=0.0d0
+!    z0=1.5d0
+
+    nombre='./geometries/wing.tri'
+    filename='./geometries_go3/wing_smooth'
 !!!  point inside to check Gauss integral
     x0=0.0d0
     y0=0.0d0
@@ -277,17 +284,30 @@ program smoother
 
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
-  call plotskeletonvtk(Geometry1, plot_name)
+!  call plotskeletonvtk(Geometry1, plot_name)
 
 
   !call refineskeleton(Geometry1, nrefine)
 
   ! dump out discretization points on the skeleton mesh
+  print *, "running funcion skeleton"
   call funcion_skeleton(Geometry1)
+  print *, "finished running funcion skeleton"
+
+  print *, " "
+  print *, " "
+  print *, "running funcion normal vert"
   call funcion_normal_vert(Geometry1)
+  print *, "finished running funcion normal vert"
+  print *, " "
+  print *, " "
 
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)
+
+  print *, "finished running funcion Base points"
+  print *, " "
+  print *, " "
 
 
   !! Esto es para el modo sin FMM
@@ -307,6 +327,7 @@ program smoother
 !  print *, '. . . checking gauss identity on skeleton'
 !  call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
 
+  print *, "Starting find smooth surface"
 
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 

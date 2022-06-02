@@ -201,13 +201,20 @@ contains
     double precision U_x(Geometry1%n_order_sf),U_y(Geometry1%n_order_sf),U_z(Geometry1%n_order_sf)
     double precision V_x(Geometry1%n_order_sf),V_y(Geometry1%n_order_sf),V_z(Geometry1%n_order_sf)
 
-    integer :: count,n_order_sf, itype, npols, norder_smooth
-    double precision :: umatr(100000), vmatr(100000)
+    integer :: count,n_order_sf, itype, npols, norder_smooth,npol_smooth
+    double precision, allocatable :: umatr(:,:),vmatr(:,:)
 
 
     
     norder_smooth = Geometry1%norder_smooth
     n_order_sf=Geometry1%n_order_sf
+
+    npol_smooth = (norder_smooth+1)*(norder_smooth+2)/2
+    print *, n_order_sf
+    print *, npol_smooth
+    allocate(umatr(npol_smooth,npol_smooth))
+    allocate(vmatr(npol_smooth,npol_smooth))
+    
 
     !
     ! get the smooth nodes and quadrature weights

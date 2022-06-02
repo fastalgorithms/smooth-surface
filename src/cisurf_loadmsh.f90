@@ -44,8 +44,7 @@ subroutine readgeometry(Geometry1, filename, norder_skel, &
   elseif (index(filename,'.tri')>0) then
     print *, 'filename = ', trim(filename)
     print *, 'order not converted in .tri files, double check!!'
-    stop
-    call readtri(Geometry1, filename, norder_skel, n_order_sf)
+    call readtri(Geometry1, filename, norder_skel, norder_smooth)
 
   else
     write (*,*) 'Geometry type not recognized'
@@ -546,7 +545,7 @@ end subroutine read_q_gmsh
 
 
 
-subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
+subroutine readtri(Geometry1,filename, norder_skel, norder_smooth)
   use ModType_Smooth_Surface
   implicit none
 
@@ -555,10 +554,10 @@ subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
 
   type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
   character(len=100), intent(in) :: filename         !! name of the msh file
-  integer :: n_order_sf, norder_skel
+  integer :: norder_smooth, norder_skel
 
   integer umio,i,m,N,j,aux1,aux2,aux3,ipointer
-  integer :: ierror, nsk
+  integer :: ierror, nsk,nsf
 
   ! set the flag for flat vs quadratic
   Geometry1%ifflat = 1
@@ -582,13 +581,17 @@ subroutine readtri(Geometry1,filename, norder_skel, n_order_sf)
 
   Geometry1%norder_skel = norder_skel
   Geometry1%nskel = nsk
-
   
-  Geometry1%n_order_sf=n_order_sf
+  Geometry1%norder_smooth = norder_smooth
+  nsf = (norder_smooth+1)*(norder_smooth+2)/2
+  print *, "nsf=",nsf
+  
+  Geometry1%n_order_sf=nsf
+  Geometry1%nsmooth = nsf
   Geometry1%npoints=m+N*3
   Geometry1%ntri=N
   Geometry1%ntri_sk=N
-  Geometry1%n_Sf_points=N*n_order_sf
+  Geometry1%n_Sf_points=N*nsf
   Geometry1%n_Sk_points=N*nsk
 
   if (allocated(Geometry1%Points)) then
