@@ -37,11 +37,11 @@ program smoother
 
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 4
+  norder_skel = 8
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 2
+  norder_smooth = 4
 
   ! Define number of refinements of smooth surface to be output in
   ! the go3 format
@@ -54,7 +54,7 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 1
+  adapt_flag = 0
 
 
   !
@@ -63,7 +63,7 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-  rlam = 10 !(usual value)
+  rlam = 10.0d0 !(usual value)
 
   !rlam = .5d0
   !rlam = 1
@@ -119,12 +119,15 @@ program smoother
 !    y0=0.0d0
 !    z0=1.5d0
 
-    nombre='./geometries/wing.tri'
-    filename='./geometries_go3/wing_smooth'
+!    nombre='./geometries/wing.tri'
+!    filename='./geometries_go3/wing_smooth'
 !!!  point inside to check Gauss integral
     x0=0.0d0
     y0=0.0d0
     z0=1.5d0
+
+    nombre = './geometries/FORK.a.tri'
+    filename= './geometries_go3/fork_smooth'
 
 !    nombre='./geometries/msh_files/Round_1.msh'
 !    filename='./../Geometries_go3/Round_1'
@@ -284,7 +287,8 @@ program smoother
 
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
-!  call plotskeletonvtk(Geometry1, plot_name)
+  call plotskeletonvtk(Geometry1, plot_name)
+
 
 
   !call refineskeleton(Geometry1, nrefine)

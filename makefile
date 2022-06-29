@@ -1,7 +1,7 @@
 
-HOST = osx-gcc
+#HOST = osx-gcc
 #HOST = linux-gcc
-#HOST = linux-gcc-openmp
+HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
@@ -10,12 +10,12 @@ HOST = osx-gcc
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel
-HOST = linux-intel-openmp
+#HOST = linux-intel-openmp
 
 
 PROJECT = int2
 
-GFORT = gfortran-10
+GFORT = gfortran
 
 ifeq ($(HOST),osx-gcc)
   FC = $(GFORT)

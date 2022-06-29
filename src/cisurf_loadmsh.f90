@@ -605,7 +605,10 @@ subroutine readtri(Geometry1,filename, norder_skel, norder_smooth)
 
   do j=1,m
     read(8,*) Geometry1%Points(1,j),Geometry1%Points(2,j),Geometry1%Points(3,j)
+    Geometry1%Points(1:3,j) = Geometry1%Points(1:3,j)*1.0d7
   enddo
+
+
 
   ipointer=m+1
 
