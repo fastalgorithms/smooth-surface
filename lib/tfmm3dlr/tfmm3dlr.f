@@ -635,7 +635,7 @@ c     PW variables
       data ima/(0.0d0,1.0d0)/
 
       pi = 4.0d0*datan(1.0d0)
-      allocate(fexpe(50000), fexpo(50000), fexpback(100000))
+      allocate(fexpe(50000), fexpo(50000), fexpback(200000))
 
 c     Initialize routines for plane wave mp loc translation
 

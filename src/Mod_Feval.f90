@@ -313,7 +313,7 @@ contains
     ifdipole=1
     ifpottarg=1
     iffldtarg=1
-    iprec=4
+    iprec=3
     ier=0
     n_sources=Geometry1%n_Sk_points
 
