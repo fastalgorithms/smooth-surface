@@ -1,7 +1,7 @@
 
 #HOST = osx-gcc
-#HOST = linux-gcc
-HOST = linux-gcc-openmp
+HOST = linux-gcc
+#HOST = linux-gcc-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
@@ -28,7 +28,7 @@ endif
 
 ifeq ($(HOST),osx-gcc-openmp)
   FC = $(GFORT)
-  FFLAGS = -O2 -fopenmp -w 
+  FFLAGS = -O2 -fopenmp -w  
   FLINK = $(GFORT) -fopenmp -w \
     -Wl,-stack_size,0x80000000 -o $(PROJECT) -framework accelerate
   export OMP_STACKSIZE = 2048M
@@ -52,16 +52,16 @@ endif
 
 ifeq ($(HOST),linux-intel-openmp)
   FC = ifort
-  FFLAGS = -i8 -r8 -O2 -w -qopenmp
+  FFLAGS = -i8 -r8 -O2 -w -qopenmp -xHost
   FLINK = ifort -i8 -r8 -w -mkl=parallel -qopenmp -o $(PROJECT)
 endif
 
 
 ifeq ($(HOST),linux-gcc)
    FC = gfortran
-   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8
-   FLINK = gfortran -g -w -fdefault-integer-8 -finteger-4-integer-8 \
-       -o $(PROJECT) -llapack -lblas
+   FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 -std=legacy
+   FLINK = gfortran -g -w -fdefault-integer-8 -finteger-4-integer-8 -std=legacy \
+       -o $(PROJECT) -lopenblas
 endif
 
 ifeq ($(HOST),linux-gcc-openmp)

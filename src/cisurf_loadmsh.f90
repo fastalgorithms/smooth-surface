@@ -87,7 +87,7 @@ subroutine readmsh(Geometry1, filename, norder_skel, norder_smooth)
 
   Geometry1%ifflat = 0
 
-  open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+  open(UNIT=8, FILE=trim(filename), STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) aux1,aux2,aux3,m, N
 
   print *
@@ -198,7 +198,7 @@ subroutine readgidmsh(Geometry1, filename, norder_skel, norder_smooth)
 
   Geometry1%ifflat = 0
 
-  open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+  open(UNIT=8, FILE=trim(filename), STATUS='OLD', ACTION='READ', IOSTAT=ierror)
 
   write (6,*) 'loading file ', trim(filename)
   write (13,*) 'loading file ', trim(filename)
@@ -404,7 +404,7 @@ subroutine read_q_gmsh(Geometry1, filename, norder_skel, norder_smooth)
 
   iunit = 899
 
-  open(UNIT=iunit, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+  open(UNIT=iunit, FILE=trim(filename), STATUS='OLD', ACTION='READ', IOSTAT=ierror)
 
   write (6,*) 'loading file ', trim(filename)
   write (13,*) 'loading file ', trim(filename)
@@ -563,7 +563,7 @@ subroutine readtri(Geometry1,filename, norder_skel, norder_smooth)
   Geometry1%ifflat = 1
 
   
-  open(UNIT=8, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+  open(UNIT=8, FILE=trim(filename), STATUS='OLD', ACTION='READ', IOSTAT=ierror)
   read(8,*) m, N
 
 

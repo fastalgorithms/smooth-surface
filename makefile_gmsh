@@ -10,7 +10,7 @@ HOST = osx-gcc-openmp
 #HOST = amd-gfortran
 #HOST = amd-gfortran-openmp
 #HOST = linux-intel
-#HOST = linux-intel-openmp
+HOST = linux-intel-openmp
 
 
 PROJECT = int2
@@ -51,7 +51,7 @@ endif
 
 ifeq ($(HOST),linux-intel-openmp)
   FC = ifort
-  FFLAGS = -i8 -r8 -O2 -w -qopenmp
+  FFLAGS = -i8 -r8 -O2 -w -qopenmp -xHost
   FLINK = ifort -i8 -r8 -w -mkl=parallel -qopenmp -o $(PROJECT)
 endif
 
@@ -65,7 +65,7 @@ endif
 
 ifeq ($(HOST),linux-gcc-openmp)
    FC = gfortran 
-   FFLAGS = -O2  -w --openmp -fdefault-integer-8 -finteger-4-integer-8
+   FFLAGS = -O2 -std=legacy  -w --openmp -fdefault-integer-8 -finteger-4-integer-8
    FLINK = gfortran --openmp -fdefault-integer-8 -finteger-4-integer-8 \
        -w -o $(PROJECT) -llapack -lblas
 endif
