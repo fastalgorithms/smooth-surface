@@ -7,8 +7,8 @@ c***********************************************************************
       real *8     facts(0:200)
 c
       facts(0) = 1.0d0
-      do 100 i = 1,100
-	 facts(i) = facts(i-1)*dsqrt(i+0.0d0)
+      do 100 i = 1,120
+         facts(i) = facts(i-1)*dsqrt(i+0.0d0)
 100   continue
 c
       do 1000 nl = 1,nlambs

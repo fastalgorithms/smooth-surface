@@ -23,13 +23,14 @@ program smoother
   integer :: interp_flag,fmm_flag
   integer :: norder_skel, norder_smooth
 
-  character (len=300) :: nombre, filename,name_aux
+  character (len=100) :: nombre, filename,name_aux
   character (len=21) :: plot_name
   character (len=8) :: istr1,istr2
   character (len=2) :: arg_comm
   double precision :: x0,y0,z0
   double precision, allocatable :: time_report(:), error_report(:)
-  double precision :: err_skel,rlam,t1,t2,omp_get_wtime
+  double precision :: err_skel,rlam,t1,t2,omp_get_wtime,ra
+  integer i
 
 
   call prini(6,13)
@@ -37,11 +38,16 @@ program smoother
 
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 8
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
-  norder_smooth = 8
+  norder_smooth = 4
+
+  ! Define number of refinements of smooth surface to be output in
+  ! the go3 format
+  ! 
+  !
   nrefine = 1
   ! nrefine=1
 
@@ -58,7 +64,7 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-  rlam = 10 !(usual value)
+  rlam = 5.0d0 !(usual value)
 
   !rlam = .5d0
   !rlam = 1
@@ -83,10 +89,6 @@ program smoother
   ! specify the msh file to read in
   !
 
-  !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere128.gidmsh'
-  !nombre='./geometries/prism_3368.gidmsh'
-  !filename='./plot_files/high_genus'
 
   ! point inside to check Gauss integral
   x0 = 4.5d0
@@ -99,190 +101,53 @@ program smoother
 
 
 
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1_borrame'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
+    nombre='./geometries/cow_new.msh'
+    filename='./geometries_go3/cow_new'
 
 
-    nombre='./geometries/msh_files/simplest_cube_quadratic.msh'
-    filename='./../Geometries_go3/simplest_cube_borrame'
-!!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=1.5d0
-
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-
-!    nombre='./geometries/msh_files/Round_2.msh'
-!    filename='./../Geometries_go3/Round_2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Genus_10.msh'
-!    filename='./../Geometries_go3/Genus_10'
-!!!  point inside to check Gauss integral
-!    x0=0.5d0
-!    y0=0.5d0
-!    z0=0.5d0
-
-
-!    nombre='./geometries/msh_files/Cube_substraction.msh'
-!    filename='./../Geometries_go3/Cube_substraction'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='./geometries/msh_files/antenna_plane_2_v2.msh'
-!    filename='./../Geometries_go3/antenna_plane_2_v2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Multiscale_1.msh'
-!    filename='./../Geometries_go3/Multiscale_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-!!    nombre='./geometries/msh_files/Multiscale_2.msh'
-!!    filename='./../../Geometries_go3/Multiscale_2'
-!!!  point inside to check Gauss integral
-!!    x0=0.0d0
-!!    y0=0.0d0
-!!    z0=1.0d0
-
-!    nombre='./geometries/msh_files/A380_Final.msh'
-!    filename='./../Geometries_go3/A380_Final'
-!!!  point inside to check Gauss integral
-!    x0=4.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='./geometries/msh_files/capsule_multiscale.msh'
-!    filename='./../Geometries_go3/capsule_multiscale'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.1d0
-!    z0=.2d0
-
-
-
-!    nombre='./geometries/msh_files/genus_1.msh'
-!    filename='./../Geometries_go3/genus_1'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-
-!    nombre='./geometries/msh_files/genus_2.msh'
-!    filename='./../Geometries_go3/genus_2'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-!    nombre='./geometries/msh_files/Capacitor_3_ASCII.msh'
-!    filename='./../Geometries_go3/Capacitor_3'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=1.5d0
-!    z0=7.0d0
-
-!    nombre='./geometries/msh_files/Horn2_ASCII.msh'
-!    filename='./../Geometries_go3/Horn2'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.5d0
-
-!    nombre='./geometries/msh_files/Ship6_ASCII.msh'
-!    filename='./../Geometries_go3/Ship6'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-1.5d0
-
-
-!    nombre='./geometries/msh_files/fresnel_small_2_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-0.5d0
-
-!    nombre='./geometries/msh_files/fresnel_slim_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens_large'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.3d0
-
-
-!    nombre='./geometries/msh_files/Manas_genus_shorter_6_ASCII.msh'
-!    filename='./../Geometries_go3/Manas_genus_50'
-!!!  point inside to check Gauss integral
-!    x0=21.470d0
-!    y0=1.1250d0
-!    z0=-2.55d0/2.0d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_2_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus_2'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
-
-    call read_input_variables(norder_skel,norder_smooth,nrefine,&
-       &adapt_flag,rlam,filename,nombre)
-    write (*,*) 'a punto de cascar',nombre,norder_skel,norder_smooth
   ! load in the msh file
-  call readgeometry(Geometry1, nombre, norder_skel, &
+  call read_quad9_gmsh(Geometry1, nombre, norder_skel, &
       norder_smooth)
-    write (*,*) 'a punto de cascar'
 
   ifflatten = 0
   if (ifflatten .eq. 1) then
     call cisurf_quad2flat(Geometry1)
   end if
 
+  ! dump out discretization points on the skeleton mesh
+  call funcion_skeleton(Geometry1)
+  call funcion_normal_vert(Geometry1)
 
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
-  call funcion_skeleton(Geometry1)
-  call funcion_normal_vert(Geometry1)
   call plotskeletonvtk(Geometry1, plot_name)
 
 
   !call refineskeleton(Geometry1, nrefine)
 
-  ! dump out discretization points on the skeleton mesh
+
+
+  ! Compute the centroid and use it as an interior point
+  ! for now
+
+  x0 = 0
+  y0 = 0
+  z0 = 0
+  ra = 0
+  do i=1,Geometry1%n_Sk_points
+    x0 = x0 + Geometry1%skeleton_Points(1,i)*Geometry1%skeleton_w(i)
+    y0 = y0 + Geometry1%skeleton_Points(2,i)*Geometry1%skeleton_w(i)
+    z0 = z0 + Geometry1%skeleton_Points(3,i)*Geometry1%skeleton_w(i)
+    ra = ra + Geometry1%skeleton_w(i)
+  enddo
+  x0 = x0/ra
+  y0 = y0/ra
+  z0 = z0/ra
+  call prin2('x0=*',x0,1)
+  call prin2('y0=*',y0,1)
+  call prin2('z0=*',z0,1)
+  call prin2('ra=*',ra,1)
+
 
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)
@@ -469,51 +334,4 @@ end subroutine check_gauss_skeleton
 
 
 
-
-
-subroutine read_input_variables(norder_skel,norder_smooth,nrefine,&
-&adapt_flag,rlam,filename1,filename2)
-  implicit none
-
-  !List of calling arguments
-!  double precision, intent(out) :: x0,y0,z0
-  integer, intent(out) :: norder_skel,norder_smooth,nrefine,adapt_flag
-  real ( kind = 8 ), intent(out) :: rlam
-  character (len=300), intent(out) :: filename1,filename2
-!  character (len=300) filename1,filename2
-  character (len=300) filename
-  integer :: ierror
-
-  
-  !List of local variables
-  integer :: umio
-
-      filename='auxfile_inout_matlab_fortran.txt'
-	  open(UNIT=16, FILE=filename, STATUS='OLD', ACTION='READ', IOSTAT=ierror)
-	  read(16,*) norder_skel
-	  write (*,*) norder_skel
-	  read(16,*) norder_smooth
-	  write (*,*) norder_smooth
-	  read(16,*) adapt_flag
-	  write (*,*) adapt_flag
-	  read(16,*) nrefine
-	  write (*,*) nrefine
-
-	  read(16,"(A300)") filename1
-	  filename1=trim(adjustl(filename1))
-	  write (*,*) trim(adjustl(filename1))
-	  
-	  read(16,*) rlam
-	  write (*,*) rlam
-	  
-	  read(16,"(A300)") filename2
-      filename2=trim(adjustl(filename2))
-	  write (*,*) filename2
-      
-!	  write (*,*) trim(adjustl(aux_char))
-      close(16)
-
-
-return
-end subroutine read_input_variables
 

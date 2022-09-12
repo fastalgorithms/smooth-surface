@@ -38,7 +38,7 @@ program smoother
 
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 12
+  norder_skel = 8
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
@@ -48,7 +48,7 @@ program smoother
   ! the go3 format
   ! 
   !
-  nrefine = 1
+  nrefine = 0
   ! nrefine=1
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -64,7 +64,7 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-  rlam = 10 !(usual value)
+  rlam = 10.0d0 !(usual value)
 
   !rlam = .5d0
   !rlam = 1
@@ -102,7 +102,8 @@ program smoother
 
 
     nombre='./geometries/lens_r00.msh'
-    filename='./geometries_go3/lens'
+    nombre='./geometries/single-petal-occ-order2.msh'
+    filename='./geometries_go3/single-petal-occ'
 
 
   ! load in the msh file
@@ -114,6 +115,9 @@ program smoother
     call cisurf_quad2flat(Geometry1)
   end if
 
+  ! dump out discretization points on the skeleton mesh
+  call funcion_skeleton(Geometry1)
+  call funcion_normal_vert(Geometry1)
 
   ! plot the skeleton mesh
   plot_name = 'skeleton.vtk'
@@ -122,8 +126,6 @@ program smoother
 
   !call refineskeleton(Geometry1, nrefine)
 
-  ! dump out discretization points on the skeleton mesh
-  call funcion_skeleton(Geometry1)
 
 
   ! Compute the centroid and use it as an interior point
@@ -147,7 +149,6 @@ program smoother
   call prin2('z0=*',z0,1)
   call prin2('ra=*',ra,1)
 
-  call funcion_normal_vert(Geometry1)
 
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)

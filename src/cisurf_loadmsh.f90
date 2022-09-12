@@ -545,6 +545,192 @@ end subroutine read_q_gmsh
 
 
 
+
+
+subroutine read_quad9_gmsh(Geometry1, filename, norder_skel, norder_smooth)
+  use ModType_Smooth_Surface
+  implicit none
+
+  !! This subroutine opens a v2 gmsh file and load the information in a
+  !! variable of type Geometry. The mesh is assumed to be contained of
+  !  type 10 elements, i.e. quadrangle 9. Each quad is split into 2 triangles
+  !  and quad i corresponds to triangles 2*i-1 and 2*i
+
+  !
+  ! Input
+  !   filename - the file to read
+  !   norder_skel - order to discretize the skeleton patches
+  !   norder_smooth - order to discretize the smoothed patches
+  !
+  ! Output
+  !   Geometry1 - data structure for geometry
+  !
+
+  !List of calling arguments
+  type (Geometry), intent(inout) :: Geometry1     !! where the geometry will be loaded
+  character(len=100), intent(in) :: filename         !! name of the msh file
+  character(len=100) :: tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7
+  character(len=1000) :: cline
+  integer :: n_order_sf, nsk, nsf
+  integer  :: norder_skel, norder_smooth
+  
+  integer :: umio,i,m,N,j,aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8
+  integer :: node, nnodes, maxnodes
+  integer, allocatable :: elements(:,:), element(:)
+  integer :: ielem, nelems, maxelems
+  double precision :: x, y, z, d, dmin
+  double precision, allocatable :: xs(:), ys(:), zs(:)
+  integer :: ierror,iunit,korder,kpols,itype
+  integer :: io,numnodes,ind,numelem,nel,ntri,ntag,lll,nquad
+
+
+  Geometry1%ifflat = 0
+
+  iunit = 899
+
+  open(UNIT=iunit, FILE=trim(filename), STATUS='OLD', ACTION='READ', IOSTAT=ierror)
+
+  write (6,*) 'loading file ', trim(filename)
+  write (13,*) 'loading file ', trim(filename)
+  print *
+
+  korder = 2
+  kpols = 9
+
+  itype = 10
+
+
+  do
+    read(iunit, *, iostat=io) cline
+
+    if (io .ne. 0) exit
+
+    if (trim(cline) .eq. '$Nodes') then
+      print *, 'Reading nodes . . . '
+      read(iunit,*) numnodes
+      print *, 'Number of nodes = ', numnodes
+      print *
+      
+      allocate(xs(numnodes),ys(numnodes),zs(numnodes))
+      do i = 1,numnodes
+        read (iunit,*) ind, x, y, z
+        xs(i) = x
+        ys(i) = y
+        zs(i) = z
+      end do
+
+    end if
+
+    if (trim(cline) .eq. '$Elements') then
+      print *, 'Reading elements . . . '
+      read(iunit,*) numelem
+      print *, 'Number of elements = ', numelem
+      print *
+
+      allocate(elements(9,numelem))
+
+      nquad = 0
+      do i = 1,numelem
+        
+        read(iunit, '(a)', iostat=io) cline
+        read (cline,*) ind, ielem, ntag
+
+        if (ielem .eq. itype) then
+
+          nquad = nquad + 1
+
+          lll= 14 
+          allocate(element(lll))
+          read(cline,*) element
+
+          do j = 1,kpols
+            elements(j,nquad) = element(j+5)
+          end do
+          deallocate(element)
+
+        end if
+        
+      end do
+
+    end if
+    
+  end do
+
+  print *, "nquad=",nquad
+  call prinf('elements=*',elements,18)
+
+
+  ntri = 2*nquad
+  n = ntri
+  call prinf('ntri = *', n, 1)
+
+  nsk = (norder_skel+1)*(norder_skel+2)/2
+
+  call prinf('num points on skeleton mesh = *', nsk*n, 1)
+  
+  Geometry1%norder_skel = norder_skel
+  Geometry1%nskel = nsk
+
+
+  Geometry1%norder_smooth = norder_smooth
+  nsf = (norder_smooth+1)*(norder_smooth+2)/2
+  Geometry1%nsmooth = nsf
+
+  call prinf('num points on smooth mesh = *', nsf*n, 1)
+  
+  Geometry1%n_order_sf = nsf
+
+  m = numnodes
+  Geometry1%npoints=m
+  Geometry1%ntri=N
+  Geometry1%ntri_sk=N
+  Geometry1%n_Sf_points=N*nsf
+  Geometry1%n_Sk_points=N*nsk
+
+  if (allocated(Geometry1%Points)) then
+    deallocate(Geometry1%Points)
+  endif
+  if (allocated(Geometry1%Tri)) then
+    deallocate(Geometry1%Tri)
+  endif
+
+  allocate(Geometry1%Points(3,m))
+  allocate(Geometry1%Tri(6,N))
+
+  do j=1,m
+    Geometry1%Points(1,j) = xs(j)
+    Geometry1%Points(2,j) = ys(j)
+    Geometry1%Points(3,j) = zs(j)
+  enddo
+
+
+
+  do j=1,nquad
+    Geometry1%Tri(1,2*j-1) = elements(1,j)
+    Geometry1%Tri(2,2*j-1) = elements(2,j)
+    Geometry1%Tri(3,2*j-1) = elements(4,j)
+    Geometry1%Tri(4,2*j-1) = elements(5,j)
+    Geometry1%Tri(5,2*j-1) = elements(9,j)
+    Geometry1%Tri(6,2*j-1) = elements(8,j)
+
+    Geometry1%Tri(1,2*j) = elements(3,j)
+    Geometry1%Tri(2,2*j) = elements(4,j)
+    Geometry1%Tri(3,2*j) = elements(2,j)
+    Geometry1%Tri(4,2*j) = elements(7,j)
+    Geometry1%Tri(5,2*j) = elements(9,j)
+    Geometry1%Tri(6,2*j) = elements(6,j)
+  enddo
+
+  
+  close(iunit)
+
+  return
+end subroutine read_quad9_gmsh
+
+
+
+
+
 subroutine readtri(Geometry1,filename, norder_skel, norder_smooth)
   use ModType_Smooth_Surface
   implicit none

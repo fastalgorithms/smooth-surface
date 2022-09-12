@@ -28,7 +28,7 @@ endif
 
 ifeq ($(HOST),osx-gcc-openmp)
   FC = $(GFORT)
-  FFLAGS = -O2 -fopenmp -w -std=legacy -finteger-4-integer-8 -fdefault-integer-8 -ffpe-trap=invalid 
+  FFLAGS = -O2 -fopenmp -w -std=legacy -finteger-4-integer-8 -fdefault-integer-8 
   FLINK = $(GFORT) -fopenmp -w -finteger-4-integer-8 -fdefault-integer-8 \
     -Wl,-stack_size,0x80000000 -std=legacy -o $(PROJECT) -framework accelerate
 endif
@@ -87,7 +87,7 @@ MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
 
-SOURCES =  $(EXM)/test_surfsmooth_gmsh.f90 \
+SOURCES =  $(EXM)/test_surfsmooth_gmsh_quad.f90 \
  $(SRC)/koornexps.f90 \
  $(SRC)/ortho2eva.f \
  $(SRC)/ortho2eva_new.f90 \

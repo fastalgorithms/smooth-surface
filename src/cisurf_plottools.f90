@@ -9,18 +9,20 @@ subroutine plotskeletonvtk(Geometry1, filename)
   integer :: ierror, id, norder, nover, nsub, k, ntri, i, j, ictr
   integer :: ntot, ltot, npols7, info, iii, n, l, nnn, iw
   integer :: ifflat, is(10)
-  real (kind = 8) :: us(100000), vs(100000), ws(100000), dcond
-  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
-  real (kind = 8) :: xcoefs(10000), xrhs(10000)
-  real (kind = 8) :: ycoefs(10000), yrhs(10000)
-  real (kind = 8) :: zcoefs(10000), zrhs(10000)
+!  real (kind = 8) :: us(100000), vs(100000), ws(100000), dcond
+!  real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10), pols(100000)
+!  real (kind = 8) :: xcoefs(10000), xrhs(10000)
+!  real (kind = 8) :: ycoefs(10000), yrhs(10000)
+!  real (kind = 8) :: zcoefs(10000), zrhs(10000)
   real (kind = 8) :: xval, yval, zval, pinv(1000000)
 
   real (kind = 8), allocatable :: xyzs(:,:,:), uvs(:,:,:)
   real (kind = 8), allocatable :: pmat(:,:), triout(:,:,:)
 
-  double precision :: umatr(100000), vmatr(100000)
+!  double precision :: umatr(100000), vmatr(100000)
   integer :: itype, npols
+  integer ipatch,iunit1
+  real *8 rr
   
   !
   ! This routien dumps out the skeleton patches (flat or quadratic)
@@ -52,25 +54,62 @@ subroutine plotskeletonvtk(Geometry1, filename)
   
   ! get vertex indices and construct triangles
 
-  do i = 1,ntri
-    do j = 1,k
-      is(j) = Geometry1%Tri(j,i)
+
+  iunit1 = 877
+  open(unit=iunit1,file=trim(filename),status='replace')
+  write(iunit1,'(a)') "# vtk DataFile Version 3.0"
+  write(iunit1,'(a)') "Skeleton"
+  write(iunit1,'(a)') "ASCII"
+  write(iunit1,'(a)') "DATASET UNSTRUCTURED_GRID"
+  write(iunit1,'(a,i9,a)') "POINTS ", Geometry1%npoints, " float"
+  do i=1,Geometry1%npoints
+    write(iunit1,"(E11.5,2(2x,e11.5))") Geometry1%Points(1,i), &
+      Geometry1%Points(2,i), Geometry1%Points(3,i)
+  enddo
+
+  write(iunit1,'(a,i9,i9)') "CELLS ", ntri, ntri*(k+1)
+
+  if(ifflat.eq.0) then
+    do i=1,ntri
+      write(iunit1,'(a,i9,i9,i9,i9,i9,i9)') "6 ", Geometry1%Tri(1,i)-1, &
+       Geometry1%Tri(2,i)-1,Geometry1%Tri(3,i)-1, &
+       Geometry1%Tri(4,i)-1,Geometry1%Tri(5,i)-1, Geometry1%Tri(6,i)-1
+    enddo
+    write(iunit1,'(a,i9)') "CELL_TYPES ", ntri
+    do ipatch = 1,ntri
+      write(iunit1,'(a)') "22"
     end do
 
-    do j = 1,k
-      triout(1,j,i) = Geometry1%Points(1,is(j))
-      triout(2,j,i) = Geometry1%Points(2,is(j))
-      triout(3,j,i) = Geometry1%Points(3,is(j))
+  elseif(ifflat.eq.1) then
+    do i=1,ntri
+      write(iunit1,'(a,i9,i9,i9)') "3 ", Geometry1%Tri(1,i)-1, &
+       Geometry1%Tri(2,i)-1,Geometry1%Tri(3,i)-1
+    enddo
+    write(iunit1,'(a,i9)') "CELL_TYPES ", ntri
+    do ipatch = 1,ntri
+      write(iunit1,'(a)') "5"
     end do
-      
+  endif
+
+
+  write(iunit1,'(a)') ""
+  write(iunit1,'(a,i9)') "POINT_DATA ", Geometry1%npoints
+  write(iunit1,'(a,i4)') "SCALARS normals float ", 3
+  write(iunit1,'(a)') "LOOKUP_TABLE default"
+  do i = 1,Geometry1%npoints
+    write(iunit1,'(E11.5,2x,E11.5,2x,e11.5)') &
+      Geometry1%Normal_Vert(1,i),&
+      Geometry1%Normal_Vert(2,i),&
+      Geometry1%Normal_Vert(3,i)
+    rr = Geometry1%Normal_Vert(1,i)**2 + &
+         Geometry1%Normal_Vert(2,i)**2 + &
+         Geometry1%Normal_Vert(3,i)**2
+    print *, i, rr
   end do
 
-  if (ifflat .eq. 0) then
-    call xtri_vtk_quadratic(ntri, triout, 'skeleton geometry', filename)
-  elseif (ifflat .eq. 1) then
-    call xtri_vtk_flat(ntri, triout, 'skeleton geometry', filename)
-  end if
-  
+  close(iunit1)
+
+
 
   return
 end subroutine plotskeletonvtk
@@ -517,7 +556,7 @@ real ( kind = 8 ), intent(in) :: x(N),y(N)
 integer umio,count,flag
 integer :: ierror
 !    nombre='fortran_plot'
-    open(8, FILE=nombre,STATUS='REPLACE')
+    open(8, FILE=trim(nombre),STATUS='REPLACE')
 
 !    open(UNIT=8, FILE=nombre, STATUS='OLD', ACTION='REPLACE', IOSTAT=ierror)
     flag=1
@@ -550,7 +589,7 @@ real ( kind = 8 ), intent(in) :: x(N),y(N),z(N)
 integer umio,count,flag
 integer :: ierror
 !    nombre='fortran_plot'
-    open(8, FILE=nombre,STATUS='REPLACE')
+    open(8, FILE=trim(nombre),STATUS='REPLACE')
 
 !    open(UNIT=8, FILE=nombre, STATUS='OLD', ACTION='REPLACE', IOSTAT=ierror)
     flag=3
@@ -585,7 +624,7 @@ real ( kind = 8 ), intent(in) :: x(M,N),y(M,N),F(M,N)
 integer umio,count1,count2,flag
 integer :: ierror
 !    nombre='fortran_plot'
-    open(8, FILE=nombre,STATUS='REPLACE')
+    open(8, FILE=trim(nombre),STATUS='REPLACE')
     flag=2
     write(8,*) flag
     write(8,*) M
@@ -626,7 +665,7 @@ real ( kind = 8 ), intent(in) :: F(M,N)
 integer umio,count1,count2,flag
 integer :: ierror
 !    nombre='fortran_plot'
-    open(8, FILE=nombre,STATUS='REPLACE')
+    open(8, FILE=trim(nombre),STATUS='REPLACE')
     flag=4
     write(8,*) flag
     write(8,*) M
@@ -655,7 +694,7 @@ real ( kind = 8 ), intent(in) :: x(M,N),y(M,N),z(M,N),F(M,N)
 integer umio,count1,count2,flag
 integer :: ierror
 !    nombre='fortran_plot'
-    open(8, FILE=nombre,STATUS='REPLACE')
+    open(8, FILE=trim(nombre),STATUS='REPLACE')
     flag=5
     write(8,*) flag
     write(8,*) M
