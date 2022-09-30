@@ -37,7 +37,7 @@ program smoother
 
   ! order with which to discretize the skeleton patches (pick
   ! something high-order)
-  norder_skel = 8
+  norder_skel = 12
 
   ! order with which to discretize the smooth patches, choose
   ! something reasonable: 4, 6, 8, 10, etc.
@@ -54,7 +54,7 @@ program smoother
   ! adapt_flag = 0  ->  no adaptivity, mean triangle size
   ! adapt_flag = 1  ->  some adaptivity, alpha form
   ! adapt_flag = 2  ->  full recursive definition, slightly slower
-  adapt_flag = 0
+  adapt_flag = 1
 
 
   !
@@ -63,7 +63,7 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-  rlam = 10.0d0 !(usual value)
+  rlam = 2.5d0 !(usual value)
 
   !rlam = .5d0
   !rlam = 1
@@ -104,8 +104,8 @@ program smoother
 
 
 
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1_borrame'
+    nombre='./geometries/cuboid_a1_b2_c1p3.tri'
+    filename='./Geometries_go3/cuboid_a1_b2_c1p3'
 !!!  point inside to check Gauss integral
 !    x0=0.0d0
 !    y0=0.0d0
@@ -119,15 +119,15 @@ program smoother
 !    y0=0.0d0
 !    z0=1.5d0
 
-!    nombre='./geometries/wing.tri'
-!    filename='./geometries_go3/wing_smooth'
+!    nombre='./geometries/goyle.tri'
+!    filename='./geometries_go3/goyle_smooth'
 !!!  point inside to check Gauss integral
     x0=0.0d0
     y0=0.0d0
     z0=1.5d0
 
-    nombre = './geometries/FORK.a.tri'
-    filename= './geometries_go3/fork_smooth'
+!    nombre = './geometries/FORK.a.tri'
+!    filename= './geometries_go3/fork_smooth'
 
 !    nombre='./geometries/msh_files/Round_1.msh'
 !    filename='./../Geometries_go3/Round_1'
@@ -285,11 +285,6 @@ program smoother
   end if
 
 
-  ! plot the skeleton mesh
-  plot_name = 'skeleton.vtk'
-  call plotskeletonvtk(Geometry1, plot_name)
-
-
 
   !call refineskeleton(Geometry1, nrefine)
 
@@ -305,6 +300,10 @@ program smoother
   print *, "finished running funcion normal vert"
   print *, " "
   print *, " "
+
+  ! plot the skeleton mesh
+  plot_name = 'skeleton.vtk'
+  call plotskeletonvtk(Geometry1, plot_name)
 
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)
