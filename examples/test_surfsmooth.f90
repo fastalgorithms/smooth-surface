@@ -47,7 +47,7 @@ program smoother
   ! the go3 format
   ! 
   !
-  nrefine = 0
+  nrefine = 2
   ! nrefine=1
 
   ! this is to enable adaptativity (otherwise sigma is constant)
@@ -63,7 +63,7 @@ program smoother
   ! in relation to triangle diameter
   ! \sigma_{j} = D_{j}/rlam
   !
-  rlam = 2.5d0 !(usual value)
+  rlam = 10.0d0 !(usual value)
 
   !rlam = .5d0
   !rlam = 1
@@ -105,7 +105,7 @@ program smoother
 
 
     nombre='./geometries/cuboid_a1_b2_c1p3.tri'
-    filename='./Geometries_go3/cuboid_a1_b2_c1p3'
+    filename='./geometries_go3/cuboid_a1_b2_c1p3'
 !!!  point inside to check Gauss integral
 !    x0=0.0d0
 !    y0=0.0d0
@@ -122,9 +122,9 @@ program smoother
 !    nombre='./geometries/goyle.tri'
 !    filename='./geometries_go3/goyle_smooth'
 !!!  point inside to check Gauss integral
-    x0=0.0d0
-    y0=0.0d0
-    z0=1.5d0
+    x0=0.1d0
+    y0=0.1d0
+    z0=0.1d0
 
 !    nombre = './geometries/FORK.a.tri'
 !    filename= './geometries_go3/fork_smooth'
@@ -424,6 +424,18 @@ call record_Geometry(Geometry1,name_aux)
    call prin2('error_report=*',error_report,nrefine+1)
    write (*,*) 'error_report final: ',error_report
 
+  ifplot = 1
+  if (ifplot .eq. 1) then
+    print *
+    print *
+    print *, '. . . plotting vtk smoothed geometry'
+
+    plot_name = 'smoothed_final.vtk'
+    call plotsmoothgeometryvtk(Geometry1, plot_name)
+    print *, '. . . finished plotting vtk smoothed geometry'
+  end if
+
+!  write (*,*) 'Empezando la parte critica de refinar'
 
     write (*,*) 'FINAL REPORT'
     do count=0,nrefine
