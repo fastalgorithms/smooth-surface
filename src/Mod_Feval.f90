@@ -47,7 +47,6 @@ Module Mod_Feval
   use Mod_TreeLRD
   use Mod_Fast_Sigma
   use ModType_Smooth_Surface
-  use prefunrouts
 
   implicit none
   
@@ -95,52 +94,6 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-  subroutine start_Feval(Fev_stf_1, Geometry1, adapt_flag)
-    !use Mod_Feval
-    implicit none
-
-
-    ! This function initializes all the data structure required to evaluate the F function (including FMM trees and sgma trees)
-
-
-    !List of calling arguments
-    type ( Feval_stuff ), pointer :: Fev_stf_1      !! data type that contains all the information to evaluate F
-    type ( Geometry ), intent(inout)  :: Geometry1      !! data type that contains all the information about the geometry
-    integer, intent(in) :: adapt_flag
-
-    !List of local variables
-    integer count1,count,n_targets
-
-    call generate_dummy_targets(Geometry1,Fev_stf_1,adapt_flag)
-
-
-    write (*,*) 'READY TO INITIALIZE'
-    write (*,*) 'number of dummy targets: ', Geometry1%n_dummy_targ
-    !    read (*,*)
-
-    Fev_stf_1%eps=1.0d-6
-    Fev_stf_1%norder=6
-
-    call initialize_feval(Fev_stf_1%eps, int(Geometry1%n_Sk_points), &
-        Geometry1%skeleton_Points, Geometry1%skeleton_w, &
-        &Geometry1%skeleton_N, int(Geometry1%n_dummy_targ),&
-        &Geometry1%Dummy_targ, Fev_stf_1%norder,&
-        &Fev_stf_1%itree, Fev_stf_1%ltree, Fev_stf_1%nlevels, Fev_stf_1%nboxes,Fev_stf_1%iptr,&
-        &Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,Fev_stf_1%fcoeffs,&
-        &Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,Fev_stf_1%fcoeffsz,&
-        &Fev_stf_1%FSS_1,int(adapt_flag))
-
-
-    write (*,*) 'INITIALIZED'
-    !read (*,*)
-
-
-
-    return
-  end subroutine start_Feval
-
-
-  
 
 
   subroutine start_Feval_tree(Feval_stuff_1,Geometry1,rlam)
@@ -170,70 +123,6 @@ contains
   end subroutine start_Feval_tree
   
   
-
-
-
-  subroutine start_Feval_local(Feval_stuff_1,Geometry1)
-    implicit none
-    ! This function initializes all the data structure required to evaluate the F function (including FMM trees and sgma trees)
-
-
-    !List of calling arguments
-    type ( Feval_stuff ), pointer :: Feval_stuff_1      !! data type that contains all the information to evaluate F
-    type ( Geometry ), intent(inout)  :: Geometry1      !! data type that contains all the information about the geometry
-
-    !List of local variables
-    integer n_max_leaf
-    real ( kind = 8 ) tri_belong(Geometry1%n_Sk_points)
-    integer n_leaf_boxes,count1,count2,icount,n_order,borrame(10),n_contour
-    type (Box), pointer :: pointer_out
-    integer, pointer :: borrame2(:)
-    integer, allocatable :: contour(:)
-
-    ! Allocate all arrays required
-    !    allocate(Feval_stuff_1%Tree_local)
-    n_order=Geometry1%n_Sk_points/Geometry1%ntri_sk
-    n_max_leaf=1
-    icount=1
-    do count1=1,Geometry1%ntri_sk
-      do count2=1,n_order
-        tri_belong(icount)=count1
-        icount=icount+1
-      enddo
-    enddo
-
-    call start_tree(Feval_stuff_1%Tree_local,n_max_leaf,Geometry1%skeleton_Points,tri_belong,Geometry1%n_Sk_points)
-
-    call defrag_tree_Points(Feval_stuff_1%Tree_local)                      !! Defragment the tree
-
-    call fix_triangles_box(Feval_stuff_1%Tree_local%Main_box)
-
-    call setup_edges_boundary(Geometry1)
-
-    call fix_triangles_box2(Feval_stuff_1%Tree_local%Main_box,Geometry1%Boundary,Geometry1%ntri_sk)
-
-
-    !    call find_contour(Feval_stuff_1,Geometry1,Geometry1%skeleton_Points(:,1),0.5d99,contour,n_contour)
-
-    !    if (n_contour>0) then
-    !        write (*,*) 'this is contour: ', contour
-    !    endif
-
-    !    write (*,*) 'AHORA: ', Feval_stuff_1%Tree_local%Main_box%children(3)%BP%triangles_box
-    !    read (*,*)
-
-    !    call find_box_size(Feval_stuff_1%Tree_local%Main_box,Geometry1%skeleton_Points(:,1),10d0,pointer_out)
-
-    !    write (*,*) 'ahora: ', pointer_out%triangles_box2
-    !    read (*,*)
-
-    !    call find_box_size(Feval_stuff_1%Tree_local%Main_box,Geometry1%skeleton_Points(:,1),5d0,pointer_out)
-    !write (*,*) 'Center of founded box', pointer_out%Box_size, pointer_out%Box_center,pointer_out%is_leaf
-    !    read (*,*)
-    return
-  end subroutine start_Feval_local
-
-
 
 
 
@@ -267,25 +156,17 @@ contains
     integer count,count2,count1
     integer n_sources
     real ( kind = 8 ) tfmm
-    double complex, allocatable :: sigma(:),mu(:),pottarg(:), &
-        fldtarg(:,:)
-    real ( kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:),trads(:)
+    real ( kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:)
     integer , allocatable :: flag_error(:)
     real ( kind = 8 ), allocatable :: missed_Points(:,:)
     integer ipointer
     character (len=100) plot_name
-    double precision :: t0, t1, telap, sgma_max
+    double precision :: t0, t1, telap, sgma_max, eps
     
     !$ double precision :: omp_get_wtime
 
     allocate(sgma(n_targets))
-    allocate(trads(n_targets))
     allocate(sgma_grad(3,n_targets))
-    allocate(sigma(Geometry1%n_Sk_points))
-    allocate(mu(Geometry1%n_Sk_points))
-    allocate(pottarg(n_targets))
-    allocate(fldtarg(3,n_targets))
-    allocate(flag_error(n_targets))
     !
     ! obtain the value of sgma at the target points, needed to make
     ! the FMM call
@@ -294,8 +175,8 @@ contains
 
     call cpu_time(t0)
 !$   t0 = omp_get_wtime()    
-    call function_eval_sigma(Fev_stf_1%FSS_1,targets,n_targets,sgma,&
-        sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
+    call function_eval_sigma(Fev_stf_1%FSS_1, targets, n_targets, sgma, &
+        sgma_grad(1,:), sgma_grad(2,:),sgma_grad(3,:), adapt_flag)
     call cpu_time(t1)
 !$   t1 = omp_get_wtime()
     telap = t1-t0
@@ -304,10 +185,7 @@ contains
     !       read (*,*)
     !write (*,*) 'STOP eval sigma'
     
-    sgma_max = maxval(sgma)
-    
 
-    trads=12.0d0*sgma
 
     ifcharge=0
     ifdipole=1
@@ -317,107 +195,37 @@ contains
     ier=0
     n_sources=Geometry1%n_Sk_points
 
-    !
-    !! Initialize the sources to evaluate the Double layer
-    !
-    !! Warning! the value of mu, sigma is changed inside the FMM
-    !!  subroutine tfmm3dwrap, therefore, we have to initialize the
-    !!  values every time. Do not move this to start_Feval!!
-    !
-    do count1=1,n_sources
-      sigma(count1)=0.0d0
-      mu(count1)=1.0d0
-    enddo
-
     !! FMM call (this includes the target dependent local corrections with the erf function)
     !    write (*,*) 'target: ',targets(:,1)
 
-    !! Warning! notice that the fmm uses complex sources and returns
-    !! complex potential and gradient. We have to do the data type
-    !! change
 
-    if (associated(Fev_stf_1%Tree_local)) then
+    call cpu_time(t0)
+    !$ t0 = omp_get_wtime()
+    
+    eps = 0.51d-9
 
-      print *, '. . . calling feval_local_vect'
-      
-      call feval_local_vect(targets,v_norm,Geometry1,Fev_stf_1, &
-          n_targets,F,grad_F,adapt_flag)
-      write (*,*) 'trying'
+    call tfmm3d_setsub(eps, n_sources, Geometry1%skeleton_Points, &
+      Geometry1%skeleton_N, Geometry1%skeleton_w, n_targets, &
+      targets, sgma, sgma_grad, F, grad_F)
 
-    else
+    call cpu_time(t1)
 
-      if (.not. allocated(Fev_stf_1%treecenters)) then
-        write (*,*) 'point 333.555'
-        call cpu_time(t0)
-        !$ t0 = omp_get_wtime()
+    !$ t1 = omp_get_wtime()
+    telap = t1-t0
 
-        !print *, "Entering FMM"
-
-        call tfmm3dwrap(ier,iprec,Geometry1%skeleton_Points,&
-            Geometry1%skeleton_N,n_sources,&
-            Geometry1%skeleton_w,ifcharge,sigma,ifdipole,mu,targets,&
-            n_targets,trads,sgma,sgma_grad,ifpottarg,&
-            pottarg,iffldtarg,fldtarg,tfmm)
-        call cpu_time(t1)
-    write (*,*) 'point 333.666'
-
-        !$ t1 = omp_get_wtime()
-        telap = t1-t0
-
-        print *, 'time for fmm = ', telap
+    print *, 'time for fmm = ', telap
 
         !
         ! compute the error in the levelset function
         !
-        do count2=1,n_targets
-          pottarg(count2)=pottarg(count2)-0.5d0
-        enddo
+    do count2=1,n_targets
+      F(count2)=F(count2)-0.5d0
+    enddo
 
-        !! Asign the output variables with the correct data type
-        F = real(pottarg)
-        grad_F = -1.0d0*real(fldtarg)
 
-      else
 
-        write (*,*) 'start interpolation'
-        print *, 'this should not be called, stopping'
-        stop
-        
-        call f_eval(int(n_targets), targets, Fev_stf_1%norder,&
-            Fev_stf_1%itree,&
-            Fev_stf_1%ltree,Fev_stf_1%nlevels,Fev_stf_1%nboxes,&
-            Fev_stf_1%iptr,&
-            Fev_stf_1%treecenters,Fev_stf_1%boxsize,Fev_stf_1%nt2,&
-            Fev_stf_1%fcoeffs,Fev_stf_1%fcoeffsx,Fev_stf_1%fcoeffsy,&
-            Fev_stf_1%fcoeffsz, F, grad_F(1,:), grad_F(2,:), &
-            grad_F(3,:),flag_error)
-
-        do count2=1,n_targets
-          F(count2)=F(count2)-0.5d0
-          grad_F(:,count2)=-grad_F(:,count2)
-        enddo
-
-        write (*,*) 'ratio: ', sum(flag_error),n_targets,&
-            (1.0d0*sum(flag_error))/(n_targets*1.0d0)
-        write (*,*) 'reported'
-        !    read (*,*)
-        if (sum(flag_error).gt.0) then
-          call f_eval_slow(n_targets,targets,flag_error,&
-              int(Geometry1%n_Sk_points),Geometry1%skeleton_Points,&
-              &Geometry1%skeleton_w,Geometry1%skeleton_N,sgma,&
-              sgma_grad,F,grad_F)
-        endif
-      endif
-    endif
-write (*,*) 'point 444'
     deallocate(sgma)
-    deallocate(trads)
     deallocate(sgma_grad)
-    deallocate(sigma)
-    deallocate(mu)
-    deallocate(pottarg)
-    deallocate(fldtarg)
-    deallocate(flag_error)
 
 
     return
@@ -722,131 +530,6 @@ write (*,*) 'point 444'
     return
   end subroutine setup_edges_boundary
 
-
-  subroutine feval_local_vect(targ,v_norm,Geometry1,Fev_stf_1,n_targ,F,grad_F,adapt_flag)
-    implicit none
-
-    !List of calling arguments
-    type ( Feval_stuff ), pointer :: Fev_stf_1      !! data type that contains all the information to evaluate F
-    type ( Geometry ), intent(in)  :: Geometry1      !! data type that contains all the information about the geometry
-    integer , intent(in) :: n_targ,adapt_flag
-    real ( kind = 8 ), intent(in) :: targ(3,n_targ)
-    real ( kind = 8 ), intent(in) :: v_norm(3,n_targ)
-    real ( kind = 8 ), intent(out) :: F(n_targ),grad_F(3,n_targ)
-
-    !List of local variables
-    real (kind = 8 ), allocatable :: sgma(:),sgma_grad(:,:)
-    integer  count1, count2, count3, iaux,n_tri_local,n_edge_local,iffld,icount2
-    type (Box), pointer :: pointer_out
-    real ( kind = 8 ) pot, fld(3),dipvec(3),qwt,source(3),my_sign
-    real ( kind = 8 ) F2(n_targ),grad_F2(3,n_targ)
-
-    allocate(sgma(n_targ))
-    allocate(sgma_grad(3,n_targ))
-
-    call function_eval_sigma(Fev_stf_1%FSS_1,targ,n_targ,sgma,&
-        &sgma_grad(1,:),sgma_grad(2,:),sgma_grad(3,:),adapt_flag)
-    iffld=1
-    !$OMP PARALLEL DO DEFAULT(SHARED), &
-    !$OMP& PRIVATE(count1,count2,count3,n_tri_local,n_edge_local), &
-    !$OMP& PRIVATE(dipvec,qwt,source,fld,pointer_out,pot,icount2,my_sign)
-    do count1=1,n_targ
-      F(count1)=0.0d0
-      grad_F(1,count1)=0.0d0
-      grad_F(2,count1)=0.0d0
-      grad_F(3,count1)=0.0d0
-      call find_box_size(Fev_stf_1%Tree_local%Main_box,targ(:,count1),sgma(count1)*12.0d0,pointer_out)
-      n_tri_local=size(pointer_out%triangles_box2)
-      do count2=1,n_tri_local
-        do count3=1,78
-          dipvec=Geometry1%skeleton_N(:,78*(pointer_out%triangles_box2(count2)-1)+count3)
-          qwt=Geometry1%skeleton_w(78*(pointer_out%triangles_box2(count2)-1)+count3)
-          source=Geometry1%skeleton_Points(:,78*(pointer_out%triangles_box2(count2)-1)+count3)
-          call tpotfld3d_dp(iffld,source,qwt,dipvec,targ(:,count1),sgma(count1),sgma_grad(:,count1),pot,fld)
-          F(count1)=F(count1)+pot
-          grad_F(:,count1)=grad_F(:,count1)-fld
-        enddo
-      enddo
-      !        write (*,*) 'half value of F: ', F(count1)
-      !        write (*,*) 'half value of grad_F: ', grad_F(:,count1)
-      if (allocated(pointer_out%contour)) then
-        n_edge_local=size(pointer_out%contour)
-        !            write (*,*) n_edge_local
-        do count2=1,n_edge_local
-          icount2=pointer_out%contour(count2)
-          !                write(*,*) icount2
-          if (icount2<0) then
-            icount2=-icount2
-            my_sign=-1.0d0
-          else
-            icount2=icount2
-            my_sign=1.0d0
-          endif
-          !                write (*,*) icount2,my_sign
-          do count3=1,32
-            call tpot_contour2(Geometry1%skelet_line_p(:,count3,icount2),&
-                &Geometry1%skelet_line_dl(:,count3,icount2),targ(:,count1),v_norm(:,count1),pot,fld)
-            F(count1)=F(count1)-my_sign*pot
-            grad_F(:,count1)=grad_F(:,count1)+my_sign*fld
-
-            !                    if (count1.eq.19) then
-            !                        write (*,*) Geometry1%skelet_line_p(:,count3,icount2)
-            !                        write (*,*) my_sign*Geometry1%skelet_line_dl(:,count3,icount2)
-            !                    endif
-
-          enddo
-        enddo
-      endif
-      !        write (*,*) 'value of F: ', F(count1)
-      !        write (*,*) 'value of grad_F: ', grad_F(:,count1)
-      !        read (*,*)
-      !        write (*,*) F(count1)
-      !        if (F(count1)>1.0d0) then
-      !            F(count1)=F(count1)-1.0d0
-      !        endif
-      !        if (F(count1)<0.0d0) then
-      !            F(count1)=F(count1)+1.0d0
-      !        endif
-      F(count1)=F(count1)-0.5d0
-
-      !F2(count1)=0.0d0
-      !grad_F2(1,count1)=0.0d0
-      !grad_F2(2,count1)=0.0d0
-      !grad_F2(3,count1)=0.0d0
-      !call find_box_size(Fev_stf_1%Tree_local%Main_box,targ(:,count1),sgma(count1)*12.0d12,pointer_out)
-      !n_tri_local=size(pointer_out%triangles_box2)
-      !do count2=1,n_tri_local
-      !do count3=1,78
-      !dipvec=Geometry1%skeleton_N(:,78*(pointer_out%triangles_box2(count2)-1)+count3)
-      !qwt=Geometry1%skeleton_w(78*(pointer_out%triangles_box2(count2)-1)+count3)
-      !source=Geometry1%skeleton_Points(:,78*(pointer_out%triangles_box2(count2)-1)+count3)
-      !call tpotfld3d_dp(iffld,source,qwt,dipvec,targ(:,count1),sgma(count1),sgma_grad(:,count1),pot,fld)
-      !F2(count1)=F2(count1)+pot
-      !grad_F2(:,count1)=grad_F2(:,count1)-fld
-      !enddo
-      !enddo
-      !F2(count1)=F2(count1)-0.5d0
-
-
-    enddo
-    !write (*,*) maxval(F),minval(F)
-    !read (*,*)
-
-    !$OMP END PARALLEL DO
-
-    !do count1=1,n_targ
-    !write (*,*) count1,-F(count1)+F2(count1),norm2(grad_F(:,count1)-grad_F2(:,count1))/norm2(grad_F(:,count1))
-    !write (*,*) 'target: ', targ(:,count1)
-    !write (*,*) 'direction: ',v_norm(:,count1)
-    !write (*,*) ' '
-    !enddo
-
-    !read (*,*)
-    deallocate(sgma)
-    deallocate(sgma_grad)
-
-    return
-  end subroutine feval_local_vect
 
 
   subroutine tpot_contour(source,dl,targ,v_norm,pot,fld)

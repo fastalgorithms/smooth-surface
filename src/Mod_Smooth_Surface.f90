@@ -219,9 +219,7 @@ contains
     !
     ! get the smooth nodes and quadrature weights
     !
-!    call ortho2siexps(itype, norder_smooth, npols, U, V, &
-!        umatr, vmatr, w)
-
+     npols = npol_smooth
      call vioreanu_simplex_quad(norder_smooth,npols,UV,umatr,vmatr,w)
      U = UV(1,:)
      V = UV(2,:)
@@ -318,17 +316,17 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   !
   
   if (allocated(Geometry1%du_smooth)) then
-	deallocate(Geometry1%du_smooth)
+    deallocate(Geometry1%du_smooth)
   endif
   allocate(Geometry1%du_smooth(3,Geometry1%n_Sf_points))
         
   if (allocated(Geometry1%dv_smooth)) then
-	deallocate(Geometry1%dv_smooth)
+    deallocate(Geometry1%dv_smooth)
   endif
   allocate(Geometry1%dv_smooth(3,Geometry1%n_Sf_points))
         
   if (allocated(Geometry1%ds_smooth)) then
-	deallocate(Geometry1%ds_smooth)
+    deallocate(Geometry1%ds_smooth)
   endif
   allocate(Geometry1%ds_smooth(Geometry1%n_Sf_points))
 
@@ -353,17 +351,6 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
   allocate(Geometry1%rv_smooth(3,Geometry1%n_Sf_points))
 
 
-  ! initalize h to be zero
-!  if ( allocated(Geometry1%height) ) then
-!    deallocate(Geometry1%height)
-!  endif
-!
-!  allocate(Geometry1%height(Geometry1%n_Sf_points))
-!
-!  do count = 1,Geometry1%n_Sf_points
-!    Geometry1%height(count) = 0
-!    h(count) = 0
-!  enddo
 
    if (.not.allocated(Geometry1%height)) then
      allocate (Geometry1%height(Geometry1%n_Sf_points))
@@ -443,11 +430,11 @@ subroutine find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
         + Geometry1%Base_Points_N(:,count)*dhdv &
         + Geometry1%Base_Points_V(:,count)
 
-	Geometry1%du_smooth(:,count)=Geometry1%ru_smooth(:,count)
-	Geometry1%dv_smooth(:,count)=Geometry1%rv_smooth(:,count)
-	call crossproduct(Geometry1%ru_smooth(:,count)&
-	 &,Geometry1%rv_smooth(:,count),my_cross)
-	Geometry1%ds_smooth(count)=norm2(my_cross)
+    Geometry1%du_smooth(:,count)=Geometry1%ru_smooth(:,count)
+    Geometry1%dv_smooth(:,count)=Geometry1%rv_smooth(:,count)
+    call crossproduct(Geometry1%ru_smooth(:,count)&
+      &,Geometry1%rv_smooth(:,count),my_cross)
+    Geometry1%ds_smooth(count)=norm2(my_cross)
 
     call crossproduct(Geometry1%ru_smooth(:,count), &
         Geometry1%rv_smooth(:,count), my_cross)
@@ -563,16 +550,10 @@ subroutine My_Newton(x,tol,maxiter,Geometry1,flag, &
         
         if (abs(err(count2))<tol) then
           flag_con(count2)=1
-		 !  else
-		 !	x(count2) = x(count2) - err(count2)
         endif
       endif
     enddo
 
-
-    !       do count2=1,Geometry1%n_Sf_points
-    !           write (*,*) 'Newton iteration all: ', err(count2)
-    !       enddo
     write (*,*) 'Newton iteration: ', count, maxval(err)
 
     write (*,4999) count, &
@@ -674,12 +655,6 @@ end subroutine My_Newton
     ipointer=1
     do count=1,Geometry1%n_Sf_points
 
-      !Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
-      !    &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
-
-      !r_t(:,count)=Geometry1%Base_Points(:,count) &
-      !    +Geometry1%Base_Points_N(:,count)*h(count)/Norm_N
-
       ! compute the current estimate for the point on the surface
       r_t(:,count) = Geometry1%Base_Points(:,count) &
           + Geometry1%Base_Points_N(:,count)*h(count)
@@ -697,7 +672,6 @@ end subroutine My_Newton
     !
     ntarg = Geometry1%n_Sf_points-sum(flag_con)
 
-    !print *, "Entering eval_density_grad_FMM"
     call eval_density_grad_FMM(Geometry1, r_t2, v_norm, &
         ntarg, F2, grad_F2, Feval_stuff_1, adapt_flag)
 
@@ -708,9 +682,6 @@ end subroutine My_Newton
     do count=1,Geometry1%n_Sf_points
 
       if ( flag_con(count) .eq. 0) then
-
-        !Norm_N=sqrt(Geometry1%Base_Points_N(1,count)**2+&
-        !    &Geometry1%Base_Points_N(2,count)**2+Geometry1%Base_Points_N(3,count)**2)
 
         dF(count)=(grad_F2(1,ipointer)*Geometry1%Base_Points_N(1,count)+grad_F2(2,ipointer)*&
             &Geometry1%Base_Points_N(2,count)+grad_F2(3,ipointer)*Geometry1%Base_Points_N(3,count))
@@ -759,7 +730,7 @@ end subroutine My_Newton
     double precision U_x(9),U_y(9),U_z(9),V_x(9),V_y(9),V_z(9)
     double precision, allocatable :: ximat(:,:)
     integer m,N,n_order_aux,n_order_sf,istart
-    integer nover,norder
+    integer nover,norder, itmp
 
     n_order_sf=Geometry1%n_order_sf
 
@@ -773,7 +744,6 @@ end subroutine My_Newton
     allocate(ximat(nover,n_order_sf))
 
     norder = Geometry1%norder_smooth
-
     call get_refine_interp_mat(norder,n_order_sf,nover,ximat)
 
     allocate(Points(3,Geometry1%ntri*15))

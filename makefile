@@ -1,8 +1,8 @@
 
-#HOST = osx-gcc
-HOST = linux-gcc
+HOST = osx-gcc
+#HOST = linux-gcc
 #HOST = linux-gcc-openmp
-#HOST = osx-gcc-openmp
+HOST = osx-gcc-openmp
 #HOST = osx-intel
 #HOST = osx-intel-openmp
 #HOST = linux-gfortran
@@ -19,7 +19,7 @@ GFORT = gfortran
 
 ifeq ($(HOST),osx-gcc)
   FC = $(GFORT)
-  FFLAGS = -O2 -g -w -fdefault-integer-8 -finteger-4-integer-8 \
+  FFLAGS = -O2 -w -fdefault-integer-8 -finteger-4-integer-8 \
               -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy
   FLINK = $(GFORT) -w -fdefault-integer-8 -finteger-4-integer-8 \
              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy \
@@ -28,10 +28,11 @@ endif
 
 ifeq ($(HOST),osx-gcc-openmp)
   FC = $(GFORT)
-  FFLAGS = -O2 -fopenmp -w  
-  FLINK = $(GFORT) -fopenmp -w \
-    -Wl,-stack_size,0x80000000 -o $(PROJECT) -framework accelerate
-  export OMP_STACKSIZE = 2048M
+  FFLAGS = -O2 -fopenmp -w -fdefault-integer-8 -finteger-4-integer-8 \
+              -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy
+  FLINK = $(GFORT) -w  -fopenmp -fdefault-integer-8 -finteger-4-integer-8 \
+             -fdefault-double-8 -fdefault-real-8 -freal-4-real-8 -std=legacy \
+             -o $(PROJECT) -framework accelerate
 endif
 
 
@@ -71,64 +72,32 @@ ifeq ($(HOST),linux-gcc-openmp)
        -w -o $(PROJECT) -llapack -lblas
 endif
 
+FFLAGS = -march=native -O2 -w -std=legacy -fopenmp
+FLINK = gfortran -march=native -O2 -w -std=legacy -fopenmp -o $(PROJECT) -framework accelerate -lfmm3dbie -L/usr/local/lib
 
 
 
 .PHONY: all clean list
 
-TFMM3D = lib/tfmm3dlr
 SRC = src
 EXM = examples
 
 MOD_SOURCES = $(SRC)/Mod_TreeLRD.f90 \
  $(SRC)/ModType_Smooth_Surface.f90 \
  $(SRC)/Mod_Fast_Sigma.f90 \
- $(SRC)/chebtarggridrouts.f90 \
  $(SRC)/Mod_Plot_Tools_sigma.f90 \
  $(SRC)/Mod_Feval.f90 \
  $(SRC)/Mod_Smooth_Surface.f90
 
 SOURCES =  $(EXM)/test_surfsmooth.f90 \
  $(SRC)/koornexps.f90 \
- $(SRC)/ortho2eva.f \
- $(SRC)/ortho2eva_new.f90 \
- $(SRC)/ortho2exps.f \
- $(SRC)/orthom.f \
  $(SRC)/cisurf_loadmsh.f90 \
  $(SRC)/cisurf_skeleton.f90 \
  $(SRC)/cisurf_plottools.f90 \
  $(SRC)/cisurf_tritools.f90 \
  $(SRC)/lapack_wrap.f90 \
  $(SRC)/pplot2.f \
- $(TFMM3D)/tfmm3dlr_expout.f \
- $(TFMM3D)/tfmm3dlrwrap_expout.f \
- $(TFMM3D)/l3dzero.f \
- $(TFMM3D)/treeplot.f \
- $(TFMM3D)/prini.f \
- $(TFMM3D)/l3dterms.f \
- $(TFMM3D)/laprouts3d.f \
- $(TFMM3D)/nearfield.f90 \
- $(TFMM3D)/l3dmpmpfinal4.f \
- $(TFMM3D)/l3dloclocfinal4.f \
- $(TFMM3D)/l3dmplocfinal4.f \
- $(TFMM3D)/prinm.f \
- $(TFMM3D)/yrecursion.f \
- $(TFMM3D)/ftophys.f \
- $(TFMM3D)/phystof2.f \
- $(TFMM3D)/legeexps.f \
- $(TFMM3D)/tree_lr_3d.f \
- $(TFMM3D)/rotgen.f \
- $(TFMM3D)/numthetafour.f \
- $(TFMM3D)/numthetahalf2.f \
- $(TFMM3D)/lapweights.f \
- $(TFMM3D)/pwrouts2.f \
- $(TFMM3D)/hkrand.f \
- $(TFMM3D)/dlaran.f \
- $(TFMM3D)/rotviarecur3.f \
- $(TFMM3D)/rotgen2.f \
- $(TFMM3D)/l3dgqbxauxrouts2.f \
- $(TFMM3D)/lwtsexp_sep2.f \
- $(TFMM3D)/chebexps.f
+ $(SRC)/tfmm_setsub.f \
 
 
 

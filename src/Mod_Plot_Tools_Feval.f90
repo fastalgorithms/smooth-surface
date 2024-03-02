@@ -28,7 +28,7 @@ character ( len=100 ) nombre,filename,plot_name
 real ( kind = 8 ) x_min,x_max,y_min,y_max,z_min,z_max,Lx,Ly,Lz
 real ( kind = 8 ) xp_min,xp_max,yp_min,yp_max,zp_min,zp_max
 real ( kind = 8 ), allocatable :: F_plot(:,:),targ_vect(:,:),F(:),F_grad(:,:),sgma_y(:),sgma_z(:)
-integer ( kind = 8 ) N_plot,M_plot,count,count1,count2,icount,adapt_flag,speed_flag,n_targ
+integer ( kind = 4 ) N_plot,M_plot,count,count1,count2,icount,adapt_flag,speed_flag,n_targ
 
 
     TreeLRD_1 => Feval_stuff_1%FSS_1%TreeLRD_1
@@ -162,7 +162,7 @@ type ( TreeLRD ), pointer :: TreeLRD_1
 !List of local variables
 character ( len=100 ) plot_name
 real ( kind = 8 ), allocatable :: W_boxes(:)
-integer ( kind = 8 ) icount,tot_num_box
+integer ( kind = 4 ) icount,tot_num_box
 
     plot_name='plot_tree'
     tot_num_box=total_number_leaf_boxes(TreeLRD_1%Main_box)
@@ -181,12 +181,12 @@ implicit none
 
 !List of calling arguments
 type ( Box ), pointer :: Current_box
-integer ( kind = 8 ), intent(in) :: tot_num_box!List of local variables
-integer ( kind = 8 ), intent(inout) :: icount!List of local variables
+integer ( kind = 4 ), intent(in) :: tot_num_box!List of local variables
+integer ( kind = 4 ), intent(inout) :: icount!List of local variables
 real ( kind = 8 ), intent(inout) :: W_boxes(4*tot_num_box)
 
 !List of local variables
-integer ( kind = 8 ) count1
+integer ( kind = 4 ) count1
 
     if (Current_box%is_leaf) then
         W_boxes(icount)=Current_box%Box_center(1)
@@ -214,12 +214,12 @@ implicit none
 
 !List of calling arguments
 type ( Box ), pointer :: Current_box
-integer ( kind = 8 ), intent(in) :: tot_num_box!List of local variables
-integer ( kind = 8 ), intent(inout) :: icount!List of local variables
+integer ( kind = 4 ), intent(in) :: tot_num_box!List of local variables
+integer ( kind = 4 ), intent(inout) :: icount!List of local variables
 real ( kind = 8 ), intent(inout) :: W_boxes(4*tot_num_box)
 
 !List of local variables
-integer ( kind = 8 ) count1
+integer ( kind = 4 ) count1
 
     if (Current_box%is_leaf) then
         W_boxes(icount)=Current_box%Box_center(1)

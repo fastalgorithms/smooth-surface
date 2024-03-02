@@ -9151,6 +9151,7 @@ subroutine get_refine_interp_mat(norder,n,nfine,ximat)
   
   allocate(uv(2,n),umatr(n,n),vmatr(n,n),w(n),uvfine(2,nfine))
   allocate(pmat(nfine,n),pols(n))
+  npols = (norder+1)*(norder+2)/2
   call vioreanu_simplex_quad(norder,npols,uv,umatr,vmatr,w)
 
   do i=1,n

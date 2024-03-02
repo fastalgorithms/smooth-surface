@@ -20,16 +20,19 @@ program smoother
 
   integer :: N, count,nrefine, ifplot
   integer :: adapt_flag, ifflatten
-  integer :: interp_flag,fmm_flag
+  integer :: interp_flag
   integer :: norder_skel, norder_smooth
 
   character (len=100) :: nombre, filename,name_aux
   character (len=21) :: plot_name
   character (len=8) :: istr1,istr2
   character (len=2) :: arg_comm
-  double precision :: x0,y0,z0
+  double precision :: x0,y0,z0, ra
   double precision, allocatable :: time_report(:), error_report(:)
   double precision :: err_skel,rlam,t1,t2,omp_get_wtime
+
+  integer i
+  
 
 
   call prini(6,13)
@@ -69,10 +72,6 @@ program smoother
   !rlam = 1
   !rlam = 2.5d0
 
-  ! this is to enable FMM (if =1) otherwise ( =0) iterates with stokes
-  ! identity (local surface integral + contour integral)
-  fmm_flag=1
-
   call prinf('. . . printing flags and options*', norder_skel, 0)
   call prinf('norder_skel = *', norder_skel, 1)
   call prinf('norder_smooth = *', norder_smooth, 1)
@@ -88,192 +87,19 @@ program smoother
   ! specify the msh file to read in
   !
 
-  !nombre='./geometries/sphere.msh'
-  nombre='./geometries/sphere128.gidmsh'
-  !nombre='./geometries/prism_3368.gidmsh'
-  !filename='./plot_files/high_genus'
+!    nombre='./geometries/cuboid_a1_b2_c1p3.tri'
+!    filename='./geometries_go3/cuboid_a1_b2_c1p3'
+    nombre='./geometries/prism_50.gidmsh'
+    filename='./geometries_go3/prism_50'
 
-  ! point inside to check Gauss integral
-  x0 = 4.5d0
-  y0 = 4.5d0
-  z0 = 5
+    nombre='./geometries/sphere.msh'
+    filename='./geometries_go3/sphere'
 
-  x0 = .1d0
-  y0 = 0d0
-  z0 = 0
-
-
-
-    nombre='./geometries/cuboid_a1_b2_c1p3.tri'
-    filename='./geometries_go3/cuboid_a1_b2_c1p3'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='./geometries/gridFin.tri'
-!    filename='./geometries_go3/gridFin_smooth'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.5d0
-
-!    nombre='./geometries/goyle.tri'
-!    filename='./geometries_go3/goyle_smooth'
-!!!  point inside to check Gauss integral
-    x0=0.1d0
-    y0=0.1d0
-    z0=0.1d0
-
-!    nombre = './geometries/FORK.a.tri'
-!    filename= './geometries_go3/fork_smooth'
-
-!    nombre='./geometries/msh_files/Round_1.msh'
-!    filename='./../Geometries_go3/Round_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-
-!    nombre='./geometries/msh_files/Round_2.msh'
-!    filename='./../Geometries_go3/Round_2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Genus_10.msh'
-!    filename='./../Geometries_go3/Genus_10'
-!!!  point inside to check Gauss integral
-!    x0=0.5d0
-!    y0=0.5d0
-!    z0=0.5d0
-
-
-!    nombre='./geometries/msh_files/Cube_substraction.msh'
-!    filename='./../Geometries_go3/Cube_substraction'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-
-!    nombre='./geometries/msh_files/antenna_plane_2_v2.msh'
-!    filename='./../Geometries_go3/antenna_plane_2_v2'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-!    nombre='./geometries/msh_files/Multiscale_1.msh'
-!    filename='./../Geometries_go3/Multiscale_1'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.0d0
-!    z0=1.0d0
-
-!!    nombre='./geometries/msh_files/Multiscale_2.msh'
-!!    filename='./../../Geometries_go3/Multiscale_2'
-!!!  point inside to check Gauss integral
-!!    x0=0.0d0
-!!    y0=0.0d0
-!!    z0=1.0d0
-
-!    nombre='./geometries/msh_files/A380_Final.msh'
-!    filename='./../Geometries_go3/A380_Final'
-!!!  point inside to check Gauss integral
-!    x0=4.0d0
-!    y0=0.0d0
-!    z0=0.0d0
-
-
-!    nombre='./geometries/msh_files/capsule_multiscale.msh'
-!    filename='./../Geometries_go3/capsule_multiscale'
-!!!  point inside to check Gauss integral
-!    x0=0.0d0
-!    y0=0.1d0
-!    z0=.2d0
-
-
-
-!    nombre='./geometries/msh_files/genus_1.msh'
-!    filename='./../Geometries_go3/genus_1'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-
-!    nombre='./geometries/msh_files/genus_2.msh'
-!    filename='./../Geometries_go3/genus_2'
-!!!  point inside to check Gauss integral
-!    x0=.50d0
-!    y0=0.5d0
-!    z0=.50d0
-
-!    nombre='./geometries/msh_files/Capacitor_3_ASCII.msh'
-!    filename='./../Geometries_go3/Capacitor_3'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=1.5d0
-!    z0=7.0d0
-
-!    nombre='./geometries/msh_files/Horn2_ASCII.msh'
-!    filename='./../Geometries_go3/Horn2'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.5d0
-
-!    nombre='./geometries/msh_files/Ship6_ASCII.msh'
-!    filename='./../Geometries_go3/Ship6'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-1.5d0
-
-
-!    nombre='./geometries/msh_files/fresnel_small_2_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=-0.5d0
-
-!    nombre='./geometries/msh_files/fresnel_slim_ASCII.msh'
-!    filename='./../Geometries_go3/fresnel_lens_large'
-!!!  point inside to check Gauss integral
-!    x0=.00d0
-!    y0=0.0d0
-!    z0=0.3d0
-
-
-!    nombre='./geometries/msh_files/Manas_genus_shorter_6_ASCII.msh'
-!    filename='./../Geometries_go3/Manas_genus_50'
-!!!  point inside to check Gauss integral
-!    x0=21.470d0
-!    y0=1.1250d0
-!    z0=-2.55d0/2.0d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
-
-
-!    nombre='./geometries/msh_files/simple_torus_2_ASCII.msh'
-!    filename='./../Geometries_go3/simple_torus_2'
-!!!  point inside to check Gauss integral
-!    x0=-.5d0
-!    y0=-.5d0
-!    z0=.5d0
-
+    nombre='./geometries/lens_r00.msh'
+    filename='./geometries_go3/lens_r00'
+    
+    nombre = './geometries/cow_new.msh'
+    filename = './geometries_go3/cow_new'
 
   ! load in the msh file
   call readgeometry(Geometry1, nombre, norder_skel, &
@@ -305,6 +131,25 @@ program smoother
   plot_name = 'skeleton.vtk'
   call plotskeletonvtk(Geometry1, plot_name)
 
+
+!
+!  Compute centroid
+!
+  x0 = 0
+  y0 = 0
+  z0 = 0
+  ra = 0
+  do i=1,Geometry1%n_Sk_points
+    x0 = x0 + Geometry1%skeleton_Points(1,i)*Geometry1%skeleton_w(i)
+    y0 = y0 + Geometry1%skeleton_Points(2,i)*Geometry1%skeleton_w(i)
+    z0 = z0 + Geometry1%skeleton_Points(3,i)*Geometry1%skeleton_w(i)
+    ra = ra + Geometry1%skeleton_w(i)
+  enddo
+  x0 = x0/ra
+  y0 = y0/ra
+  z0 = z0/ra
+
+
   call start_Feval_tree(Feval_stuff_1, Geometry1, rlam)
   call funcion_Base_Points(Geometry1)
 
@@ -314,11 +159,6 @@ program smoother
 
 
   !! Esto es para el modo sin FMM
-  if (fmm_flag .eq. 0) then
-    print *, 'do not run with fmm_flag = 0 !!!'
-    stop
-    call start_Feval_local(Feval_stuff_1,Geometry1)
-  endif
 
 
   !
@@ -326,27 +166,20 @@ program smoother
   ! skeleton mesh
   !
 
-!  print *
-!  print *, '. . . checking gauss identity on skeleton'
-!  call check_gauss_skeleton(Geometry1, x0, y0, z0,err_skel)
 
   print *, "Starting find smooth surface"
 
   call find_smooth_surface(Geometry1, Feval_stuff_1, adapt_flag)
 
 
-count=0
-write (*,*) 'SAVING .GOV FILE'
-write(istr1,"(I2.2)") count
-write(istr2,"(I2.2)") norder_smooth
-name_aux = trim(filename)//'_o'//trim(istr2)// '_r'//trim(istr1)//'.go3'
-call record_Geometry(Geometry1,name_aux)
+  count=0
+  write (*,*) 'SAVING .GOV FILE'
+  write(istr1,"(I2.2)") count
+  write(istr2,"(I2.2)") norder_smooth
+  name_aux = trim(filename)//'_o'//trim(istr2)// '_r'//trim(istr1)//'.go3'
+  call record_Geometry(Geometry1,name_aux)
 
 
-  !print *
-  !name_aux=trim(filename)// '_r00.gov'
-  !print *, '. . . saving *.gov file: ', trim(name_aux)
-  !call record_Geometry(Geometry1,name_aux)
 
   print *
   print *, '. . . checking gauss identity on smooth surface'
@@ -367,26 +200,9 @@ call record_Geometry(Geometry1,name_aux)
     print *, '. . . finished plotting vtk smoothed geometry'
   end if
 
-!  write (*,*) 'Empezando la parte critica de refinar'
-!  read (*,*)
-
-!  stop
-
-
-
-  !
-  ! refinement not working properly, must rewrite
-  !
-
-
-  !
-  ! do some refinement and experiment
-  !
 
    do count=1,nrefine
-!     write (*,*) 'Refinement num: ',count
-!     read (*,*)
-
+     
      call cpu_time(t1)
 !$    t1 = omp_get_wtime()
      call refine_geometry_smart(Geometry1)
@@ -409,14 +225,13 @@ call record_Geometry(Geometry1,name_aux)
 !$    t2 = omp_get_wtime()
      call prin2("find smooth surface time=*",t2-t1,1)
 
-        write (*,*) 'SAVING .GOV FILE'
-        write(istr1,"(I2.2)") count
-		write(istr2,"(I2.2)") norder_smooth
-        name_aux = trim(filename)//'_o'//trim(istr2)// '_r'//trim(istr1)//'.go3'
-        call record_Geometry(Geometry1,name_aux)
+     write (*,*) 'SAVING .GOV FILE'
+     write(istr1,"(I2.2)") count
+     write(istr2,"(I2.2)") norder_smooth
+     name_aux = trim(filename)//'_o'//trim(istr2)// '_r'//trim(istr1)//'.go3'
+     call record_Geometry(Geometry1,name_aux)
 
      plot_name = 'smoothed1.vtk'
-!     call plotsmoothgeometryvtk(Geometry1, plot_name)
      call check_Gauss(Geometry1,x0,y0,z0,error_report(count+1))
      write (*,*) 'error_report: ',error_report(count+1)
    enddo
@@ -424,30 +239,24 @@ call record_Geometry(Geometry1,name_aux)
    call prin2('error_report=*',error_report,nrefine+1)
    write (*,*) 'error_report final: ',error_report
 
-  ifplot = 1
-  if (ifplot .eq. 1) then
-    print *
-    print *
-    print *, '. . . plotting vtk smoothed geometry'
+   ifplot = 1
+   if (ifplot .eq. 1) then
+     print *
+     print *
+     print *, '. . . plotting vtk smoothed geometry'
 
-    plot_name = 'smoothed_final.vtk'
-    call plotsmoothgeometryvtk(Geometry1, plot_name)
-    print *, '. . . finished plotting vtk smoothed geometry'
-  end if
+     plot_name = 'smoothed_final.vtk'
+     call plotsmoothgeometryvtk(Geometry1, plot_name)
+     print *, '. . . finished plotting vtk smoothed geometry'
+   end if
 
-!  write (*,*) 'Empezando la parte critica de refinar'
 
     write (*,*) 'FINAL REPORT'
     do count=0,nrefine
-        write (*,*) 'Refinement nº: ',int(count,4), '  Error: ', &
-        &real(error_report(count+1),4)!, '  Time: ',real(time_report(count+1),4),'sec'
+      write (*,*) 'Refinement nº: ',int(count,4), '  Error: ', &
+        real(error_report(count+1),4)
     enddo
 
-  ! write (*,*) 'FINAL REPORT'
-  ! do count=0,nrefine
-  !   write (*,*) 'Refinement num: ',int(count), '  Error: ', &
-  !       &error_report(count+1)
-  ! enddo
 
 end program smoother
 

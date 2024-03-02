@@ -9,3 +9,8 @@ int2
 *.log
 *.pdf
 *.txt
+*.msh
+*.go3
+*.dat
+*.sav*
+*.tri

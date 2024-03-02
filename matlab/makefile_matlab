@@ -1,7 +1,7 @@
 
-#HOST = osx-gcc
+HOST = osx-gcc
 #HOST = linux-gcc
-HOST = macos-gfortran-openmp
+#HOST = macos-gfortran-openmp
 #HOST = ubuntu-gfortran-openmp
 #HOST = osx-gcc-openmp
 #HOST = osx-intel
@@ -16,7 +16,7 @@ HOST = macos-gfortran-openmp
 
 PROJECT = int2
 
-GFORT = gfortran-10
+GFORT = gfortran
 
 ifeq ($(HOST),osx-gcc)
   FC = $(GFORT)
@@ -71,7 +71,7 @@ ifeq ($(HOST),macos-gfortran-openmp)
    FC = gfortran 
    FFLAGS = -O2  -w --openmp -std=legacy -fdefault-integer-8 -finteger-4-integer-8
    FLINK = gfortran --openmp -std=legacy -fdefault-integer-8 -finteger-4-integer-8 \
-       -w -o $(PROJECT) -llapack -lblas
+       -w -o $(PROJECT) -framework accelerate
 endif
 
 ifeq ($(HOST),ubuntu-gfortran-openmp)

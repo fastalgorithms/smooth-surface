@@ -104,7 +104,6 @@ subroutine plotskeletonvtk(Geometry1, filename)
     rr = Geometry1%Normal_Vert(1,i)**2 + &
          Geometry1%Normal_Vert(2,i)**2 + &
          Geometry1%Normal_Vert(3,i)**2
-    print *, i, rr
   end do
 
   close(iunit1)
@@ -131,6 +130,7 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
   real (kind = 8) :: dcond
   real (kind = 8) :: uv1(10), uv2(10), uv3(10), uv(10) 
   real (kind = 8), allocatable :: us(:),vs(:),ws(:),umatr(:,:),vmatr(:,:)
+  real (kind = 8), allocatable :: uvtmp(:,:)
   real (kind = 8), allocatable :: xcoefs(:), xrhs(:)
   real (kind = 8), allocatable :: ycoefs(:), yrhs(:),pols(:)
   real (kind = 8), allocatable :: zcoefs(:), zrhs(:),pinv(:,:)
@@ -167,11 +167,13 @@ subroutine plotsmoothgeometryvtk(Geometry1, filename)
   npols = (norder_smooth+1)*(norder_smooth+2)/2
   k = npols
   
-  allocate(us(k),vs(k),umatr(k,k),vmatr(k,k),ws(k))
+  allocate(us(k),vs(k),umatr(k,k),vmatr(k,k),ws(k), uvtmp(2,k))
   allocate(xrhs(k),yrhs(k),zrhs(k),pinv(k,k))
   allocate(xcoefs(k),ycoefs(k),zcoefs(k),pols(k))
-  call ortho2siexps(itype, norder_smooth, npols, us, vs, &
+  call vioreanu_simplex_quad(norder_smooth, npols, uvtmp, &
       umatr, vmatr, ws)
+  us = uvtmp(1,:)
+  vs = uvtmp(2,:)
 
 
   if (n_order_sf .gt. 4**0) nover = 1

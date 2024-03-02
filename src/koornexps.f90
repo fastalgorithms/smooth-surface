@@ -35,8 +35,18 @@
 !   koorn_evalexp2 - evaluates an orthogonal polynomial expansion,
 !       along with first and second partial derivatives
 !
-!   vioreanu_quad - 
+!   vioreanu_quad -
 !
+!   koornf_init - initialization routine for faster evaluation of
+!     polynomials and ders
+!
+!   koornf_pols - faster koornwinder polynomial evaluation routine
+!      after precomputed coeffcients
+!
+!   koornf_ders - faster koornwinder polynomial +derivative evaluation 
+!      routine after precomputed coeffcients
+!
+! Library dependencies:
 ! Library dependencies:
 !   prini.f
 !   LAPACK
@@ -44,68 +54,143 @@
 !
 !
 
-subroutine vioreanu_simplex_quad(norder, npols, xys, &
-    umatr, vmatr, whts)
+subroutine get_vioreanu_wts(norder,npols,wts)
+!
+!f2py intent(in) norder,npols
+!f2py intent(out) wts
+!
+!  This subroutine extracts the precomputed vioreanu quadrature weights
+!  
+!  Input arguments
+!    
+!    - norder: integer
+!        input order. Must be between 0 and 20
+!    - npols: integer
+!        npols = (norder+1)*(norder+2)/2
+!
+!  Output arguments
+!
+!    - wts: double precision(npols)
+!        vioreanu quadrature weights of order=norder+1
+!
   implicit real *8 (a-h,o-z)
-  real *8 :: xys(2,*), whts(*)
-  dimension xsout(10000), ysout(10000), umatr(1),vmatr(1)
-  !
-  ! This subroutine constructs the Vioreanu-Rokhlin quadrature nodes
-  ! and weights for polynomials on the simplex triangle with the
-  ! vertices
-  !
-  !       (0,0), (1,0), (0,1)                                   (1)
-  ! 
-  ! It also constructs the matrix vmatr converting the coefficients of
-  ! the polynomial expansion to its values at the interpolation nodes,
-  ! and its inverse umatr, converting the values of a function at the
-  ! interpolation nodes into the coefficients of the polynomial
-  ! expansion.
-  ! 
-  !          Input parameters:
-  ! 
-  !     norder - the order of the quadrature
-  ! 
-  ! 
-  !          Output parameters:
-  ! 
-  !     npols - the number of the polynomials, i.e. the terms in the
-  !           expansion
-  !     xsout - the x-coordinates of the interpolation nodes (npols of them)
-  !     ysout - the y-coordinates of the interpolation nodes (npols of them)
-  !     umatr - the npols*npols matrix, converting the values of the polynomial
-  !           at the interpolation nodes into the coefficients of its expansion
-  !     vmatr - the npols*npols matrix, converting the coefficients of 
-  !           the expansion into its values at the interpolation nodes.
-  !     wsout - the corresponding quadrature weigths (npols of them)
-  ! 
-  ! c
-  ! c
-  ! c       ... first, get the interpolation nodes for the standard triangle
-  ! c
-  ! c
-  call ortho2smexps(itype,norder,npols,xsout,ysout, &
-      umatr,vmatr,whts)
+  integer, intent(in) :: norder,npols
+  real *8, intent(out) :: wts(npols)
 
-!  print *, "constructed vioreanu quad, umatr and vmatr are wrong!!"
-!  print *, "please update using koorn_pols"
+  INCLUDE 'koorn-wts-dat.txt'
   
-  !
-  ! ... and convert them into simplex coordinates
-  !
-  do i=1,npols
-    call ortho2_stdtosimplex(xsout(i),ysout(i), xys(1,i), xys(2,i))
-    whts(i) = whts(i)/sqrt(3.0d0)
-    whts(i) = whts(i)*0.5d0
-  end do
+end subroutine get_vioreanu_wts
 
 
-  !
-  !!  temp fix to umatr and matr via calling vals2coefs and coefs2vals
-  !
 
-  call koorn_vals2coefs(norder, npols, xys, umatr)
-  call koorn_coefs2vals(norder, npols, xys, vmatr)
+
+
+
+subroutine get_vioreanu_nodes(norder,npols,uvs)
+!
+!f2py intent(in) norder,npols
+!f2py intent(out) uvs
+!
+!  This subroutine extracts the precomputed vioreanu quadrature
+!  or discretization nodes
+!  
+!  Input arguments
+!    
+!    - norder: integer
+!        input order. Must be between 0 and 20
+!    - npols: integer
+!        npols = (norder+1)*(norder+2)/2
+!
+!  Output arguments
+!
+!    - uvs: double precision(2,npols)
+!        vioreanu quadrature nodes of order=norder+1
+!
+  implicit real *8 (a-h,o-z)
+  integer, intent(in) :: norder,npols
+  real *8, intent(out) :: uvs(2,npols)
+
+  INCLUDE 'koorn-uvs-dat.txt'
+  
+end subroutine get_vioreanu_nodes
+
+
+
+
+
+
+subroutine get_vioreanu_nodes_wts(norder,npols,uvs,wts)
+!
+!f2py intent(in) norder,npols
+!f2py intent(out) uvs,wts
+!
+!  This subroutine extracts the precomputed vioreanu quadrature
+!  or discretization nodes and the corresponding weights
+!  
+!  Input arguments
+!    
+!    - norder: integer
+!        input order. Must be between 0 and 20
+!    - npols: integer
+!        npols = (norder+1)*(norder+2)/2
+!
+!  Output arguments
+!
+!    - uvs: double precision(2,npols)
+!        vioreanu quadrature nodes of order=norder+1
+!    - wts: double precision(npols)
+!        vioreanu quadrature weights of order=norder+1
+!
+  implicit real *8 (a-h,o-z)
+  integer, intent(in) :: norder,npols
+  real *8, intent(out) :: uvs(2,npols),wts(npols)
+
+  call get_vioreanu_nodes(norder,npols,uvs)
+  call get_vioreanu_wts(norder,npols,wts)
+  
+end subroutine get_vioreanu_nodes_wts
+
+
+
+
+
+subroutine vioreanu_simplex_quad(norder, npols, uvs, &
+    umatr, vmatr, wts)
+!
+!f2py intent(in) norder,npols
+!f2py intent(out) uvs,wts,umatr,vmatr
+!
+!  This subroutine extracts the precomputed vioreanu quadrature
+!  or discretization nodes, the corresponding weights, the coeffs
+!  to values matrix, and the values to coeffs matrix
+!  
+!  Input arguments
+!    
+!    - norder: integer
+!        input order. Must be between 0 and 20
+!    - npols: integer
+!        npols = (norder+1)*(norder+2)/2
+!
+!  Output arguments
+!
+!    - uvs: double precision(2,npols)
+!        vioreanu quadrature nodes of order=norder+1
+!    - umatr: double precision (npols,npols)
+!        vals to coeffs matrix
+!    - vmatr: double precision (npols,npols)
+!        coefs to vals matrix
+!    - wts: double precision(npols)
+!        vioreanu quadrature weights of order=norder+1
+!
+  implicit real *8 (a-h,o-z)
+  integer, intent(in) :: norder,npols
+  real *8, intent(out) :: uvs(2,npols),wts(npols)
+  real *8, intent(out) :: umatr(npols,npols),vmatr(npols,npols)
+
+
+  call get_vioreanu_nodes(norder,npols,uvs)
+  call get_vioreanu_wts(norder,npols,wts)
+  call koorn_vals2coefs_coefs2vals(norder,npols,umatr,vmatr)
 
 
   return
@@ -227,19 +312,45 @@ end subroutine koorn_pols
 
 
 
-subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
+subroutine koorn_ders(uv, nmax, npols, pols, ders)
+!-----------------------
+!  This subroutine evaluates the koornwinder polynomials and its
+!  derivatives upto a total order nmax
+!
+!  Input arguments:
+!
+!    - uv: double precision (2)
+!        uv coordinates on $T_{0}$ where polynomials and derivatives
+!        are to be evaluated
+!
+!    - nmax: integer
+!        total order upto which polynomials and derivatives are to
+!        be evaluated
+!
+!    - npols: integer
+!        total number of polynomials = (norder+1)*(norder+2)/2
+!
+!  Output parameters:
+!   
+!    - pols: double precision(npols)
+!        Koornwinder polynomials at uv
+!
+!    - ders: double precision(2,npols)
+!        Derivative of koornwinder polynomails at uv
+!---------------------
   implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), pols(*), ders(2,*), der2s(3,*)
+  integer, intent(in) :: nmax,npols
+  real *8, intent(in) :: uv(2)
+  real *8, intent(out) :: pols(npols), ders(2,npols)
 
   real *8 :: legpols(0:100), jacpols(0:100,0:100)
-  real *8 :: legu(0:100), legv(0:100), leguu(0:100)
-  real *8 :: leguv(0:100), legvv(0:100)
-  real *8 :: jacv(0:100,0:100), jacvv(0:100,0:100)
+  real *8 :: legu(0:100), legv(0:100)
+  real *8 :: jacv(0:100,0:100)
   
   
   !
   ! This subroutine evalutes a bunch of orthogonal polynomials (and
-  ! their first and second partial derivatives) on the simplex with
+  ! their first partial derivatives) on the simplex with
   ! vertices (0,0), (1,0), (0,1). The polynomials computed by this
   ! routine are normalized and rotated Koornwinder polynomials, which
   ! are classically defined on the triangle with vertices (0,0),
@@ -267,18 +378,16 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
   !   pols - values of all the polynomials, ordered in the following
   !       (n,k) manner:
   !
-  !            (0,0), (1,0), (1,1), (2,0), (2,1), (2,2), etc.
+  !            (0,0), (1,0), (0,1), (2,0), (1,1), (0,2), etc.
   !
   !   ders - partial derivatives with respect to u and v
-  !   der2s - second partial derivatives, uu, uv, vv
   !
   !
 
 
   done = 1
   if (nmax .ge. 100) then
-    print *, "nmax too large, nmae = ", nmax
-    !!!!call prinf('nmax too large, nmax = *', nmax, 1)
+    call prinf('nmax too large, nmax = *', nmax, 1)
     stop
   end if
   
@@ -300,50 +409,14 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
   legv(0) = 0
   legv(1) = 1
 
-  leguu(0) = 0
-  leguu(1) = 0
-  
-  leguv(0) = 0
-  leguv(1) = 0
-  
-  legvv(0) = 0
-  legvv(1) = 0
-
   do k=1,nmax
     legpols(k+1) = ((2*k+1)*z*legpols(k) - k*legpols(k-1)*y*y)/(k+1)
     legu(k+1) = ((2*k+1)*(2*legpols(k) + z*legu(k)) - &
         k*legu(k-1)*y*y)/(k+1)
     legv(k+1) = ((2*k+1)*(legpols(k) + z*legv(k)) - &
         k*(legv(k-1)*y*y - 2*legpols(k-1)*y ))/(k+1)
-    leguu(k+1) = ((2*k+1)*(4*legu(k) + z*leguu(k)) - &
-        k*leguu(k-1)*y*y)/(k+1)
-    leguv(k+1) = ((2*k+1)*(2*legv(k) + legu(k) + z*leguv(k)) - &
-        k*(leguv(k-1)*y*y - 2*y*legu(k-1) ))/(k+1)
-    legvv(k+1) = ((2*k+1)*(2*legv(k) + z*legvv(k)) - &
-        k*(legvv(k-1)*y*y - 4*y*legv(k-1) + 2*legpols(k-1) ))/(k+1)
   end do
 
-
-  ! !
-  ! ! temporarily return these functions to test the partial deriviates
-  ! ! via finite differences
-  ! !
-  ! npols = nmax+1
-  ! do i = 1,nmax+1
-  !   pols(i) = legpols(i-1)
-  !   ders(1,i) = legu(i-1)
-  !   ders(2,i) = legv(i-1)
-  !   der2s(1,i) = leguu(i-1)
-  !   der2s(2,i) = leguv(i-1)
-  !   der2s(3,i) = legvv(i-1)
-  ! end do
-
-  ! return
-  
-  
-  !!call prin2('legpols = *', legpols, nmax+1)
-  !!stop
-  
 
   !
   ! now loop over degrees, in reverse order,
@@ -359,9 +432,6 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
     jacv(0,k) = 0
     jacv(1,k) = -(2+beta)
 
-    jacvv(0,k) = 0
-    jacvv(1,k) = 0
-
     do n = 1,nmax-k-1
       an = (2*n+beta+1)*(2*n+beta+2)/2/(n+1)/(n+beta+1)
       bn = (-beta**2)*(2*n+beta+1)/2/(n+1)/(n+beta+1)/(2*n+beta)
@@ -369,41 +439,10 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
       jacpols(n+1,k) = (an*x + bn)*jacpols(n,k) - cn*jacpols(n-1,k)
       jacv(n+1,k) = -2*an*jacpols(n,k) + (an*x + bn)*jacv(n,k) &
           - cn*jacv(n-1,k)
-      jacvv(n+1,k) = -4*an*jacv(n,k) + (an*x + bn)*jacvv(n,k) &
-          - cn*jacvv(n-1,k)
     end do
 
   end do
 
-
-
-  ! !
-  ! ! temporarily return these functions to test the partial deriviates
-  ! ! via finite differences
-  ! !
-  ! i = 0
-  ! do k = 0,nmax
-  !   do n = 0,nmax-k
-  !     i = i + 1
-  !     pols(i) = jacpols(n,k)
-  !     ders(1,i) = 0
-  !     ders(2,i) = jacv(n,k)
-  !     der2s(1,i) = 0
-  !     der2s(2,i) = 0
-  !     der2s(3,i) = jacvv(n,k)
-  !   end do
-  ! end do
-
-  ! npols = i
-  ! return
-
-
-  
-
-  !do k = 0,nmax
-  !  call prinf('k = *', k, 1)
-  !  call prin2('jacpols = *', jacpols(0,k), nmax-k+1)
-  !end do
 
   !
   ! now assemble the ORTHONORMAL koornwinder polynomials
@@ -411,21 +450,15 @@ subroutine koorn_ders(uv, nmax, npols, pols, ders, der2s)
   iii = 0
   do n = 0,nmax
     do k = 0,n
-      sc = sqrt(done/(2*k+1)/(2*n+2))
+      sc = sqrt(done/(2*k+1)/(2*n+2)) 
       iii = iii + 1
-      pols(iii) = legpols(k)*jacpols(n-k,k)/sc
-      ders(1,iii) = legu(k)*jacpols(n-k,k)/sc
-      ders(2,iii) = (legv(k)*jacpols(n-k,k) &
-          + legpols(k)*jacv(n-k,k))/sc
-      der2s(1,iii) = leguu(k)*jacpols(n-k,k)/sc
-      der2s(2,iii) = (leguv(k)*jacpols(n-k,k) &
-          + legu(k)*jacv(n-k,k))/sc
-      der2s(3,iii) = (legvv(k)*jacpols(n-k,k) &
-          + 2*legv(k)*jacv(n-k,k) + legpols(k)*jacvv(n-k,k))/sc
+      pols(iii) = legpols(k)*jacpols(n-k,k)/sc 
+      ders(1,iii) = legu(k)*jacpols(n-k,k)/sc 
+      ders(2,iii) = (legv(k)*jacpols(n-k,k) + &
+           legpols(k)*jacv(n-k,k))/sc 
     end do
   end do
 
-  npols = iii
 
   return
 end subroutine koorn_ders
@@ -435,8 +468,14 @@ end subroutine koorn_ders
 
 
 subroutine koorn_vals2coefs(nmax, npols, uvs, amat)
+!
+!f2py intent(in) nmax,npols,uvs
+!f2py intent(out) amat
+!
   implicit real *8 (a-h,o-z)
-  real *8 :: uvs(2,npols), amat(npols,npols)
+  integer, intent(in) :: nmax,npols
+  real *8, intent(in) :: uvs(2,npols)
+  real *8, intent(out) :: amat(npols,npols)
 
   real *8, allocatable :: bmat(:,:)
   
@@ -461,7 +500,6 @@ subroutine koorn_vals2coefs(nmax, npols, uvs, amat)
 
   allocate(bmat(npols,npols))
   call koorn_coefs2vals(nmax, npols, uvs, bmat)
-
   
   !
   ! now construct its inverse
@@ -476,8 +514,14 @@ end subroutine koorn_vals2coefs
 
 
 subroutine koorn_coefs2vals(nmax, npols, uvs, amat)
+!
+!f2py intent(in) nmax,npols,uvs
+!f2py intent(out) amat
+!
   implicit real *8 (a-h,o-z)
-  real *8 :: uvs(2,npols), amat(npols,npols)
+  integer, intent(in) :: nmax,npols
+  real *8, intent(in) :: uvs(2,npols)
+  real *8, intent(out) :: amat(npols,npols)
 
   real *8 :: pols(2000)
   
@@ -514,6 +558,9 @@ end subroutine koorn_coefs2vals
 
 
 subroutine koorn_vals2coefs_coefs2vals(korder,kpols,umatr,vmatr)
+!
+!f2py intent(in) korder,kpols
+!f2py intent(out) umatr,vmatr
   !
   !!   compute vals2coefs and coefs2vals matrix 
   !
@@ -531,21 +578,44 @@ subroutine koorn_vals2coefs_coefs2vals(korder,kpols,umatr,vmatr)
   !    vmatr      out: real *8 (kpols,kpols)
   !               coefs2vals matrix
   implicit real *8 (a-h,o-z)
-  integer korder
-  real *8 umatr(kpols,kpols)
-  real *8 vmatr(kpols,kpols)
+  integer, intent(in) :: korder,kpols
+  real *8, intent(out) :: umatr(kpols,kpols)
+  real *8, intent(out) :: vmatr(kpols,kpols)
   real *8 xys(2,kpols)
-  real *8 wts(kpols)
 
-  call vioreanu_simplex_quad(korder, kpols, xys, umatr,vmatr,wts)
+  call get_vioreanu_nodes(korder,kpols,xys)
   call koorn_coefs2vals(korder,kpols,xys,vmatr)
   call dinverse(kpols, vmatr, info, umatr)
 
 
   return
 end subroutine koorn_vals2coefs_coefs2vals
+!
+!
+!
+!
+!
+subroutine koorn_coefs2vals_vioreanu(norder, npols, amat)
+!
+!f2py intent(in) npols,norder
+!f2py intent(out) amat(npols,npols)
+!
+!
+  implicit real *8 (a-h,o-z)
+  integer, intent(in) :: norder, npols
+  real *8, intent(out) :: amat(npols,npols)
+  real *8 :: uvs(2,npols)
 
+  INCLUDE 'koorn-uvs-dat.txt'
+  call koorn_coefs2vals(norder, npols, uvs, amat)
 
+  return
+end subroutine koorn_coefs2vals_vioreanu
+!
+!
+!
+!
+!
 
 
 subroutine koorn_oversamp_mat(korder,kpols,norder,npols,interpmat)
@@ -630,11 +700,11 @@ end subroutine koorn_evalexp
 
 
 
-subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der, der2)
+subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der)
   implicit real *8 (a-h,o-z)
-  real *8 :: uv(2), coefs(npols), der(2), der2(3)
+  real *8 :: uv(2), coefs(npols), der(2)
 
-  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
+  real *8 :: pols(2000), ders(2,2000)
 
   !
   ! Evaluate the orthgonal polynomial expansion with given
@@ -649,10 +719,9 @@ subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der, der2)
   ! Output:
   !   val - the value of the expansion at uv
   !   der - the partial derivative at uv
-  !   der2 - the second partial derivatives at uv
   !
 
-  call koorn_ders(uv, nmax, npols2, pols, ders, der2s)
+  call koorn_ders(uv, nmax, npols2, pols, ders)
 
   val = 0
   du = 0
@@ -664,16 +733,10 @@ subroutine koorn_evalexp2(nmax, npols, uv, coefs, val, der, der2)
     val = val + coefs(i)*pols(i)
     du = du + coefs(i)*ders(1,i)
     dv = dv + coefs(i)*ders(2,i)
-    duu = duu + coefs(i)*der2s(1,i)
-    duv = duv + coefs(i)*der2s(2,i)
-    dvv = dvv + coefs(i)*der2s(3,i)
   end do
 
   der(1) = du
   der(2) = dv
-  der2(1) = duu
-  der2(2) = duv
-  der2(3) = dvv
   
   return
 end subroutine koorn_evalexp2
@@ -682,12 +745,12 @@ end subroutine koorn_evalexp2
 
 
 
-subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der, der2)
+subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der)
   implicit real *8 (a-h,o-z)
   real *8 :: uv(2)
-  complex *16 :: coefs(npols), val, der(2), der2(3)
+  complex *16 :: coefs(npols), val, der(2)
 
-  real *8 :: pols(2000), ders(2,2000), der2s(3,2000)
+  real *8 :: pols(2000), ders(2,2000)
   complex *16 :: du, dv, duu, duv, dvv
 
   !
@@ -703,10 +766,9 @@ subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der, der2)
   ! Output:
   !   val - the value of the expansion at uv
   !   der - the partial derivative at uv
-  !   der2 - the second partial derivatives at uv
   !
 
-  call koorn_ders(uv, nmax, npols2, pols, ders, der2s)
+  call koorn_ders(uv, nmax, npols2, pols, ders)
 
   val = 0
   du = 0
@@ -718,16 +780,10 @@ subroutine koorn_zevalexp2(nmax, npols, uv, coefs, val, der, der2)
     val = val + coefs(i)*pols(i)
     du = du + coefs(i)*ders(1,i)
     dv = dv + coefs(i)*ders(2,i)
-    duu = duu + coefs(i)*der2s(1,i)
-    duv = duv + coefs(i)*der2s(2,i)
-    dvv = dvv + coefs(i)*der2s(3,i)
   end do
 
   der(1) = du
   der(2) = dv
-  der2(1) = duu
-  der2(2) = duv
-  der2(3) = dvv
   
   return
 end subroutine koorn_zevalexp2
@@ -760,3 +816,346 @@ end subroutine koorn_zevalexp2
 
 
   
+
+
+!
+! faster version for real argument 
+!
+
+
+subroutine koornf_init(nmax, rat1, rat2, rsc1)
+  implicit real *8 (a-h,o-z)
+!
+! Precompute the recurrence coefficients for the fast
+! evaluation of koornwinder functions on triangles and their derivatives
+!    
+! Parameters:
+!   nmax                      must be non-negative
+!   rat1(1:2,0:nmax)          recurrence coefficients
+!   rat2(1:3,0:nmax,0:nmax)   recurrence coefficients
+!   rsc1(0:nmax,0:nmax)       scaling factors
+!
+  real *8 :: rat1(2,0:nmax)
+  real *8 :: rat2(3,0:nmax,0:nmax)
+  real *8 :: rsc1(0:nmax,0:nmax)
+
+  do k=0,nmax
+    do l=0,nmax
+      rsc1(l,k) = 0
+      rat2(1,l,k) = 0
+      rat2(2,l,k) = 0
+      rat2(3,l,k) = 0
+    enddo
+    rat1(1,k) = 0
+    rat1(2,k) = 0
+  enddo
+
+  do k=1,nmax
+     rat1(1,k) = (2*k+1)/(k+1.0d0)
+     rat1(2,k) = -k/(k+1.0d0)
+  enddo
+  
+  do k = 0,nmax
+     beta = 2*k+1
+
+     if(nmax.gt.0) then
+       rat2(1,1,k) = (2+beta)/2
+       rat2(2,1,k) = -beta/2
+     endif
+
+     do n = 1,nmax-k-1
+        an = (2*n+beta+1)*(2*n+beta+2)/2/(n+1.0d0)/(n+beta+1)
+        bn = (-beta**2)*(2*n+beta+1)/2/(n+1.0d0)/(n+beta+1)/(2*n+beta)
+        cn = n*(n+beta)*(2*n+beta+2)/(n+1.0d0)/(n+beta+1)/(2*n+beta)
+        rat2(1,n+1,k) = an
+        rat2(2,n+1,k) = bn
+        rat2(3,n+1,k) = -cn
+     enddo
+  enddo
+
+  done=1
+  !
+  ! now assemble the ORTHONORMAL koornwinder polynomials
+  !
+  iii = 0
+  do n = 0,nmax
+    do k = 0,n
+      sc = sqrt(done/(2*k+1)/(2*n+2))
+      iii = iii + 1
+      rsc1(n-k,k) = 1/sc
+    end do
+  end do
+  
+  return
+end subroutine koornf_init
+
+
+
+subroutine koornf_pols(uv, nmax, npols, pols, rat1, rat2, rsc1)
+  implicit real *8 (a-h,o-z)
+  real *8 :: uv(2), pols(*)
+
+  real *8 :: rat1(2,0:nmax)
+  real *8 :: rat2(3,0:nmax,0:nmax)
+  real *8 :: rsc1(0:nmax,0:nmax)
+  real *8 :: legpols(0:100), jacpols(0:100,0:100)
+
+  !
+  ! This subroutine evalutes a bunch of orthogonal polynomials on the
+  ! simplex with vertices (0,0), (1,0), (0,1). The polynomials
+  ! computed by this routine are normalized and rotated Koornwinder
+  ! polynomials, which are classically defined on the triangle with
+  ! vertices (0,0), (1,0), (1,1), and given analytically as:
+  !
+  !   K_{n,k}(x,y) = P_{n-k}^(0,2k+1) (2x+1)  x^k  P_k(2y/x-1)
+  !
+  ! After mapping to the uv-simplex via the change of variables
+  !
+  !      u = y,  v = 1-x
+  !
+  ! these polynomials are given as
+  !
+  !   K_{n,k}(u,v) = P_{n-k}^(0,2k+1) (1-2v)  (1-v)^k  \cdot
+  !        P_k((2u+v-1)/(1-v))
+  !
+  ! See Koornwinder 1975 for details, or the NIST handbook.
+  !
+  ! Input:
+  !   uv - a point in the simplex (0,0), (1,0), (0,1)
+  !   nmax - maximum degree polynomials to compute, a total of
+  !       (nmax+1)(nmax+2)/2 values are returned
+  !
+  ! Output:
+  !   npols - number of pols = (nmax+1)*(nmax+2)/2
+  !   pols - values of all the polynomials, ordered in the following
+  !       (n,k) manner:
+  !
+  !            (0,0), (1,0), (0,1), (2,0), (1,1), (0,2), etc.
+  !
+  !
+  done = 1
+  if (nmax .ge. 100) then
+     call prinf('nmax too large, nmax = *', nmax, 1)
+     stop
+  end if
+
+  u = uv(1)
+  v = uv(2)
+
+  !
+  ! first run the recurrence for P_k(z/y)*y^k
+  !
+  z = 2*u+v-1
+  y = 1-v
+
+  legpols(0) = 1
+  legpols(1) = z
+
+  do k=1,nmax-1
+     legpols(k+1) = rat1(1,k)*z*legpols(k) + rat1(2,k)*legpols(k-1)*y*y
+  end do
+
+  !!call prin2('legpols = *', legpols, nmax+1)
+  !!stop
+  
+
+  !
+  ! now loop over degrees, in reverse order,
+  ! and for each run the jacobi recurrence
+  !
+  x = 1-2*v
+  
+  do k = 0,nmax
+     jacpols(0,k) = 1
+     if(nmax.gt.0) jacpols(1,k) = rat2(1,1,k)*x + rat2(2,1,k)
+
+     do n = 1,nmax-k-1
+        jacpols(n+1,k) = (rat2(1,n+1,k)*x + rat2(2,n+1,k))*jacpols(n,k) + &
+             rat2(3,n+1,k)*jacpols(n-1,k)
+     end do
+
+  end do
+
+
+  !do k = 0,nmax
+  !  call prinf('k = *', k, 1)
+  !  call prin2('jacpols = *', jacpols(0,k), nmax-k+1)
+  !end do
+
+  !
+  ! now assemble the ORTHONORMAL koornwinder polynomials
+  ! compatible with koorn_pols
+  !
+  iii = 0
+  do n = 0,nmax
+    do k = 0,n
+      iii = iii + 1
+      pols(iii) = legpols(k)*jacpols(n-k,k) * rsc1(n-k,k)
+    end do
+  end do
+
+  npols = iii
+
+  return
+end subroutine koornf_pols
+
+
+
+
+
+
+
+subroutine koornf_ders(uv, nmax, npols, pols, ders, rat1, rat2, rsc1)
+!-----------------------
+!  This subroutine evaluates the koornwinder polynomials and its
+!  derivatives upto a total order nmax, where precomputed
+!  coeffs for recurrence relations have been precomputed.
+!
+!  Note that the factors rat1,rat2, and rsc1 must be precomputed
+!  with a call to koornf_init
+!
+!  Input arguments:
+!
+!    - uv: double precision (2)
+!        uv coordinates on $T_{0}$ where polynomials and derivatives
+!        are to be evaluated
+!
+!    - nmax: integer
+!        total order upto which polynomials and derivatives are to
+!        be evaluated
+!
+!    - npols: integer
+!        total number of polynomials = (norder+1)*(norder+2)/2
+!
+!    - rat1: double precision (2,0:nmax)
+!        recurrence coefficients 1 from koornf_init
+!        
+!    - rat2: double precision (3,0:nmax,0:nmax)
+!        recurrence coefficients 2 from koornf_init
+!        
+!    - rsc1: double precision (3,0:nmax,0:nmax)
+!        scaling factors from koornf_init
+!
+!  Output parameters:
+!   
+!    - pols: double precision(npols)
+!        Koornwinder polynomials at uv
+!
+!    - ders: double precision(2,npols)
+!        Derivative of koornwinder polynomails at uv
+!---------------------
+!
+  implicit real *8 (a-h,o-z)
+  real *8, intent(in) :: uv(2)
+  integer, intent(in) :: nmax
+  real *8, intent(in) :: rat1(2,0:nmax)
+  real *8, intent(in) :: rat2(3,0:nmax,0:nmax)
+  real *8, intent(in) :: rsc1(0:nmax,0:nmax)
+  real *8, intent(out) :: pols(npols), ders(2,npols)
+
+  real *8, allocatable :: jacpols(:,:),jacv(:,:)
+  real *8 :: legpols(0:100) 
+  real *8 :: legu(0:100), legv(0:100)
+
+  allocate(jacpols(0:100,0:100),jacv(0:100,0:100))
+
+  
+  
+  !
+  ! This subroutine evalutes a bunch of orthogonal polynomials (and
+  ! their first partial derivatives) on the simplex with
+  ! vertices (0,0), (1,0), (0,1). The polynomials computed by this
+  ! routine are normalized and rotated Koornwinder polynomials, which
+  ! are classically defined on the triangle with vertices (0,0),
+  ! (1,0), (1,1), and given analytically as:
+  !
+  !   K_{n,k}(x,y) = P_{n-k}^(0,2k+1) (2x+1)  x^k  P_k(2y/x-1)
+  !
+  ! After mapping to the uv-simplex via the change of variables
+  !
+  !      u = y,  v = 1-x
+  !
+  ! these polynomials are given as
+  !
+  !   K_{n,k}(u,v) = P_{n-k}^(0,2k+1) (1-2v)  (1-v)^k  \cdot
+  !        P_k((2u+v-1)/(1-v))
+  !
+  ! See Koornwinder 1975 for details, or the NIST handbook.
+  !
+  !
+
+
+  done = 1
+  if (nmax .ge. 100) then
+    call prinf('nmax too large, nmax = *', nmax, 1)
+    stop
+  end if
+  
+
+  !
+  ! first run the recurrence for P_k(z/y)*y^k
+  !
+  u = uv(1)
+  v = uv(2)
+  z = 2*u+v-1
+  y = 1-v
+
+  legpols(0) = 1
+  legpols(1) = z
+
+  legu(0) = 0
+  legu(1) = 2
+
+  legv(0) = 0
+  legv(1) = 1
+
+  do k=1,nmax
+     legpols(k+1) = rat1(1,k)*z*legpols(k) + rat1(2,k)*legpols(k-1)*y*y
+     legu(k+1) = (rat1(1,k)*(2*legpols(k) + z*legu(k)) + &
+          rat1(2,k)*legu(k-1)*y*y)
+     legv(k+1) = (rat1(1,k)*(legpols(k) + z*legv(k)) + &
+          rat1(2,k)*(legv(k-1)*y*y - 2*legpols(k-1)*y ))
+  end do
+
+  !
+  ! now loop over degrees, in reverse order,
+  ! and for each run the jacobi recurrence
+  !
+  x = 1-2*v
+  
+  do k = 0,nmax
+     jacpols(0,k) = 1
+     jacpols(1,k) = rat2(1,1,k)*x + rat2(2,1,k)
+
+     jacv(0,k) = 0
+     jacv(1,k) = -2*rat2(1,1,k)
+
+     do n = 1,nmax-k-1
+        jacpols(n+1,k) = (rat2(1,n+1,k)*x + rat2(2,n+1,k))*jacpols(n,k) + &
+             rat2(3,n+1,k)*jacpols(n-1,k)
+        jacv(n+1,k) = -2*rat2(1,n+1,k)*jacpols(n,k) + &
+             (rat2(1,n+1,k)*x + rat2(2,n+1,k))*jacv(n,k) + &
+             rat2(3,n+1,k)*jacv(n-1,k)
+     end do
+  end do
+
+  !
+  ! now assemble the ORTHOGONAL koornwinder polynomials
+  ! compatible with ortho2eva3
+  !
+  iii = 0
+  do n = 0,nmax
+     do k = 0,n
+        iii = iii + 1
+        pols(iii) = legpols(k)*jacpols(n-k,k) * rsc1(n-k,k)
+        ders(1,iii) = legu(k)*jacpols(n-k,k) * rsc1(n-k,k)
+        ders(2,iii) = (legv(k)*jacpols(n-k,k) + &
+             legpols(k)*jacv(n-k,k))* rsc1(n-k,k)
+     end do
+  end do
+
+  npols = iii
+
+  return
+end subroutine koornf_ders
+

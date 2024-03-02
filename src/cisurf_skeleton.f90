@@ -75,13 +75,11 @@ subroutine funcion_skeleton(Geometry1)
   ! get the specified quadrature nodes and weights on the simplex of
   ! order norder_skel
   
-  
+  npols = nsk 
   call vioreanu_simplex_quad(norder_skel,npols, UV, umatr,vmatr,w)
   U = UV(1,:)
   V = UV(2,:)
    
-!  call ortho2siexps(itype, norder_skel, npols, U, V, &
-!      umatr, vmatr, w)
 
   
   if (allocated(Geometry1%skeleton_Points)) then
